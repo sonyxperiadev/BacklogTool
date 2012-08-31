@@ -1,0 +1,562 @@
+/*
+ *  The MIT License
+ *
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+body {
+    font-family: arial, Helvetica, sans-serif;
+    font-size: 15px;
+    min-width: 900px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin: 0;
+}
+
+#archived-list-container {
+    border-top: 15px solid #555555;
+}
+
+.story p {
+    min-height: 15px;
+    margin: 1px 0 1px 0;
+}
+
+html,body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+form {
+    margin: 0.2em;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+}
+
+.icon-hidden {
+    opacity: 0.5;
+}
+
+header {
+    position:fixed;
+    top:0;
+    height:85px;
+    padding: 0 5% 0 5%;
+    background-color: #eeeeee;
+    min-width: 90%;
+    border-bottom: 1px solid #DDD;
+}
+
+a {
+    cursor: pointer;
+    cursor: hand;
+}
+
+p {
+    font-size: 0.7em;
+    margin: 0.1em;
+}
+
+#create-parent, #save-changes, #print-stories, #hide-archived-list-container, #login-out {
+    display: inline-block;
+    vertical-align: top;
+    width: 110px;
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.headerText {
+    width: 110px;
+    font-size:10px !important;
+    text-align: center;
+}
+
+.orderBy, .showArchive, .hideShowAll {
+    display:inline-block;
+    text-align: center;
+}
+#orderBy {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.order {
+    font-size: 10px;
+}
+
+#topic,#topic-area {
+    padding: 10px 0 10px 0;
+}
+
+#topic-area {
+    float: left;
+    font-size: 20px;
+    color: #1c94c4;
+    text-transform: none;
+}
+
+#topic {
+    font-size: 20px;
+    text-decoration: none;
+    color: #494949;
+    float: left;
+    -o-transition: .3s;
+    -ms-transition: .3s;
+    -moz-transition: .3s;
+    -webkit-transition: .3s;
+    transition: .1s;
+}
+
+.error-message {
+    color: red;
+    font-size: 1em;
+    margin: 0.2em;
+    font-weight: bold;
+}
+
+textarea {
+    font-family: arial, Helvetica, sans-serif;
+    border-radius: 5px;
+    border: 1px solid #DDD;
+    resize: vertical;
+    float: left;
+    width: 99%;
+}
+
+textarea:focus {
+    border-color: #f00;
+}
+
+.padding-left {
+    padding-left: 5%;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.icon-container {
+    background-color: #F3F7FF;
+}
+
+#taskDescription,#owner,#create-storyTitle,#storyDescription,#epic,#theme
+    {
+    min-width: 95%;
+    resize: none;
+}
+
+#deleteItem, #delete-admin, #delete-editor, #delete-area, #image_container {
+    display: none;
+}
+
+.icon {
+    display: inline-block;
+    float: left;
+    min-height: 17px;
+    min-width: 17px;
+    vertical-align: top;
+    cursor: pointer;
+    cursor: hand;
+}
+
+div#icons {
+    width: 20px;
+    margin: 5px;
+    display: inline-block;
+    float: left;
+}
+
+.childLi {
+    color: #494949;
+    padding: 4px;
+    font-weight: lighter;
+    padding-top: 2px;
+    padding-bottom: 3px;
+}
+
+#archived-list-container li {
+    background: #EDECEC;
+}
+
+.parentLi {
+    padding: 4px;
+    color: black;
+    font-weight: lighter;
+}
+
+p.description,p.titleText {
+    max-width: 95%;
+    word-wrap: break-word;
+}
+
+p.description {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #494949;
+}
+
+.title {
+    height: 19px;
+    color: #494949;
+}
+
+p.theme,p.epic,p.typeMark {
+    color: black;
+    display: inline;
+    float: left;
+    font-size: 0.75em;
+    padding: 0.3em;
+}
+
+.marginLeft {
+    margin-left: 6%;
+}
+
+p.theme {
+    background-color: #d5ff5c;
+    border: 1px solid #c7fe2f;
+}
+
+p.epic {
+    background-color: #ffe45c;
+    border: 1px solid #fed22f;
+}
+
+p.typeMark {
+    background-color: #eeeeee;
+    border: 1px solid #dddddd;
+}
+
+.createStory-column {
+    width: 45%;
+    display: inline-block;
+    float: left;
+    word-wrap: break-word;
+}
+
+div.status,div.effort,div.times {
+    display: inline-block;
+    width: 11%;
+    float: left;
+    word-wrap: break-word;
+}
+
+div.stakeholders {
+    display: inline-block;
+    width: 15%;
+    float: left;
+}
+
+select.contributorSite,select.customerSite,select.status,select.prio,select.effort
+    {
+    height: 23px;
+}
+
+input.added,input.deadline,input.customer,input.contributor {
+    height: 22px;
+}
+
+input.customer,input.contributor {
+    width: 62%;
+}
+
+.add-child-icon {
+    background-image: url(../css/ui-lightness/images/add_child.png);
+}
+
+.delete-icon {
+    background-image: url(../css/ui-lightness/images/delete.png);
+    float: right;
+}
+
+#titleDiv, #titleDivEpicStory, #titleDivThemeEpic {
+    display: inline-block;
+    float: left;
+    vertical-align: top;
+    word-wrap: break-word;
+}
+
+#titleDiv {
+    width: 45%;
+}
+
+div#titleDivEpicStory {
+    width: 40%;
+}
+
+div#titleDivThemeEpic {
+    width: 88%;
+}
+
+.titleText {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: black;
+}
+
+.taskHeading {
+    display: inline;
+    font-size: 0.7em;
+}
+
+.taskInfo {
+    font-size: 0.85em;
+    display: inline;
+    font-weight: bold;
+}
+
+.calculatedTime {
+    display: inline-block;
+    width: 12%;
+    margin-left: 1%;
+    margin-right: 1%;
+    word-wrap: break-word;
+}
+
+.taskOwner, .calulatedTime, .taskStatus {
+    float: left;
+}
+
+.taskTitle {
+    display: inline-block;
+    width: 38%;
+    float: left;
+    vertical-align: top;
+    word-wrap: break-word;
+}
+
+.taskOwner {
+    display: inline-block;
+    width: 14%;
+    margin-left: 1%;
+    word-wrap: break-word;
+    display: inline-block;
+}
+
+.taskStatus {
+    display: inline-block;
+    width: 15%;
+    margin-left: 1%;
+    display: inline-block;
+}
+
+#customer,#contributor {
+    display: inline;
+    width: 56%;
+}
+
+#customerSite,#contributorSite {
+    display: inline;
+    width: 38%;
+}
+
+.deadline,.added,.prio,.status,.effort {
+    width: 95%;
+}
+
+.customerSite,.contributorSite {
+    display: inline;
+}
+
+.customer,.contributor {
+    display: inline;
+    margin-left: 2px !important;
+}
+
+select.status,select.prio,select.effort {
+    height: 23px;
+}
+
+.ui-button .ui-button-text {
+    padding: 5px !important;
+    font-size: .70em !important;
+}
+
+
+
+
+.textstyle {
+    color: #494949;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 1.1em;
+    line-height: 1.2em;
+    text-decoration: none;
+}
+
+.navigation-link {
+    margin-top: 8px;
+    float: right;
+    -o-transition: .3s;
+    -ms-transition: .3s;
+    -moz-transition: .3s;
+    -webkit-transition: .3s;
+    transition: .1s;
+    color: #494949;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    line-height: 1.0em;
+    text-decoration: none;
+}
+
+.error-text {
+    margin-top: 20px;
+    -o-transition: .3s;
+    -ms-transition: .3s;
+    -moz-transition: .3s;
+    -webkit-transition: .3s;
+    transition: .1s;
+    color: #494949;
+    font-size: 1.1em;
+    line-height: 1.0em;
+    text-decoration: none;
+}
+
+.navigation-link:hover,#topic:hover,.area-links:hover {
+    color: #E78F08;
+}
+
+.area-links {
+    color: #494949;
+    font-size: 18px;
+    line-height: 21px;
+    height: 21px;
+    text-decoration: none;
+    -o-transition: .3s;
+    -ms-transition: .3s;
+    -moz-transition: .3s;
+    -webkit-transition: .3s;
+    transition: .1s;
+}
+
+#list-container-div {
+    width: 90%;
+    margin: 85px auto;
+}
+
+#area-container-div {
+    float: left;
+}
+
+#info-container-div {
+    float: right;
+    font-size: 18px;
+    width: 330px;
+    border: 1px solid #DDD;
+    background-color: #DEF;
+    border-radius: 15px;
+    padding: 5px;
+    margin: 15px 10% 0 0;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.ui-selected {
+    background: #def;
+}
+
+.hidden-edit {
+    display: none !important;
+    float: left;
+}
+
+textarea.epic,textarea.theme {
+    width: 42%;;
+}
+
+p.added,p.deadline {
+    height: 1.2em;
+}
+
+#added,#storyAttr1,#storyAttr2,#storyAttr3,#top,#deadline {
+    width: 97%;
+}
+
+div.ui-datepicker {
+    font-size: 0.85em;
+}
+
+/** Styles for create new task */
+label,input {
+    display: block;
+}
+
+select,input {
+    padding: .1em;
+}
+
+fieldset {
+    padding: 0;
+    border: 0;
+    margin-top: 25px;
+}
+
+.ui-dialog .ui-state-error {
+    padding: .3em;
+}
+
+.ui-hidden {
+    display: none;
+}
+
+.validateTips {
+    border: 1px solid transparent;
+    padding: 0.3em;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.attrTitle {
+    width: 250px;
+}
+
+.attrOptionTitle {
+    width: 150px;
+}
+
+.marginTop {
+    margin-top: 18px;
+}
+
+.marginTopBig {
+    margin-top: 40px
+}
+
+.ui-selected {
+    background: #DEF !important;
+}
+
+.marginTopButton {
+    margin-top: 62px
+}

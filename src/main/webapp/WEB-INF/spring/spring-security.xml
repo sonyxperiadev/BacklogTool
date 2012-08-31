@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+   http://www.springframework.org/schema/security
+   http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+    <bean id="propertyConfigurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location">
+            <value>file:${catalina.home}/conf/backlogtool.properties</value>
+        </property>
+    </bean>
+
+    <!-- This is where we configure Spring-Security -->
+
+    <security:http auto-config="true" use-expressions="true">
+
+        <security:intercept-url pattern="/auth/login"
+            access="permitAll" />
+
+        <security:form-login login-page="/auth/login"
+            authentication-failure-url="/auth/login?error=true" />
+
+        <security:logout invalidate-session="true"
+            logout-success-url="/auth/login" logout-url="/auth/logout" />
+
+    </security:http>
+
+
+    <security:ldap-server url="${ldap.url}"
+        manager-dn="${ldap.managerdn}" manager-password="${ldap.managerpassword}" />
+
+    <security:authentication-manager>
+        <security:ldap-authentication-provider
+            user-search-filter="${ldap.user-search-filter}"
+            user-search-base="${ldap.user-search-base}">
+        </security:ldap-authentication-provider>
+    </security:authentication-manager>
+
+</beans>
