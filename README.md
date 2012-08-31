@@ -9,8 +9,9 @@ Backlog tool is designed to be open and easy to access, which means that all use
 
 In order to make backlog tool fit every team with their own requirements and way of working, the information fields for user stories are highly dynamic. By default, a field name "Status" will be created and have options like "ongoing" and "finished", however this can easily be changed and more options with custom icons can be added using the admin page for each area.
 
-This tool supports login with existing LDAP user accounts, which means that users working in environments with LDAP logins can use the same account details as usual. 
+This tool supports login with existing LDAP user accounts, which means that users working in environments with LDAP logins can use the same account details as usual.
 
+[Screenshots of the tool can be viewed here](https://github.com/sonyericssondev/BacklogTool/wiki/Screenshots)
 
 Installation instructions
 =========================
