@@ -603,8 +603,8 @@ public class JSONController {
             }
 
             boolean createIfDoesNotExist = true;
-            Theme theme = getTheme(StringEscapeUtils.unescapeHtml(updatedStory.getThemeTitle()), story.getArea(), session, createIfDoesNotExist);
-            Epic newEpic = getEpic(StringEscapeUtils.unescapeHtml(updatedStory.getEpicTitle()), theme, story.getArea(), session, createIfDoesNotExist);
+            Theme theme = getTheme(updatedStory.getThemeTitle(), story.getArea(), session, createIfDoesNotExist);
+            Epic newEpic = getEpic(updatedStory.getEpicTitle(), theme, story.getArea(), session, createIfDoesNotExist);
 
             //Move story from old epic if it was changed
             if (updatedStory.getEpicTitle() != null) {
@@ -881,11 +881,16 @@ public class JSONController {
     private Theme getTheme(String themeTitle, Area area, Session session, boolean autoCreate) {
         Theme theme = null;
         if (themeTitle != null && !themeTitle.isEmpty()) {
-            Query themeQuery = session.createQuery("from Theme where area like ? " +
-                    "and lower(title) like ?");
+            Query themeQuery = session.createQuery("from Theme where area like ?");
             themeQuery.setParameter(0, area);
-            themeQuery.setParameter(1, themeTitle.toLowerCase());
-            theme = (Theme) themeQuery.uniqueResult();
+            List<Theme> themes = themeQuery.list();
+
+            for (Theme dbTheme : themes) {
+                if (dbTheme.getTitle().toLowerCase().equals(themeTitle.toLowerCase())) {
+                    theme = dbTheme;
+                    break;
+                }
+            }
 
             if (theme == null && autoCreate) {
                 //New theme was specified
@@ -926,16 +931,21 @@ public class JSONController {
             Query epicQuery = null;
             if (theme == null) {
                 epicQuery = session.createQuery("from Epic where area like ? " +
-                        "and lower(title) like ? and theme is null");
+                        "and theme is null");
             } else {
                 epicQuery = session.createQuery("from Epic where area like ? " +
-                        "and lower(title) like ? and theme = ?");
-                epicQuery.setParameter(2, theme);
+                        "and theme = ?");
+                epicQuery.setParameter(1, theme);
             }
             epicQuery.setParameter(0, area);
-            epicQuery.setParameter(1, epicTitle.toLowerCase());
 
-            epic = (Epic) epicQuery.uniqueResult();
+            List<Epic> epics = epicQuery.list();
+            for (Epic dbEpic : epics) {
+                if (dbEpic.getTitle().toLowerCase().equals(epicTitle.toLowerCase())) {
+                    epic = dbEpic;
+                    break;
+                }
+            }
 
             if (epic == null && autoCreate) {
                 //New epic was specified

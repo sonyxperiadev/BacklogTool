@@ -61,8 +61,9 @@ For devs
 5. "pom.xml" should now be listed under Projects. Make sure it's selected and press Next, then Finish.
 All dependencies should now be downloaded to your client.
 6. Copy the backlogtool.properties file to your CATALINA_HOME location: [springsource location]/vfabric-tc-server-developer-2.X.X.RELEASE/tomcat-7.X.XX.X.RELEASE/conf and edit it with your own details. The conf folder does not exist by default so you might have to create it.
-7. Make some changes in the Springsource Toolsuite if you wish and right click on the project in package explorer and select Run as -> Run on server
-8. Backlogtool should now be available at http://localhost:8080/backlogtool
+7. (Optional) If you want to allow area names with special characters, set URIEncoding like this: http://struts.apache.org/2.0.6/docs/how-to-support-utf-8-uriencoding-with-tomcat.html. These settings are available in package explorer in Spring Tool Suite: Servers->VMWare vFabric tc... -> server.xml
+8. Make some changes in the Springsource Toolsuite if you wish and right click on the project in package explorer and select Run as -> Run on server
+9. Backlogtool should now be available at http://localhost:8080/backlogtool
 
 
 Source code overview
