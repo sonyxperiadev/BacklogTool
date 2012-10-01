@@ -24,7 +24,7 @@ THE SOFTWARE.
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <header>
     <h1>
-        <a href="/backlogtool/${area.name}">
+        <a href="${pageContext.request.contextPath}/${area.name}">
             <p id="topic" class="textstyle inline">Backlog tool</p>
         </a>
         <p id="topic-area" class="textstyle inline"></p>
@@ -75,7 +75,7 @@ THE SOFTWARE.
         title="THEME EPIC VIEW" class="theme-epic-link navigation-link"
         href="../theme-epic/${area.name}">THEME EPIC /&nbsp</a> <a
         title="AREA VIEW" class="home-link navigation-link"
-        href="/backlogtool/${area.name}">AREA /&nbsp</a> <br
+        href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> <br
         style="clear: both" />
 
 </header>

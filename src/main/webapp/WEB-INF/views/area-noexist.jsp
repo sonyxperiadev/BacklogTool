@@ -52,7 +52,7 @@ THE SOFTWARE.
 <body>
     <header>
         <h1>
-            <a href="/backlogtool">
+            <a href="${pageContext.request.contextPath}">
                 <p id="topic" class="textstyle inline">Backlog tool</p>
             </a>
         </h1>
@@ -62,7 +62,7 @@ THE SOFTWARE.
 
     </header>
 <div id="list-container-div">
-<a class="error-text" href="/backlogtool">Could not find area "<b>${areaName}</b>"</a>
+<a class="error-text" href="${pageContext.request.contextPath}">Could not find area "<b>${areaName}</b>"</a>
 
 </div>
 

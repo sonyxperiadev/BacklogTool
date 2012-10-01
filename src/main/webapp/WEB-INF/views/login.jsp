@@ -54,7 +54,7 @@ THE SOFTWARE.
 <body>
     <header>
         <h1>
-            <a href="/backlogtool/${area.name}">
+            <a href="${pageContext.request.contextPath}/${area.name}">
                 <p id="topic" class="textstyle inline">Backlog tool</p>
             </a>
         </h1>
