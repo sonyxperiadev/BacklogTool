@@ -83,7 +83,7 @@ THE SOFTWARE.
                             data : JSON.stringify(event.target.id),
                             contentType : "application/json; charset=utf-8",
                             success : function(data) {
-                                window.location.href = "/backlogtool";
+                                window.location.href = "${pageContext.request.contextPath}";
                             },
                             error : function(request, status, error) {
                                 alert(error);
@@ -107,7 +107,7 @@ THE SOFTWARE.
 <body>
     <header>
         <h1>
-            <a href="/backlogtool/${area.name}">
+            <a href="${pageContext.request.contextPath}/${area.name}">
                 <p id="topic" class="textstyle inline">Backlog tool</p>
             </a>
         </h1>
