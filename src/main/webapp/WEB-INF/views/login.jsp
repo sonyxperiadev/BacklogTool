@@ -61,7 +61,6 @@ THE SOFTWARE.
         <br style="clear:both" />
     </header>
     <div id="list-container-div">
-    <p style="margin: 95px 0 5px 5px;">Login using SEMC-ID</p>
         <form action="../j_spring_security_check" method="post">
             <p>
                 <label for="j_username" class="view textstyle">Username</label>
