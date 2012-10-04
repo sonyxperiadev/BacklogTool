@@ -59,7 +59,7 @@ THE SOFTWARE.
                 <p id="topic" class="textstyle inline">Backlog tool
                     /&nbsp</p>
             </a>
-            <p id="topic-area" class="textstyle inline">Area edit</p>
+            <p id="topic-area" class="textstyle inline">Edit area</p>
         </h1>
         <br style="clear: both" /> <a title="Log out" id="login-out"
             href="../auth/logout">
