@@ -23,7 +23,7 @@ THE SOFTWARE.
 Introduction
 ============
 
-Backlog tool is a planning tool that allows users to plan their daily work and easily rank their tasks using drag and drop. Backlog items can be inserted using a hierarchical structure consisting of themes, epics, stories and tasks. These items can be viewed in three different views for a good overview of the project, namely theme-epic, epic-story and story-task. 
+Backlog tool is a planning tool that allows users to plan their daily work and easily rank their tasks using drag and drop. Backlog items can be inserted using a hierarchical structure consisting of themes, epics, stories and tasks. These items can be viewed in three different views for a good overview of the project, namely theme-epic, epic-story and story-task.
 
 It's very easy to edit items in the backlog by double clicking on them, make some changes and press save. The changes you make will be pushed out in real time to all other clients viewing the same area as you.
 
