@@ -1,3 +1,25 @@
+The MIT License
+
+Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
 Introduction
 ============
 
@@ -9,8 +31,9 @@ Backlog tool is designed to be open and easy to access, which means that all use
 
 In order to make backlog tool fit every team with their own requirements and way of working, the information fields for user stories are highly dynamic. By default, a field name "Status" will be created and have options like "ongoing" and "finished", however this can easily be changed and more options with custom icons can be added using the admin page for each area.
 
-This tool supports login with existing LDAP user accounts, which means that users working in environments with LDAP logins can use the same account details as usual. 
+This tool supports login with existing LDAP user accounts, which means that users working in environments with LDAP logins can use the same account details as usual.
 
+[Screenshots of the tool can be viewed here](https://github.com/sonyericssondev/BacklogTool/wiki/Screenshots)
 
 Installation instructions
 =========================
@@ -38,8 +61,9 @@ For devs
 5. "pom.xml" should now be listed under Projects. Make sure it's selected and press Next, then Finish.
 All dependencies should now be downloaded to your client.
 6. Copy the backlogtool.properties file to your CATALINA_HOME location: [springsource location]/vfabric-tc-server-developer-2.X.X.RELEASE/tomcat-7.X.XX.X.RELEASE/conf and edit it with your own details. The conf folder does not exist by default so you might have to create it.
-7. Make some changes in the Springsource Toolsuite if you wish and right click on the project in package explorer and select Run as -> Run on server
-8. Backlogtool should now be available at http://localhost:8080/backlogtool
+7. (Optional) If you want to allow area names with special characters, set URIEncoding like this: http://struts.apache.org/2.0.6/docs/how-to-support-utf-8-uriencoding-with-tomcat.html. These settings are available in package explorer in Spring Tool Suite: Servers->VMWare vFabric tc... -> server.xml
+8. Make some changes in the Springsource Toolsuite if you wish and right click on the project in package explorer and select Run as -> Run on server
+9. Backlogtool should now be available at http://localhost:8080/backlogtool
 
 
 Source code overview
