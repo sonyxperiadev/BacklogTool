@@ -427,8 +427,6 @@ public class JSONController {
     @RequestMapping(value="/createepic/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Integer createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
-        boolean success = false;
-
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -476,7 +474,6 @@ public class JSONController {
 
                 PushContext pushContext = PushContext.getInstance(context);
                 pushContext.push(areaName);
-                success = true;
             }
         } catch (Exception e) {
             e.printStackTrace();

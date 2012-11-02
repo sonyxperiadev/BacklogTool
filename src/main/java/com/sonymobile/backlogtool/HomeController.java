@@ -36,8 +36,6 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -64,8 +62,6 @@ import com.sonymobile.backlogtool.permission.User;
  */
 @Controller
 public class HomeController {
-
-    private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
     @Autowired
     SessionFactory sessionFactory;

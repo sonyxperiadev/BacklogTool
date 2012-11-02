@@ -55,8 +55,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value="/json")
 public class MoveController {
 
-    private static String DIVIDED_TEXT = " (Divided)";
-
     @Autowired
     SessionFactory sessionFactory;
 
