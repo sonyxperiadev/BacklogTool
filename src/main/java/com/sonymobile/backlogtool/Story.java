@@ -152,14 +152,14 @@ public class Story {
     /**
      * @return the tasks from this story
      */
-    public Set getChildren() {
+    public Set<Task> getChildren() {
         return children;
     }
 
     /**
      * @param tasks the tasks to set
      */
-    public void setChildren(Set children) {
+    public void setChildren(Set<Task> children) {
         this.children = children;
     }
 
