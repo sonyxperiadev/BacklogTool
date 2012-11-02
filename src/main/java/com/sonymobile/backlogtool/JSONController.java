@@ -126,8 +126,8 @@ public class JSONController {
                 Query query2 = session.createQuery(queryString2);
                 query2.setParameter(0, areaName);
 
-                list = query1.list();
-                list.addAll(query2.list());
+                list = Util.castList(Story.class, query1.list());
+                list.addAll(Util.castList(Story.class, query2.list()));
             } else if (order.equals("prio")) {
                 //Since the archived stories don't have any prio, we order them by their date archived.
                 String nonArchivedQueryString = "from Story where area.name like ? and archived=false order by prio";
@@ -139,14 +139,14 @@ public class JSONController {
                 archivedQuery.setParameter(0, areaName);
                 nonArchivedQuery.setParameter(0, areaName);
 
-                list = nonArchivedQuery.list();
-                list.addAll(archivedQuery.list());
+                list = Util.castList(Story.class, nonArchivedQuery.list());
+                list.addAll(Util.castList(Story.class, archivedQuery.list()));
             } else {
                 String queryString = "from Story where area.name like ? order by " + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
 
-                list = query.list();
+                list = Util.castList(Story.class, query.list());
             }
             tx.commit();
         } catch (Exception e) {
@@ -183,14 +183,14 @@ public class JSONController {
                 Query query2 = session.createQuery(queryString2);
                 query2.setParameter(0, areaName);
 
-                epics = query1.list();
-                epics.addAll(query2.list());
+                epics = Util.castList(Epic.class, query1.list());
+                epics.addAll(Util.castList(Epic.class, query2.list()));
             } else {
 
                 String queryString = "from Epic where area.name like ? order by " + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
-                epics = query.list();
+                epics = Util.castList(Epic.class, query.list());
             }
 
             for (Epic epic : epics) {
@@ -234,13 +234,13 @@ public class JSONController {
                 Query query2 = session.createQuery(queryString2);
                 query2.setParameter(0, areaName);
 
-                themes = query1.list();
-                themes.addAll(query2.list());
+                themes = Util.castList(Theme.class, query1.list());
+                themes.addAll(Util.castList(Theme.class, query2.list()));
             } else {
                 String queryString = "from Theme where area.name like ? order by " + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
-                themes = query.list();
+                themes = Util.castList(Theme.class, query.list());
             }
 
             for (Theme theme : themes) {
@@ -273,7 +273,7 @@ public class JSONController {
             query.setParameter(0, areaName);
             query.setParameter(1, "%" + term.toLowerCase() + "%");
             //% for contains
-            titles = query.list();
+            titles = Util.castList(String.class, query.list());
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -308,7 +308,7 @@ public class JSONController {
             query.setParameter(0, areaName);
             query.setParameter(1, "%" + term.toLowerCase() + "%");
             //% for contains
-            titles = query.list();
+            titles = Util.castList(String.class, query.list());
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -382,7 +382,7 @@ public class JSONController {
             //Move other stories
             Query storyQuery = session.createQuery("from Story where area like ? and archived=false order by prio desc");
             storyQuery.setParameter(0, area);
-            List<Story> storyList = storyQuery.list();
+            List<Story> storyList = Util.castList(Story.class, storyQuery.list());
 
             if (storyList.isEmpty()) {
                 newStory.setPrio(1);
@@ -451,7 +451,7 @@ public class JSONController {
                 //Move other epics
                 Query epicQuery = session.createQuery("from Epic where area like ? and archived=false order by prio desc");
                 epicQuery.setParameter(0, area);
-                List<Epic> epicList = epicQuery.list();
+                List<Epic> epicList = Util.castList(Epic.class, epicQuery.list());
 
                 if (epicList.isEmpty()) {
                     newEpic.setPrio(1);
@@ -508,7 +508,7 @@ public class JSONController {
                 //Move other themes
                 Query allThemesQuery = session.createQuery("from Theme where area like ? and archived=false order by prio desc");
                 allThemesQuery.setParameter(0, area);
-                List<Theme> allThemes = allThemesQuery.list();
+                List<Theme> allThemes = Util.castList(Theme.class, allThemesQuery.list());
 
                 if (allThemes.isEmpty()) {
                     newTheme.setPrio(1);
@@ -627,7 +627,7 @@ public class JSONController {
                 Query query = session.createQuery("from Story where prio > ? and area.name like ? and archived=false");
                 query.setParameter(0, story.getPrio());
                 query.setParameter(1, areaName);
-                List<Story> storyList = query.list();
+                List<Story> storyList = Util.castList(Story.class, query.list());
 
                 for (Story otherStory : storyList) {
                     otherStory.setPrio(otherStory.getPrio() - 1);
@@ -640,7 +640,7 @@ public class JSONController {
                 //Find the last story and place this one after
                 Query storyQuery = session.createQuery("from Story where area.name like ? and archived=false order by prio desc");
                 storyQuery.setParameter(0, areaName);
-                List<Story> storyList = storyQuery.list();
+                List<Story> storyList = Util.castList(Story.class, storyQuery.list());
 
                 if (storyList.isEmpty()) {
                     story.setPrio(1);
@@ -749,7 +749,7 @@ public class JSONController {
                     Query query = session.createQuery("from Epic where prio > ? and area like ? and archived=false");
                     query.setParameter(0, epic.getPrio());
                     query.setParameter(1, area);
-                    List<Epic> epicList = query.list();
+                    List<Epic> epicList = Util.castList(Epic.class, query.list());
 
                     for (Epic otherEpic : epicList) {
                         otherEpic.setPrio(otherEpic.getPrio() - 1);
@@ -762,7 +762,7 @@ public class JSONController {
                     //Find the last epic and place this one after
                     Query epicQuery = session.createQuery("from Epic where area like ? and archived=false order by prio desc");
                     epicQuery.setParameter(0, area);
-                    List<Epic> epicList = epicQuery.list();
+                    List<Epic> epicList = Util.castList(Epic.class, epicQuery.list());
 
                     if (epicList.isEmpty()) {
                         epic.setPrio(1);
@@ -824,7 +824,7 @@ public class JSONController {
                     Query query = session.createQuery("from Theme where prio > ? and area like ? and archived=false");
                     query.setParameter(0, theme.getPrio());
                     query.setParameter(1, area);
-                    List<Theme> themeList = query.list();
+                    List<Theme> themeList = Util.castList(Theme.class, query.list());
 
                     for (Theme otherTheme : themeList) {
                         otherTheme.setPrio(otherTheme.getPrio() - 1);
@@ -837,7 +837,7 @@ public class JSONController {
                     //Find the last theme and place this one after
                     Query themeQuery = session.createQuery("from Theme where area like ? and archived=false order by prio desc");
                     themeQuery.setParameter(0, area);
-                    List<Theme> themeList = themeQuery.list();
+                    List<Theme> themeList = Util.castList(Theme.class, themeQuery.list());
 
                     if (themeList.isEmpty()) {
                         theme.setPrio(1);
@@ -880,7 +880,7 @@ public class JSONController {
         if (themeTitle != null && !themeTitle.isEmpty()) {
             Query themeQuery = session.createQuery("from Theme where area like ?");
             themeQuery.setParameter(0, area);
-            List<Theme> themes = themeQuery.list();
+            List<Theme> themes = Util.castList(Theme.class, themeQuery.list());
 
             for (Theme dbTheme : themes) {
                 if (dbTheme.getTitle().toLowerCase().equals(themeTitle.toLowerCase())) {
@@ -898,7 +898,7 @@ public class JSONController {
                 //Set prio for theme
                 Query themeQuery2 = session.createQuery("from Theme where area like ? and archived=false order by prio desc");
                 themeQuery2.setParameter(0, area);
-                List<Theme> themeList = themeQuery2.list();
+                List<Theme> themeList = Util.castList(Theme.class, themeQuery2.list());
 
                 if (themeList.isEmpty()) {
                     theme.setPrio(1);
@@ -936,7 +936,7 @@ public class JSONController {
             }
             epicQuery.setParameter(0, area);
 
-            List<Epic> epics = epicQuery.list();
+            List<Epic> epics = Util.castList(Epic.class, epicQuery.list());
             for (Epic dbEpic : epics) {
                 if (dbEpic.getTitle().toLowerCase().equals(epicTitle.toLowerCase())) {
                     epic = dbEpic;
@@ -953,7 +953,7 @@ public class JSONController {
                 //Set prio for epic
                 Query epicQuery2 = session.createQuery("from Epic where area like ? and archived=false order by prio desc");
                 epicQuery2.setParameter(0, area);
-                List<Epic> epicList = epicQuery2.list();
+                List<Epic> epicList = Util.castList(Epic.class, epicQuery2.list());
 
                 if (epicList.isEmpty()) {
                     epic.setPrio(1);
@@ -1007,7 +1007,7 @@ public class JSONController {
             Query query = session.createQuery("from Story where prio > ? and area.name like ? and archived=false");
             query.setParameter(0, storyToClone.getPrio());
             query.setParameter(1, areaName);
-            List<Story> storyList = query.list();
+            List<Story> storyList = Util.castList(Story.class, query.list());
 
             for (Story story : storyList) {
                 story.setPrio(story.getPrio() + 1);
@@ -1069,7 +1069,7 @@ public class JSONController {
             Query query = session.createQuery("from Epic where prio > ? and area.name like ? and archived=false");
             query.setParameter(0, epicToClone.getPrio());
             query.setParameter(1, areaName);
-            List<Epic> epicList = query.list();
+            List<Epic> epicList = Util.castList(Epic.class, query.list());
 
             for (Epic epic : epicList) {
                 epic.setPrio(epic.getPrio() + 1);
@@ -1120,7 +1120,7 @@ public class JSONController {
             Query query = session.createQuery("from Theme where prio > ? and area.name like ? and archived=false");
             query.setParameter(0, themeToClone.getPrio());
             query.setParameter(1, areaName);
-            List<Theme> themeList = query.list();
+            List<Theme> themeList = Util.castList(Theme.class, query.list());
 
             for (Theme theme : themeList) {
                 theme.setPrio(theme.getPrio() + 1);
@@ -1175,7 +1175,7 @@ public class JSONController {
             Query query = session.createQuery("from Story where prio > ? and area.name like ? and archived=false");
             query.setParameter(0, storyToRemove.getPrio());
             query.setParameter(1, areaName);
-            List<Story> storyList = query.list();
+            List<Story> storyList = Util.castList(Story.class, query.list());
 
             for (Story story : storyList) {
                 story.setPrio(story.getPrio() - 1);
@@ -1227,7 +1227,7 @@ public class JSONController {
             Query query = session.createQuery("from Epic where prio > ? and area.name like ? and archived=false");
             query.setParameter(0, epicToRemove.getPrio());
             query.setParameter(1, areaName);
-            List<Epic> epicList = query.list();
+            List<Epic> epicList = Util.castList(Epic.class, query.list());
             for (Epic epic : epicList) {
                 epic.setPrio(epic.getPrio() - 1);
             }
@@ -1277,7 +1277,7 @@ public class JSONController {
             Query query1 = session.createQuery("from Theme where prio > ? and area.name like ?");
             query1.setParameter(0, themeToRemove.getPrio());
             query1.setParameter(1, areaName);
-            List<Theme> themeList = query1.list();
+            List<Theme> themeList = Util.castList(Theme.class, query1.list());
 
             for (Theme theme : themeList) {
                 theme.setPrio(theme.getPrio() - 1);
@@ -1286,7 +1286,7 @@ public class JSONController {
             Query query2 = session.createQuery("from Story where area.name like ? and theme = ?");
             query2.setParameter(0, areaName);
             query2.setParameter(1, themeToRemove);
-            List<Story> storyList = query2.list();
+            List<Story> storyList = Util.castList(Story.class, query2.list());
 
             for (Story storyToEdit : storyList) {
                 storyToEdit.setTheme(null);
@@ -1419,14 +1419,14 @@ public class JSONController {
             //Firstly, unlink elements from each other
             Query taskQuery = session.createQuery("from Task where story.area.name like ?");
             taskQuery.setParameter(0, areaName);
-            List<Task> tasks = taskQuery.list();
+            List<Task> tasks = Util.castList(Task.class, taskQuery.list());
             for (Task task : tasks) {
                 task.setStory(null);
             }
 
             Query storyQuery = session.createQuery("from Story where area.name like ?");
             storyQuery.setParameter(0, areaName);
-            List<Story> stories = storyQuery.list();
+            List<Story> stories = Util.castList(Story.class, storyQuery.list());
             for (Story story : stories) {
                 story.setTheme(null);
                 story.setEpic(null);
@@ -1434,7 +1434,7 @@ public class JSONController {
 
             Query epicQuery = session.createQuery("from Epic where area.name like ?");
             epicQuery.setParameter(0, areaName);
-            List<Epic> epics = epicQuery.list();
+            List<Epic> epics = Util.castList(Epic.class, epicQuery.list());
             for (Epic epic : epics) {
                 epic.setTheme(null);
                 epic.setChildren(null);
@@ -1442,7 +1442,7 @@ public class JSONController {
 
             Query themeQuery = session.createQuery("from Theme where area.name like ?");
             themeQuery.setParameter(0, areaName);
-            List<Theme> themes = themeQuery.list();
+            List<Theme> themes = Util.castList(Theme.class, themeQuery.list());
             for (Theme theme : themes) {
                 theme.setChildren(null);
             }
@@ -1701,7 +1701,7 @@ public class JSONController {
                     //Option was removed; reset all stories that have this option
                     Query storyQuery = session.createQuery("from Story where area.name like ?");
                     storyQuery.setParameter(0, areaName);
-                    List<Story> stories = storyQuery.list();
+                    List<Story> stories = Util.castList(Story.class, storyQuery.list());
                     for (Story story : stories) {
                         if (story.getStoryAttr1() == option) {
                             story.setStoryAttr1(null);
@@ -1718,7 +1718,7 @@ public class JSONController {
                     //If it was a task attribute, reset all tasks with that attribute
                     Query taskQuery = session.createQuery("from Task where story.area.name like ?");
                     taskQuery.setParameter(0, areaName);
-                    List<Task> tasks = taskQuery.list();
+                    List<Task> tasks = Util.castList(Task.class, taskQuery.list());
                     for (Task task : tasks) {
                         if (task.getTaskAttr1() == option) {
                             task.setTaskAttr1(null);

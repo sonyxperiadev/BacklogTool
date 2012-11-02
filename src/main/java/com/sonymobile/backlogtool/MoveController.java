@@ -165,7 +165,7 @@ public class MoveController {
                 //Get all parents
                 Query query = session.createQuery("from Story where area.name like ? and archived=false order by prio");
                 query.setParameter(0, areaName);
-                List<Story> allParents = query.list();
+                List<Story> allParents = Util.castList(Story.class, query.list());
 
                 int prioCounter = 1;
 
@@ -313,7 +313,7 @@ public class MoveController {
                 //Get all parents
                 Query query = session.createQuery("from Epic where area.name like ? and archived=false order by prio");
                 query.setParameter(0, areaName);
-                List<Epic> allParents = query.list();
+                List<Epic> allParents = Util.castList(Epic.class, query.list());
 
                 int prioCounter = 1;
 
@@ -464,7 +464,7 @@ public class MoveController {
                 //Get all parents
                 Query query = session.createQuery("from Theme where area.name like ? and archived=false order by prio");
                 query.setParameter(0, areaName);
-                List<Theme> allParents = query.list();
+                List<Theme> allParents = Util.castList(Theme.class, query.list());
 
                 int prioCounter = 1;
 

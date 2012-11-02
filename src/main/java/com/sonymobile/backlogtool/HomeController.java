@@ -86,7 +86,7 @@ public class HomeController {
             User currentUser = (User) session.get(User.class, username);
 
             Query allAreasQuery = session.createQuery("from Area order by name");
-            List<Area> allAreas = allAreasQuery.list();
+            List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
 
             adminAreas = new ArrayList<String>();
             nonAdminAreas = new ArrayList<String>();

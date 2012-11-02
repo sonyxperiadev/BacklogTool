@@ -72,7 +72,7 @@ public class StartUpListener implements ApplicationListener<ContextRefreshedEven
 
             //Delete all current masterAdmins.
             Query query = session.createQuery("from User");
-            List<User> users = query.list();
+            List<User> users = Util.castList(User.class, query.list());
             for (User user : users) {
                 user.setMasterAdmin(false);
             }
