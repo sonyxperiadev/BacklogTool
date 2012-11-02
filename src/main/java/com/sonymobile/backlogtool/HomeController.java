@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -325,7 +325,7 @@ public class HomeController {
 
     private boolean isLoggedIn() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        GrantedAuthority anonymous = new GrantedAuthorityImpl("ROLE_ANONYMOUS");
+        GrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
         return !auth.getAuthorities().contains(anonymous);
     }
 
