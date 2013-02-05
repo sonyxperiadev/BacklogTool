@@ -530,9 +530,6 @@ $(document).ready(function () {
             }
         }
     }
-    
-    
-    
     var editingItems = new Array();
     var lastPressed = null;
     
@@ -558,7 +555,6 @@ $(document).ready(function () {
         if (isShift && isCtrl) {
             isCtrl = false;
         }
-        
 
         if (!isCtrl ||
                 (selectedItems[0] != null && pressed.attr("class").indexOf(selectedItems[0].type) == -1)) {
@@ -598,6 +594,9 @@ $(document).ready(function () {
                 selectedItems.push({id:pressed.attr("id"), type:"child"});
             }
         }
+        //auto resize the textareas to fit the text
+        $('textarea'+"."+pressed.attr("id")).autosize('');
+        
         lastPressed = pressed;
         updateCookie();
     };
@@ -900,7 +899,6 @@ $(document).ready(function () {
         reload();
         addGroupMember();
     };
-
 
 
     var editStory = function(event) {
