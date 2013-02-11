@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<% pageContext.setAttribute("newLineChar", "\n"); %>
+<% pageContext.setAttribute("newLineHtml", "<br/>"); %>
 <%@ page session="false"%>
 <!DOCTYPE html>
 <html>
@@ -89,6 +92,37 @@ p {
     margin: 5px;
 }
 
+#task-story {
+    font-size: 12px;
+    overflow: hidden;
+    max-height: 20px;
+}
+
+#task-id {
+    float: right;
+    padding-right: 10px;
+}
+
+#task-description {
+    width: 440px;
+    height: 170px;
+    padding: 5px;
+    border-top: 1px solid;
+    overflow: hidden;
+}
+
+#task-footer {
+    border: 1px solid;
+}
+
+#footer-owner {
+    float: left;
+}
+
+#footer-time {
+    float: right;
+}
+
 p {
     display: inline;
     word-wrap: break-word;
@@ -103,11 +137,25 @@ p.title {
     font-weight: bold;
 }
 
+p.task {
+    font-size: 12px;
+    font-weight: bold;
+}
+
 td.timebox {
     border: 1px solid;
     width: 25px;
-    height: 25px
+    height: 25px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px;
 }
+
+p.task-story {
+    font-weight: bold;
+    font-size: 14px;
+}
+
 </style>
 </head>
 
@@ -148,11 +196,12 @@ td.timebox {
                         <c:forEach var="i" begin="1" end="7" step="1">
                             <td class="timebox" />
                         </c:forEach>
+                    </tr>
                 </table>
             </div>
             <br style="clear: both" />
             <div id="description">
-                <p>${story.description}</p>
+                <p>${fn:replace(story.description, newLineChar, newLineHtml)}</p>
             </div>
         </div>
         <br>
@@ -163,6 +212,48 @@ td.timebox {
                 <DIV style="page-break-after: always"></DIV>
             </c:when>
         </c:choose>
+    </c:forEach>
+    <c:forEach var="story" items="${stories}">
+        <div style="page-break-after: always"></div>
+        <c:forEach var="task" items="${story.children}"  varStatus="rowCounter">
+            <div id="story-container">
+                <div id="task-story">
+                    <p>Story:</p>
+                    <p class="task-story">${story.title}</p>
+                </div>
+                <div id="task-description">
+                    <p class="task">${fn:replace(task.title, newLineChar, newLineHtml)}</p>
+                </div>
+                <div id="task-footer">
+                    <div id="footer-owner">
+                        <p>Owner:</p>
+                        <br />
+                        <p class="task">${task.owner}</p>
+                    </div>
+                    <div id="footer-time">
+                        <div>
+                          <p>Work left:</p>
+                        </div>
+                        <table>
+                            <tr>
+                                <td class="timebox">${task.calculatedTime}</td>
+                                <c:forEach var="i" begin="1" end="6" step="1">
+                                    <td class="timebox" />
+                                </c:forEach>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+          </div>
+      <br>
+      <hr class='dotted' />
+      <br>
+      <c:choose>
+          <c:when test="${rowCounter.count % 3 == 0}">
+              <DIV style="page-break-after: always"></DIV>
+          </c:when>
+      </c:choose>
+      </c:forEach>
     </c:forEach>
 
     <script>window.print();</script>
