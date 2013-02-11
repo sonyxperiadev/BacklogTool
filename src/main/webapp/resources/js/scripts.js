@@ -532,18 +532,6 @@ $(document).ready(function () {
     }
     var editingItems = new Array();
     var lastPressed = null;
-    
-    /**
-     * Returns true if you are going into edit mode on a parent/child.
-     */
-    var isGoingIntoEdit = function isGoingIntoEdit(editId){
-        for(var i = 0; editingItems.length > i; i++) {
-            if(editingItems[i].id == editId) {
-                return false;
-            }
-        }
-        return true;
-    };
 
     var liClick = function (pressed) {
         if (pressed.type != null) {
@@ -565,12 +553,6 @@ $(document).ready(function () {
             $(".parent-child-list").children("li").removeClass("ui-selected");
         }
 
-        // If not in edit mode, show a disabled textarea
-        if( isGoingIntoEdit(pressed.attr("id"))) {
-        	$("."+pressed.attr("id")).toggleClass('hidden-edit');
-        	$("."+pressed.attr("id")).prop('disabled', true);
-        }
-        
         if (pressed.attr("class").indexOf("parent") != -1) {
             //Parent was selected
             if (pressed.attr("class").indexOf("ui-selected") != -1) {
@@ -900,6 +882,17 @@ $(document).ready(function () {
         addGroupMember();
     };
 
+    /**
+     * Returns true if you are going into edit mode on a parent/child.
+     */
+    var isGoingIntoEdit = function isGoingIntoEdit(editId){
+        for(var i = 0; editingItems.length > i; i++) {
+            if(editingItems[i].id == editId) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     var editStory = function(event) {
         var storyId = null;
@@ -989,9 +982,6 @@ $(document).ready(function () {
                 $("textarea#epic"+storyId).autocomplete("search", $("textarea#epic"+storyId).val());
             });
 
-            // Enable all fields (disabled on click)
-            $("."+storyId).prop('disabled', false);
-            
             //auto resize the textareas to fit the text
             $('textarea'+"."+storyId).autosize('');
         } else {
