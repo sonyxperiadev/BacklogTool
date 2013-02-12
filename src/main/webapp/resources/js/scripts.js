@@ -576,9 +576,6 @@ $(document).ready(function () {
                 selectedItems.push({id:pressed.attr("id"), type:"child"});
             }
         }
-        //auto resize the textareas to fit the text
-        $('textarea'+"."+pressed.attr("id")).autosize('');
-        
         lastPressed = pressed;
         updateCookie();
     };
