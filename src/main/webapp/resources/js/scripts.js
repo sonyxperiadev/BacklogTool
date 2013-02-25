@@ -220,12 +220,12 @@ $(document).ready(function () {
 
     /**
      * Truncate a string to the given length, breaking at word boundaries and adding an elipsis
-     * @param string id Id of the object containing the string to be referenced for expanding the text 
      * @param string str String to be truncated
      * @param integer limit Max length of the string
+     * @param string id Id of the object containing the full text (to be used when expanding from truncated)
      * @return string
      */
-    var truncate = function (id, str, limit) {
+    var truncate = function (str, limit, id) {
         var bits, i;
         if(typeof str != "string") {
             return "";
@@ -241,7 +241,11 @@ $(document).ready(function () {
                     break;
                 }
             }
-            bits.push('<a class="more" id=' + id + ' href="#">...</a>');
+            if(typeof id == 'undefined'){
+            	bits.push('...');
+            } else {
+            	bits.push('<a class="more" id=' + id + ' href="#">...</a>');
+            }
         }
         return bits.join('');
     };
@@ -1350,7 +1354,7 @@ $(document).ready(function () {
                         +'<textarea placeholder="Title" id="title'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
                         //STORY TITLE END
                         //STORYDESCRIPTION START
-                        +'<p class="expandable description ' + currentParent.id + '" description'+currentParent.id+ '">' + addLinksAndLineBreaks(truncate('description.' + currentParent.id,currentParent.description, 190)) + '</p>'
+                        +'<p class="expandable description ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate(currentParent.description, 190, 'description.' + currentParent.id)) + '</p>'
                         +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
                         //STORYDESCRIPTION END
                         +'</div>'
@@ -1442,7 +1446,7 @@ $(document).ready(function () {
                         +'<p class="marginLeft typeMark">Task</p>'
                         //TYPE MARK END
                         +'<div class="taskTitle ' + currentChild.id + '">'
-                        +'<p class="taskHeading">Title: </p><p class="taskInfo">'+ addLinksAndLineBreaks(truncate('taskTitle.' + currentChild.id, currentChild.title, 190)) +'</p>'
+                        +'<p class="taskHeading">Title: </p><p class="taskInfo">'+ addLinksAndLineBreaks(truncate(currentChild.title, 190)) +'</p>'
                         +'</div>'
                         +'<textarea id="taskTitle' + currentChild.id + '" class="taskInfo bindChange taskTitle hidden-edit ' + currentChild.id + '" maxlength="500">' + currentChild.title + '</textarea>'
                         //TASKTITLE END
@@ -1493,7 +1497,7 @@ $(document).ready(function () {
                         +'<textarea placeholder="Title" id="epicTitle'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
                         //EPIC TITLE END
                         //EPIC DESCRIPTION START
-                        +'<p class="expandable description ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate('description.' + currentParent.id, currentParent.description, 190)) + '</p>'
+                        +'<p class="expandable description epicDescription ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate(currentParent.description, 190, 'epicDescription.' + currentParent.id)) + '</p>'
                         +'<textarea placeholder="Description" id="epicDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
                         //EPIC DESCRIPTION END
                         +'</div>'
@@ -1534,7 +1538,7 @@ $(document).ready(function () {
                         +'<textarea placeholder="Title" id="title'+currentChild.id+'" class="bindChange titleText hidden-edit title ' + currentChild.id + '" rows="1" maxlength="100">' + currentChild.title + '</textarea>'
                         //STORY TITLE END
                         //STORYDESCRIPTION START
-                        +'<p class="expandable description ' + currentChild.id + '">' + addLinksAndLineBreaks(truncate('description.' + currentChild.id, currentChild.description, 190)) + '</p>'
+                        +'<p class="expandable description ' + currentChild.id + '">' + addLinksAndLineBreaks(truncate(currentChild.description, 190, 'description.' + currentChild.id)) + '</p>'
                         +'<textarea placeholder="Description" id="description'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
                         //STORYDESCRIPTION END
                         +'</div>'
@@ -1633,7 +1637,7 @@ $(document).ready(function () {
                         +'<textarea placeholder="Title" id="themeTitle'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
                         //TITLE END
                         //DESCRIPTION START
-                        +'<p class="expandable description ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate('description.' + currentParent.id, currentParent.description, 190)) + '</p>'
+                        +'<p class="expandable description themeDescription ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate(currentParent.description, 190, 'themeDescription.' + currentParent.id)) + '</p>'
                         +'<textarea placeholder="Description" id="themeDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
                         //DESCRIPTION END
                         +'</div>'
@@ -1664,7 +1668,7 @@ $(document).ready(function () {
                         +'<textarea placeholder="Title" id="epicTitle'+currentChild.id+'" class="bindChange titleText hidden-edit title ' + currentChild.id + '" rows="1" maxlength="100">' + currentChild.title + '</textarea>'
                         //TITLE END
                         //DESCRIPTION START
-                        +'<p class="expandable description ' + currentChild.id + '">' + addLinksAndLineBreaks(truncate('description.' + currentChild.id, currentChild.description, 190)) + '</p>'
+                        +'<p class="expandable description epicDescription ' + currentChild.id + '">' + addLinksAndLineBreaks(truncate(currentChild.description, 190, 'epicDescription.' + currentChild.id)) + '</p>'
                         +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
                         //DESCRIPTION END
                         +'</div>'
@@ -1792,7 +1796,7 @@ $(document).ready(function () {
             disableEdits();
         }
         
-        // When clicking on ... in a p field  
+        // When clicking on ... in a p field with expandable class  
         // show the truncated text and increase height of the element
         $('.more').click(function(e) {
             e.stopPropagation();
