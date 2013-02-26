@@ -1735,6 +1735,11 @@ $(document).ready(function () {
         	event.stopPropagation();
         });
 
+        //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
+        $(".bindChange").dblclick(function(event) {
+        	event.stopPropagation();
+        });
+
         $( "#storyTheme,#epicTheme" ).autocomplete({
             minLength: 0,
             source: "../json/autocompletethemes/" + areaName,
