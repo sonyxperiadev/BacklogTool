@@ -1731,6 +1731,7 @@ $(document).ready(function () {
         $(".editStory").dblclick(editStory);
         $(".editTask").dblclick(editTask);
         
+        //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
         $(".bindChange").dblclick(function(event) {
         	event.stopPropagation();
         });
