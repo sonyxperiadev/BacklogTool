@@ -176,8 +176,8 @@ textarea:focus {
 .icon {
     display: inline-block;
     float: left;
-    min-height: 17px;
-    min-width: 17px;
+    min-height: 16px;
+    min-width: 16px;
     vertical-align: top;
     cursor: pointer;
     cursor: hand;
@@ -273,7 +273,7 @@ div.stakeholders {
 
 select.contributorSite,select.customerSite,select.status,select.prio,select.effort
     {
-    height: 23px;
+    height: 26px;
 }
 
 input.added,input.deadline,input.customer,input.contributor {
@@ -388,7 +388,7 @@ div#titleDivThemeEpic {
 }
 
 select.status,select.prio,select.effort {
-    height: 23px;
+    height: 26px;
 }
 
 .ui-button .ui-button-text {
