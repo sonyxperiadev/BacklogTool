@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 $(document).ready(function() {
-    $('#logout').button();
+    $('#login-out').button();
     $("#add-admin").button();
     $("#add-editor").button();
 

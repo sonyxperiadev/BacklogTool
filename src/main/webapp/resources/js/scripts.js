@@ -1721,13 +1721,20 @@ $(document).ready(function () {
         $("a.cloneItem").click(function() {
             cloneItem($(this), false);
         });
+
         $("a.cloneItem-with-children").click(function() {
             cloneItem($(this), true);
         });
+
         $(".editTheme").dblclick(editTheme);
         $(".editEpic").dblclick(editEpic);
         $(".editStory").dblclick(editStory);
         $(".editTask").dblclick(editTask);
+        
+        //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
+        $(".bindChange").dblclick(function(event) {
+        	event.stopPropagation();
+        });
 
         $( "#storyTheme,#epicTheme" ).autocomplete({
             minLength: 0,
