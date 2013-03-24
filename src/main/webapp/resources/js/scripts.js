@@ -83,14 +83,14 @@ function contains(a, obj) {
  * @param id
  */
 function isFiltered(id) {
-	var filterString = $("#filter").val();
-	var filterArray = filterString.split(",");
-	for (var i=0; i<filterArray.length; i++) {
-		if (filterArray[i].trim() == id) {
-			return true;
-		}
-	}
-	return false;
+    var filterString = $("#filter").val();
+    var filterArray = filterString.split(",");
+    for (var i=0; i<filterArray.length; i++) {
+        if (filterArray[i].trim() == id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
