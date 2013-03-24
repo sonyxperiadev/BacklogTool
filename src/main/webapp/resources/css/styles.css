@@ -64,6 +64,7 @@ form {
 header {
     position:fixed;
     top:0;
+    z-index: 1;
     height:85px;
     padding: 0 5% 0 5%;
     background-color: #eeeeee;
@@ -81,7 +82,7 @@ p {
     margin: 0.1em;
 }
 
-#create-parent, #save-changes, #print-stories, #hide-archived-list-container, #login-out {
+#create-parent, #save-changes, #print-stories, #hide-archived-list-container, #login-out, #filter-button {
     display: inline-block;
     vertical-align: top;
     width: 110px;
@@ -206,6 +207,7 @@ div#icons {
     padding: 4px;
     color: black;
     font-weight: lighter;
+    position: relative;
 }
 
 p.description,p.titleText {
@@ -559,4 +561,26 @@ fieldset {
 
 .marginTopButton {
     margin-top: 62px
+}
+
+p.id {
+	position: absolute;
+	bottom: 0px;
+	right: 5px;
+	font-size: 9px;
+	font-weight: bold;
+}
+
+.filter {
+	display:inline-block;
+	width: 110px;
+}
+
+div.filter, div.orderBy {
+	position: relative;
+	bottom: 5px;
+}
+
+input.filter {
+	height: 13px;
 }
