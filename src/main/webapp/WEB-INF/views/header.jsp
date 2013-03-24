@@ -53,6 +53,10 @@ THE SOFTWARE.
             </c:if>
         </select>
     </div>
+   	<div class="filter">
+        <p class="headerText textstyle">FILTER BY ID</p>
+        <input title="Filter by ID, comma-separated" id="filter" class="filter"/>
+    </div>
     <div class="showArchive">
         <p class="headerText textstyle">SHOW ARCHIVE</p>
         <input type="checkbox" id="hide-archived-list-container"
@@ -66,8 +70,10 @@ THE SOFTWARE.
 
     <button id="save-changes" class="saveButton"
         title="Save all changes" disabled>SAVE CHANGES</button>
-    <button id="print-stories" title="Print marked stories">PRINT
-        STORIES</button>
+    <button id="print-stories" title="Print selected stories">PRINT
+        SELECTED</button>
+    <button id="filter-button" title="Filter selected items">FILTER
+        SELECTED</button>
     <a title="STORY TASK VIEW" class="story-task-link navigation-link"
         href="../story-task/${area.name}">STORY TASK </a> <a
         title="EPIC STORY VIEW" class="epic-story-link navigation-link"
