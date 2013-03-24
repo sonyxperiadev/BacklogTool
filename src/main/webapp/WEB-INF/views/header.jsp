@@ -54,8 +54,8 @@ THE SOFTWARE.
         </select>
     </div>
    	<div class="filter">
-		<p class="headerText textstyle">FILTER BY ID</p>
-		<input title="Filter by ID, comma-separated" id="filter" class="filter"/>
+        <p class="headerText textstyle">FILTER BY ID</p>
+        <input title="Filter by ID, comma-separated" id="filter" class="filter"/>
     </div>
     <div class="showArchive">
         <p class="headerText textstyle">SHOW ARCHIVE</p>

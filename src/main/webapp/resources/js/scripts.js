@@ -86,7 +86,7 @@ function isFiltered(id) {
 	var filterString = $("#filter").val();
 	var filterArray = filterString.split(",");
 	for (var i=0; i<filterArray.length; i++) {
-		if (filterArray[i] == id) {
+		if (filterArray[i].trim() == id) {
 			return true;
 		}
 	}
@@ -125,6 +125,14 @@ $(document).ready(function () {
         var mm = (this.getMonth()+1).toString(); // getMonth() is zero-based
         var dd  = this.getDate().toString();
         return (mm[1]?mm:"0" + mm[0]) + "/" + (dd[1]?dd:"0"+dd[0]) + "/" + yyyy;
+    };
+    
+    /**
+     * Removes spaces from a string.
+     * @returns string without spaces
+     */
+    String.prototype.trim = function() {
+        return this.replace(/^\s+|\s+$/g, "");
     };
 
     /**
@@ -1478,7 +1486,7 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        //ATTR3 FIELD END
 	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a><br/>'
-	                        +'<p class="id">'+ currentParent.id + '</p>'
+	                        +'<p class="id" title="Item ID">'+ currentParent.id + '</p>'
 	                        +'<br style="clear:both" />';
 	
 	                    newContainer += '<li class="parentLi story ui-state-default editStory" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
@@ -1555,7 +1563,7 @@ $(document).ready(function () {
 	                        + getArchivedTopic(archived)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
-	                        +'<p class="id">'+ currentParent.id + '</p>'
+	                        +'<p class="id" title="Item ID">'+ currentParent.id + '</p>'
 	                        +'<br style="clear:both" />';
 	
 	                    newContainer += '<li class="parentLi epic ui-state-default editEpic" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
@@ -1696,7 +1704,7 @@ $(document).ready(function () {
 	                        + getArchivedTopic(archived)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
-	                        +'<p class="id">'+ currentParent.id + '</p>'
+	                        +'<p class="id" title="Item ID">'+ currentParent.id + '</p>'
 	                        +'<br style="clear:both" />';
 	
 	                    newContainer += '<li class="parentLi theme ui-state-default editTheme" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
@@ -2055,16 +2063,25 @@ $(document).ready(function () {
         buildVisibleList();
     });
 
-    var delay = (function(){
+    /**
+     * Sets timeout for a function, to be reset after each call on delay.
+     * Can for example be used to trigger a function after
+     * typing has stopped in a textbox.
+     * Usage:
+     * delay(function() {
+            //To be called after timeout
+        }, *delayInMs* ); 
+     */
+    var delay = (function() {
         var timer = 0;
-        return function(callback, ms){
+        return function(callback, ms) {
             clearTimeout (timer);
             timer = setTimeout(callback, ms);
         };
     })();
 
     $('#filter').keyup(function() {
-        delay(function(){
+        delay(function() {
             updateFilter();
         }, 500 );
     });
