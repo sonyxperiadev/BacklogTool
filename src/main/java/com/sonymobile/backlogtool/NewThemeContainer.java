@@ -30,14 +30,19 @@ package com.sonymobile.backlogtool;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
 public class NewThemeContainer extends Theme {
-    private boolean top;
-
-    public boolean isTop() {
-        return top;
+    
+    /**
+     * Keeps track of which backlog item that was selected most recently,
+     * so that the new item can be placed after that item.
+     */
+    private ListItem lastItem;
+    
+    
+    public ListItem getLastItem() {
+        return lastItem;
     }
 
-    public void setTop(boolean top) {
-        this.top = top;
+    public void setLastItem(ListItem lastItem) {
+        this.lastItem = lastItem;
     }
-
 }

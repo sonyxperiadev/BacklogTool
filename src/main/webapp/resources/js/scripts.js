@@ -636,12 +636,27 @@ $(document).ready(function () {
         lastPressed = pressed;
         updateCookie();
     };
+    
+    /**
+     * Gets the most recently selected item of
+     * specified type (child/parent).
+     */
+    var getLastSelected = function(type) {
+        var i = selectedItems.length;
+        while(i--) {
+            if (selectedItems[i].type == type) {
+                return selectedItems[i];
+            }
+        }
+        return null;
+    };
 
     var createTask = function(event) {
         displayUpdateMsg();
         removeGroupMember();
         var task = new Object();
         task.parentId = event.target.id;
+        task.lastItem = getLastSelected("child");
 
         $.ajax({
             url : "../json/createtask/" + areaName,
@@ -680,6 +695,9 @@ $(document).ready(function () {
             var epic = getParent(newStoryEpicID);
             storyContainer.epicTitle = epic.title;
             storyContainer.themeTitle = epic.themeTitle;
+            storyContainer.lastItem = getLastSelected("child");
+        } else {
+            storyContainer.lastItem = getLastSelected("parent");
         }
         $.ajax({
             url : "../json/createstory/" + areaName,
@@ -722,6 +740,9 @@ $(document).ready(function () {
             newEpicThemeID = event.target.id;
             var theme = getParent(newEpicThemeID);
             epicContainer.themeTitle = theme.title;
+            epicContainer.lastItem = getLastSelected("child");
+        } else {
+            epicContainer.lastItem = getLastSelected("parent");
         }
 
         $.ajax({
@@ -759,10 +780,14 @@ $(document).ready(function () {
     var createTheme = function(event) {
         displayUpdateMsg();
         removeGroupMember();
+        var themeContainer = new Object();
+        themeContainer.lastItem = getLastSelected("parent");
+        
         $.ajax({
             url : "../json/createtheme/" + areaName,
             type : 'POST',
             dataType : 'json',
+            data : JSON.stringify(themeContainer),
             contentType : "application/json; charset=utf-8",
             success : function(newId) {
                 if (newId != null) {

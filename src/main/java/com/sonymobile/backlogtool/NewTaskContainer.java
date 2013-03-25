@@ -30,10 +30,26 @@ package com.sonymobile.backlogtool;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
 public class NewTaskContainer extends Task {
+    
+    /**
+     * Keeps track of which backlog item that was selected most recently,
+     * so that the new item can be placed after that item.
+     */
+    private ListItem lastItem;
 
     private int parentId;
 
     private String taskAttr1Id;
+    
+    
+    public ListItem getLastItem() {
+        return lastItem;
+    }
+
+    public void setLastItem(ListItem lastItem) {
+        this.lastItem = lastItem;
+    }
+    
 
     public void setParentId(int parentId) {
         this.parentId = parentId;
