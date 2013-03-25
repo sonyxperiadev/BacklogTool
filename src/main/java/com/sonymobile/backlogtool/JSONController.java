@@ -334,7 +334,7 @@ public class JSONController {
             if (!story.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
-            
+
             ListItem lastItem = newTask.getLastItem();
             newTask.setStory(story);
 
@@ -423,7 +423,7 @@ public class JSONController {
             Query storyQuery = session.createQuery("from Story where area like ? and archived=false order by prio desc");
             storyQuery.setParameter(0, area);
             List<Story> storyList = Util.castList(Story.class, storyQuery.list());
-            
+
             if (storyList.isEmpty()) {
                 newStory.setPrio(1);
             } else {
@@ -575,7 +575,7 @@ public class JSONController {
             if (area == null) {
                 throw new Exception("Could not find area!");
             }
-            
+
             ListItem lastItem = newTheme.getLastItem();
 
             //Move other themes
