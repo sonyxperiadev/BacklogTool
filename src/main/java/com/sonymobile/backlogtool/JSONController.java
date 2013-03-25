@@ -335,10 +335,31 @@ public class JSONController {
                 throw new Error("Trying to modify unauthorized object");
             }
 
+            ListItem lastItem = newTask.getLastItem();
             newTask.setStory(story);
 
             session.save("com.sonymobile.backlogtool.Task", newTask);
-            newTask.setPrioInStory(story.getChildren().size() + 1);
+
+            int newPrioInStory = story.getChildren().size() + 1;
+            if (lastItem != null && lastItem.getType().equals("child")) {
+                for (Task task : story.getChildren()) {
+                    //Find what prioInStory lastItem has if it belongs to this story
+                    if (task.getId() == lastItem.getId()) {
+                        newPrioInStory = task.getPrioInStory() + 1;
+
+                        //Move down all tasks within the story below the new task
+                        for (Task currentTask : story.getChildren()) {
+                            int prioInStory = currentTask.getPrioInStory();
+                            if (prioInStory >= newPrioInStory) {
+                                currentTask.setPrioInStory(prioInStory + 1);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            newTask.setPrioInStory(newPrioInStory);
+
             newTask.setTitle("New task " + newTask.getId());
             story.addTask(newTask);
 
@@ -374,9 +395,28 @@ public class JSONController {
             boolean createIfDoesNotExist = true;
             Theme theme = getTheme(newStory.getThemeTitle(), area, session, createIfDoesNotExist);
             Epic epic = getEpic(newStory.getEpicTitle(), theme, area, session, createIfDoesNotExist);
+            ListItem lastItem = newStory.getLastItem();
 
             if (epic != null) {
-                newStory.setPrioInEpic(epic.getChildren().size() + 1);
+                int newPrioInEpic = epic.getChildren().size() + 1;
+                if (lastItem != null && lastItem.getType().equals("child")) {
+                    for (Story story : epic.getChildren()) {
+                        //Find what prioInEpic lastItem has if it belongs to this epic
+                        if (story.getId() == lastItem.getId()) {
+                            newPrioInEpic = story.getPrioInEpic() + 1;
+                            
+                            //Move down all stories within the epic below the new story
+                            for (Story currentStory : epic.getChildren()) {
+                                int prioInEpic = currentStory.getPrioInEpic();
+                                if (prioInEpic >= newPrioInEpic) {
+                                    currentStory.setPrioInEpic(prioInEpic + 1);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                newStory.setPrioInEpic(newPrioInEpic);
             }
 
             //Move other stories
@@ -387,15 +427,25 @@ public class JSONController {
             if (storyList.isEmpty()) {
                 newStory.setPrio(1);
             } else {
-                if (newStory.isTop()) {
-                    newStory.setPrio(1);
+                int newPrio = storyList.get(0).getPrio() + 1;
+                if (lastItem != null && lastItem.getType().equals("parent")) {
                     for (Story story : storyList) {
-                        story.setPrio(story.getPrio() + 1);
+                        //Find what prio lastItem has
+                        if (story.getId() == lastItem.getId()) {
+                            newPrio = story.getPrio() + 1;
+                            
+                            //Move down all stories below the new story
+                            for (Story currentStory : storyList) {
+                                int prio = currentStory.getPrio();
+                                if (prio >= newPrio) {
+                                    currentStory.addPrio(1);
+                                }
+                            }
+                            break;
+                        }
                     }
-                } else {
-                    int lastPrio = storyList.get(0).getPrio();
-                    newStory.setPrio(lastPrio + 1);
                 }
+                newStory.setPrio(newPrio);
             }
             newStory.setArea(area);
             newStory.setEpic(epic);
@@ -439,42 +489,68 @@ public class JSONController {
 
             boolean createThemeIfDoesNotExist = true;
             Theme theme = getTheme(newEpic.getThemeTitle(), area, session, createThemeIfDoesNotExist);
-
+            ListItem lastItem = newEpic.getLastItem();
+            
             if (theme != null) {
-                newEpic.setPrioInTheme(theme.getChildren().size() + 1);
-            }
-
-            //An epic with this name must not already exist
-            boolean createEpicIfDoesNotExist = false;
-            if (getEpic(newEpic.getTitle(), theme, area, session, createEpicIfDoesNotExist) == null) {
-
-                //Move other epics
-                Query epicQuery = session.createQuery("from Epic where area like ? and archived=false order by prio desc");
-                epicQuery.setParameter(0, area);
-                List<Epic> epicList = Util.castList(Epic.class, epicQuery.list());
-
-                if (epicList.isEmpty()) {
-                    newEpic.setPrio(1);
-                } else {
-                    if (newEpic.isTop()) {
-                        newEpic.setPrio(1);
-                        for (Epic epic : epicList) {
-                            epic.setPrio(epic.getPrio() + 1);
+                int newPrioInTheme = theme.getChildren().size() + 1;
+                if (lastItem != null && lastItem.getType().equals("child")) {
+                    for (Epic epic : theme.getChildren()) {
+                        //Find what prioInTheme lastItem has if it belongs to this theme
+                        if (epic.getId() == lastItem.getId()) {
+                            newPrioInTheme = epic.getPrioInTheme() + 1;
+                            
+                            //Move down all epics within the theme below the new epic
+                            for (Epic currentEpic : theme.getChildren()) {
+                                int prioInTheme = currentEpic.getPrioInTheme();
+                                if (prioInTheme >= newPrioInTheme) {
+                                    currentEpic.setPrioInTheme(prioInTheme + 1);
+                                }
+                            }
+                            break;
                         }
-                    } else {
-                        int lastPrio = epicList.get(0).getPrio();
-                        newEpic.setPrio(lastPrio + 1);
                     }
                 }
-                newEpic.setArea(area);
-                newEpic.setTheme(theme);
-                session.save("com.sonymobile.backlogtool.Epic", newEpic);
-                newEpic.setTitle("New epic " + newEpic.getId());
-                tx.commit();
-
-                PushContext pushContext = PushContext.getInstance(context);
-                pushContext.push(areaName);
+                newEpic.setPrioInTheme(newPrioInTheme);
             }
+
+            //Move other epics
+            Query epicQuery = session.createQuery("from Epic where area like ? and archived=false order by prio desc");
+            epicQuery.setParameter(0, area);
+            List<Epic> epicList = Util.castList(Epic.class, epicQuery.list());
+
+            if (epicList.isEmpty()) {
+                newEpic.setPrio(1);
+            } else {
+                int newPrio = epicList.get(0).getPrio() + 1;
+                if (lastItem != null && lastItem.getType().equals("parent")) {
+                    for (Epic epic : epicList) {
+                        //Find what prio lastItem has
+                        if (epic.getId() == lastItem.getId()) {
+                            newPrio = epic.getPrio() + 1;
+                            
+                            //Move down all epics below the new epic
+                            for (Epic currentEpic : epicList) {
+                                int prio = currentEpic.getPrio();
+                                if (prio >= newPrio) {
+                                    currentEpic.setPrio(prio + 1);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                newEpic.setPrio(newPrio);
+            }
+            
+            newEpic.setArea(area);
+            newEpic.setTheme(theme);
+            session.save("com.sonymobile.backlogtool.Epic", newEpic);
+            newEpic.setTitle("New epic " + newEpic.getId());
+            tx.commit();
+
+            PushContext pushContext = PushContext.getInstance(context);
+            pushContext.push(areaName);
+
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -489,8 +565,7 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createTheme(@PathVariable String areaName) throws Exception {
-        NewThemeContainer newTheme = new NewThemeContainer();
+    public @ResponseBody Integer createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -501,36 +576,45 @@ public class JSONController {
                 throw new Exception("Could not find area!");
             }
 
-            //A theme with this title must not already exist
-            boolean createThemeIfDoesNotExist = false;
-            if (getTheme(newTheme.getTitle(), area, session, createThemeIfDoesNotExist) == null) {
+            ListItem lastItem = newTheme.getLastItem();
 
-                //Move other themes
-                Query allThemesQuery = session.createQuery("from Theme where area like ? and archived=false order by prio desc");
-                allThemesQuery.setParameter(0, area);
-                List<Theme> allThemes = Util.castList(Theme.class, allThemesQuery.list());
+            //Move other themes
+            Query allThemesQuery = session.createQuery("from Theme where area like ? and archived=false order by prio desc");
+            allThemesQuery.setParameter(0, area);
+            List<Theme> themeList = Util.castList(Theme.class, allThemesQuery.list());
 
-                if (allThemes.isEmpty()) {
-                    newTheme.setPrio(1);
-                } else {
-                    if (newTheme.isTop()) {
-                        newTheme.setPrio(1);
-                        for (Theme theme : allThemes) {
-                            theme.setPrio(theme.getPrio() + 1);
+            if (themeList.isEmpty()) {
+                newTheme.setPrio(1);
+            } else {
+                int newPrio = themeList.get(0).getPrio() + 1;
+                if (lastItem != null && lastItem.getType().equals("parent")) {
+                    for (Theme theme : themeList) {
+                        //Find what prio lastItem has
+                        if (theme.getId() == lastItem.getId()) {
+                            newPrio = theme.getPrio() + 1;
+                            
+                            //Move down all themes below the new theme
+                            for (Theme currentTheme : themeList) {
+                                int prio = currentTheme.getPrio();
+                                if (prio >= newPrio) {
+                                    currentTheme.setPrio(prio + 1);
+                                }
+                            }
+                            break;
                         }
-                    } else {
-                        int lastPrio = allThemes.get(0).getPrio();
-                        newTheme.setPrio(lastPrio + 1);
                     }
                 }
-                newTheme.setArea(area);
-                session.save("com.sonymobile.backlogtool.Theme", newTheme);
-                newTheme.setTitle("New theme " + newTheme.getId());
-                tx.commit();
-
-                PushContext pushContext = PushContext.getInstance(context);
-                pushContext.push(areaName);
+                newTheme.setPrio(newPrio);
             }
+
+            newTheme.setArea(area);
+            session.save("com.sonymobile.backlogtool.Theme", newTheme);
+            newTheme.setTitle("New theme " + newTheme.getId());
+            tx.commit();
+
+            PushContext pushContext = PushContext.getInstance(context);
+            pushContext.push(areaName);
+
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {

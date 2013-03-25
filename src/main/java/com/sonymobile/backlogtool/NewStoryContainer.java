@@ -33,7 +33,11 @@ import org.apache.commons.lang.StringEscapeUtils;
  */
 public class NewStoryContainer extends Story {
 
-    private boolean top;
+    /**
+     * Keeps track of which backlog item that was selected most recently,
+     * so that the new item can be placed after that item.
+     */
+    private ListItem lastItem;
 
     private String themeTitle;
 
@@ -45,12 +49,13 @@ public class NewStoryContainer extends Story {
 
     private String storyAttr3Id;
 
-    public boolean isTop() {
-        return top;
+
+    public ListItem getLastItem() {
+        return lastItem;
     }
 
-    public void setTop(boolean top) {
-        this.top = top;
+    public void setLastItem(ListItem lastItem) {
+        this.lastItem = lastItem;
     }
 
     public String getThemeTitle() {

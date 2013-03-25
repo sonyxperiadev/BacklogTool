@@ -33,16 +33,21 @@ import org.apache.commons.lang.StringEscapeUtils;
  */
 public class NewEpicContainer extends Epic {
 
-    private boolean top;
-
+    /**
+     * Keeps track of which backlog item that was selected most recently,
+     * so that the new item can be placed after that item.
+     */
+    private ListItem lastItem;
+    
     private String themeTitle;
+    
 
-    public boolean isTop() {
-        return top;
+    public ListItem getLastItem() {
+        return lastItem;
     }
-
-    public void setTop(boolean top) {
-        this.top = top;
+    
+    public void setLastItem(ListItem lastItem) {
+        this.lastItem = lastItem;
     }
 
     public String getThemeTitle() {
