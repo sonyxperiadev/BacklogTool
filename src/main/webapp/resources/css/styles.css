@@ -563,14 +563,6 @@ fieldset {
     margin-top: 62px
 }
 
-p.id {
-	position: absolute;
-	bottom: 0px;
-	right: 5px;
-	font-size: 9px;
-	font-weight: bold;
-}
-
 .filter {
 	display:inline-block;
 	width: 110px;

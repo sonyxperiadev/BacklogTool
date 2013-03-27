@@ -1417,7 +1417,7 @@ $(document).ready(function () {
 	                        //TITLE FIELDS
 	                        +'<div id="titleDiv">'
 	                        //TYPE MARK START
-	                        +'<p class="typeMark">Story</p>'
+	                        +'<p class="typeMark">Story ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
 	                        //THEME START
 	                        +'<p class="theme ' + currentParent.id + '">' + replaceNullWithEmpty(currentParent.themeTitle) + '</p>'
@@ -1510,8 +1510,7 @@ $(document).ready(function () {
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        //ATTR3 FIELD END
-	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a><br/>'
-	                        +'<p class="id" title="Item ID">'+ currentParent.id + '</p>'
+	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />';
 	
 	                    newContainer += '<li class="parentLi story ui-state-default editStory" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
@@ -1565,7 +1564,7 @@ $(document).ready(function () {
 	                        //TITLE FIELDS
 	                        +'<div id="titleDivThemeEpic">'
 	                        //TYPE MARK START
-	                        +'<p class="typeMark">Epic</p>'
+	                        +'<p class="typeMark">Epic ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
 	                        //THEME START
 	                        +'<p class="theme ' + currentParent.id + '">' + replaceNullWithEmpty(currentParent.themeTitle) + '</p>'
@@ -1588,7 +1587,6 @@ $(document).ready(function () {
 	                        + getArchivedTopic(archived)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
-	                        +'<p class="id" title="Item ID">'+ currentParent.id + '</p>'
 	                        +'<br style="clear:both" />';
 	
 	                    newContainer += '<li class="parentLi epic ui-state-default editEpic" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
@@ -1710,7 +1708,7 @@ $(document).ready(function () {
 	                        //TITLE FIELDS
 	                        +'<div id="titleDivThemeEpic">'
 	                        //TYPE MARK START
-	                        +'<p class="typeMark">Theme</p>'
+	                        +'<p class="typeMark">Theme ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
 	                        +'<br style="clear:both" />'
 	                        //TITLE START
@@ -1729,7 +1727,6 @@ $(document).ready(function () {
 	                        + getArchivedTopic(archived)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
-	                        +'<p class="id" title="Item ID">'+ currentParent.id + '</p>'
 	                        +'<br style="clear:both" />';
 	
 	                    newContainer += '<li class="parentLi theme ui-state-default editTheme" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
