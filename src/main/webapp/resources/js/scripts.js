@@ -994,8 +994,8 @@ $(document).ready(function () {
             $('button.'+storyId).unbind();
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
             //Sets values for all edit fields
-            $("#deadline"+storyId).datepicker({ showWeek: true });
-            $("#added"+storyId).datepicker({ showWeek: true });
+            $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
+            $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
 
             if (story.deadline == null) {
                 $("#deadline"+storyId).val("");
