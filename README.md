@@ -33,7 +33,7 @@ In order to make backlog tool fit every team with their own requirements and way
 
 This tool supports login with existing LDAP user accounts, which means that users working in environments with LDAP logins can use the same account details as usual.
 
-[Screenshots of the tool can be viewed here](https://github.com/sonyericssondev/BacklogTool/wiki/Screenshots)
+[Screenshots of the tool can be viewed here](https://github.com/sonyxperiadev/BacklogTool/wiki/Screenshots)
 
 Installation instructions
 =========================
