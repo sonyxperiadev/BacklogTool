@@ -81,7 +81,7 @@ p {
     margin: 0.1em;
 }
 
-#create-parent, #save-changes, #print-stories, #hide-archived-list-container, #login-out {
+#create-parent, #save-all, #print-stories, #hide-archived-list-container, #login-out {
     display: inline-block;
     vertical-align: top;
     width: 110px;
@@ -258,7 +258,7 @@ p.typeMark {
     word-wrap: break-word;
 }
 
-div.status,div.effort,div.times {
+div.story-attr1-2, div.story-attr3, div.times {
     display: inline-block;
     width: 11%;
     float: left;
@@ -271,8 +271,7 @@ div.stakeholders {
     float: left;
 }
 
-select.contributorSite,select.customerSite,select.status,select.prio,select.effort
-    {
+select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
     height: 26px;
 }
 
@@ -293,22 +292,22 @@ input.customer,input.contributor {
     float: right;
 }
 
-#titleDiv, #titleDivEpicStory, #titleDivThemeEpic {
+.titles, .titles-epic-story, .titles-theme-epic {
     display: inline-block;
     float: left;
     vertical-align: top;
     word-wrap: break-word;
 }
 
-#titleDiv {
+.titles {
     width: 45%;
 }
 
-div#titleDivEpicStory {
+div.titles-epic-story {
     width: 40%;
 }
 
-div#titleDivThemeEpic {
+div.titles-theme-epic {
     width: 88%;
 }
 
@@ -374,7 +373,7 @@ div#titleDivThemeEpic {
     width: 38%;
 }
 
-.deadline,.added,.prio,.status,.effort {
+.deadline, .added, .story-attr1, .story-attr2, .story-attr3 {
     width: 95%;
 }
 
@@ -387,7 +386,7 @@ div#titleDivThemeEpic {
     margin-left: 2px !important;
 }
 
-select.status,select.prio,select.effort {
+select.story-attr1, select.story-attr2, select.story-attr3 {
     height: 26px;
 }
 
@@ -497,7 +496,7 @@ p.added,p.deadline {
     height: 1.2em;
 }
 
-#added,#storyAttr1,#storyAttr2,#storyAttr3,#top,#deadline {
+#added, #storyAttr1, #storyAttr2, #storyAttr3, #top,#deadline {
     width: 97%;
 }
 
@@ -555,8 +554,4 @@ fieldset {
 
 .ui-selected {
     background: #DEF !important;
-}
-
-.marginTopButton {
-    margin-top: 62px
 }

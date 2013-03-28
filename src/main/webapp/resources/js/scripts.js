@@ -160,11 +160,9 @@ $(document).ready(function () {
         $(".editTask").unbind("dblclick");
     };
 
-    $("#archived-list-container").hide();
+
     $('#hide-archived-list-container').change(function () {
-        $("#archived-list-container").hide();
-        $(".parent-child-list").empty();
-        buildVisibleList();
+        $('#archived-list-container').toggle($('#hide-archived-list-container').is(":checked"));
     });
 
     /**
@@ -383,12 +381,30 @@ $(document).ready(function () {
             }
         }
     };
+    
+    var replaceParent = function (id, newParent) {
+        for (var i = 0; i < parents.length; ++i) {
+            if (parents[i].id == id) {
+            	parents[i] = newParent;
+            }
+        }
+    };
 
     var getChild = function (id) {
         for (var i = 0; i < parents.length; ++i) {
             for (var k = 0; k < parents[i].children.length; ++k) {
                 if (parents[i].children[k].id == id) {
                     return parents[i].children[k];
+                };
+            }
+        }
+    };
+    
+    var replaceChild = function (id, newChild) {
+        for (var i = 0; i < parents.length; ++i) {
+            for (var k = 0; k < parents[i].children.length; ++k) {
+                if (parents[i].children[k].id == id) {
+                    parents[i].children[k] = newChild;
                 };
             }
         }
@@ -857,22 +873,24 @@ $(document).ready(function () {
     var bulkSave = function() {
         displayUpdateMsg();
         var pushUpdate = false;
-        for(var j = 0; j < editingItems.length; j++) {
-            if (j == editingItems.length-1) {
-                //If last item, we want to trigger a push update
+        while (editingItems.length > 0) {
+        	//If last item, we want to trigger a push update
+        	if (editingItems.length == 1) {               
                 pushUpdate = true;
             }
-            var id = eval(editingItems[j].id);
-            if(editingItems[j].type == "task") {
+            var lastElement = $(editingItems).last()[0];
+            var id = eval(lastElement.id);
+
+            if(lastElement.type == "task") {
                 saveTask(id, pushUpdate);
-            } else if(editingItems[j].type == "story") {
+            } else if(lastElement.type == "story") {
                 saveStory(id, pushUpdate);
-            } else if (editingItems[j].type == "epic") {
+            } else if (lastElement.type == "epic") {
                 saveEpic(id, pushUpdate);
-            } else if (editingItems[j].type == "theme") {
+            } else if (lastElement.type == "theme") {
                 saveTheme(id, pushUpdate);
             }
-            $("."+id).toggleClass('hidden-edit');
+
         }
         editingItems = new Array();
         reload();
@@ -911,6 +929,7 @@ $(document).ready(function () {
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
+            $('.saveButton.'+storyId).click(function() { saveStory(parseInt(storyId), false); });
             //Sets values for all edit fields
             $("#deadline"+storyId).datepicker({ showWeek: true });
             $("#added"+storyId).datepicker({ showWeek: true });
@@ -987,7 +1006,7 @@ $(document).ready(function () {
             if(editingItems.length == 0) {
                 $('.saveButton').button( "option", "disabled", true );
                 addGroupMember();
-                reload();
+                //reload();
             }
             //Slide toggle fix
             $('li.childLi').css("height", $('li.childLi').height());
@@ -1002,7 +1021,6 @@ $(document).ready(function () {
         else {
             storyId = event.data.storyId;
         }
-        displayUpdateMsg();
 
         //Creates a new story and sets all updated values
         var story = new Object();
@@ -1029,9 +1047,54 @@ $(document).ready(function () {
             async: false,
             data: JSON.stringify(story),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $("#list-container").sortable( "option", "disabled", false );
-                $('button.' + storyId).button("option", "disabled", true);
+            success: function (updatedStory) {            	
+            	//Set updated values, we prefer to not reload the whole page.
+            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).text(updatedStory.title);
+            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).text((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
+            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).text((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+            	$('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId).text(updatedStory.description);
+
+            	$('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
+            	$('.stakeholders').find('p.customer.'+storyId).text(updatedStory.customer);
+
+            	$('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(updatedStory.contributorSite));
+            	$('.stakeholders').find('p.contributor.'+storyId).text(updatedStory.contributor);
+
+            	$('.times').find('p.added.' + storyId).text(getDate(updatedStory.added));
+            	$('.times').find('p.deadline.' + storyId).text(getDate(updatedStory.deadline));
+
+            	$('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
+            	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
+            	$('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
+            	
+
+            	
+
+            	var li = $('#'+storyId);
+            	//Replacing the story to the updated one.
+            	if (view == "story-task") {
+            		//Story was moved from or to archive
+                	if (getParent(storyId).archived != updatedStory.archived) {
+                		//Checks if this story is in list-container or in archived.list-container and moves it.
+                		li.fadeOut(500, function() {
+                			//move all childs
+                			$('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
+                			//move parent
+                	        (li.parent('#list-container').length) ? li.prependTo('#archived-list-container').fadeIn() : li.appendTo('#list-container').fadeIn();
+                	    });
+                	}
+            		replaceParent(storyId, updatedStory);
+            	} else {
+            		if (updatedStory.archived) {
+            			li.fadeOut(500);
+            		}
+            		replaceChild(storyId, updatedStory);
+            	}
+
+            	//Exiting edit mode
+            	$("."+storyId).toggleClass('hidden-edit');
+                editingItems.remove({id:storyId});
+                
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1047,7 +1110,8 @@ $(document).ready(function () {
         else {
             taskId = event.data.taskId;
         }
-        displayUpdateMsg();
+        //displayUpdateMsg();
+
         //Creates a new task and sets all updated values
         var task = new Object();
         task.id = taskId;
@@ -1064,9 +1128,16 @@ $(document).ready(function () {
             dataType: 'json',
             data: JSON.stringify(task),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $('button.'+taskId).button("option", "disabled", true);
-                $("#list-container").sortable( "option", "disabled", false );
+            success: function (updatedTask) {
+            	//Set the updated values
+            	$(".taskTitle."+updatedTask.id).find("p.taskInfo").text(updatedTask.title);
+            	$(".taskOwner."+updatedTask.id).find("p.taskInfo").text(updatedTask.owner);
+            	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").text(updatedTask.calculatedTime);
+            	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
+            	
+            	//Exiting edit mode
+            	$("."+taskId).toggleClass('hidden-edit');
+                editingItems.remove({id:taskId});
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1092,6 +1163,7 @@ $(document).ready(function () {
             $('button.'+taskId).button();
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
+            $('.saveButton.'+taskId).click(function() { saveTask(parseInt(taskId), false); });
             $("."+taskId).toggleClass('hidden-edit');
             //sets values for all edit fields
             $("textarea#taskTitle" + taskId).val(task.title);
@@ -1110,7 +1182,7 @@ $(document).ready(function () {
             if(editingItems.length == 0) {
                 $('.saveButton').button( "option", "disabled", true );
                 addGroupMember();
-                reload();
+                //reload();
             }
             //Slide toggle fix
             $('#'+taskId).css("height", $('#'+taskId).height());
@@ -1125,7 +1197,7 @@ $(document).ready(function () {
         else {
             epicId = event.data.epicId;
         }
-        displayUpdateMsg();
+
         //Creates a new epic and sets all updated values
         var epic = new Object();
         epic.id = eval(epicId);
@@ -1141,9 +1213,17 @@ $(document).ready(function () {
             dataType: 'json',
             data: JSON.stringify(epic),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $('button.'+epicId).button("option", "disabled", true);
-                $("#list-container").sortable( "option", "disabled", false );
+            success: function (updatedEpic) {
+                //$('button.'+epicId).button("option", "disabled", true);
+                //$("#list-container").sortable( "option", "disabled", false );
+            	
+            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).text((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
+            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).text(updatedEpic.title);
+            	$('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId).text(updatedEpic.description);
+            	
+            	//Exiting edit mode
+            	$("."+epicId).toggleClass('hidden-edit');
+                editingItems.remove({id:epicId});
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1175,6 +1255,7 @@ $(document).ready(function () {
             $('button.'+epicId).button();
             $('button.'+epicId).unbind();
             $('.cancelButton.'+epicId).click({id: epicId},cancel);
+            $('.saveButton.'+epicId).click(function() { saveEpic(parseInt(epicId), false); });
             $("."+epicId).toggleClass('hidden-edit');
 
             $("textarea#epicTheme"+epicId).autocomplete({
@@ -1200,7 +1281,7 @@ $(document).ready(function () {
             if(editingItems.length == 0) {
                 $('.saveButton').button( "option", "disabled", true );
                 addGroupMember();
-                reload();
+                //reload();
             }
             //Slide toggle fix
             $('#'+epicId).css("height", $('#'+epicId).height());
@@ -1215,7 +1296,7 @@ $(document).ready(function () {
         else {
             themeId = event.data.themeId;
         }
-        displayUpdateMsg();
+
         //Creates a new epic and sets all updated values
         var theme = new Object();
         theme.id = eval(themeId);
@@ -1230,9 +1311,16 @@ $(document).ready(function () {
             dataType: 'json',
             data: JSON.stringify(theme),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $('button.'+themeId).button("option", "disabled", true);
-                $("#list-container").sortable( "option", "disabled", false );
+            success: function (updatedTheme) {
+                //$('button.'+themeId).button("option", "disabled", true);
+                //$("#list-container").sortable( "option", "disabled", false );
+            	
+            	$('.titles-theme-epic').find('p.titleText.'+themeId).text(updatedTheme.title);
+            	$('.titles-theme-epic').find('p.description.'+themeId).text(updatedTheme.description);
+            	
+            	//Exiting edit mode
+            	$("."+themeId).toggleClass('hidden-edit');
+                editingItems.remove({id:themeId});
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1260,6 +1348,7 @@ $(document).ready(function () {
             $('button.'+themeId).button();
             $('button.'+themeId).unbind();
             $('.cancelButton.'+themeId).click({id: themeId},cancel);
+            $('.saveButton.'+themeId).click(function() { saveTheme(parseInt(themeId), false); });
             $("."+themeId).toggleClass('hidden-edit');
 
             //auto resize the textareas to fit the text
@@ -1270,7 +1359,7 @@ $(document).ready(function () {
             if (editingItems.length == 0) {
                 $('.saveButton').button( "option", "disabled", true );
                 addGroupMember();
-                reload();
+                //reload();
             }
         }
     };
@@ -1331,7 +1420,7 @@ $(document).ready(function () {
                         +'<a id="' + currentParent.id + '" title="Clone this story including tasks" class="cloneItem-with-children story"><img src="../resources/image/page_white_stack.png"></a>'
                         +'</div>'
                         //TITLE FIELDS
-                        +'<div id="titleDiv">'
+                        +'<div class="titles">'
                         //TYPE MARK START
                         +'<p class="typeMark">Story</p>'
                         //TYPE MARK END
@@ -1370,7 +1459,7 @@ $(document).ready(function () {
                         //CUSTOMER FIELD END
                         //CONTRIBUTOR FIELD START
                         +'<p class="title">Contributor </p>'
-                        +'<p id="'+currentParent.id+'" class="contributorSite ' + currentParent.id + '">'+getSiteImage(currentParent.contributorSite)+'</p>'
+                        +'<p class="contributorSite ' + currentParent.id + '">'+getSiteImage(currentParent.contributorSite)+'</p>'
                         +'<p class="' + currentParent.id + ' contributor description">' + currentParent.contributor + '</p>'
                         +'<select id="contributorSite'+currentParent.id+'" class="bindChange contributorSite hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value="NONE"></option>'
@@ -1392,35 +1481,36 @@ $(document).ready(function () {
                         +'<input id="added'+currentParent.id+'" type="text" class="bindChange added hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
                         +'</div>'
                         //TIME FIELDS END
-                        //STATUS AND PRIO DIV START
-                        +'<div class="status">'
+                        //ATTR1 AND ATTR2 DIV START
+                        +'<div class="story-attr1-2">'
                         //ATTR1 FIELD START
                         +'<p class="title">' + area.storyAttr1.name + '</p>'
-                        +'<p class="description ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr1) + getNameIfExists(currentParent.storyAttr1) + '</p>'
-                        +'<select id="storyAttr1'+currentParent.id+'" class="bindChange status hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
+                        +'<p class="description story-attr1 ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr1) + getNameIfExists(currentParent.storyAttr1) + '</p>'
+                        +'<select id="storyAttr1'+currentParent.id+'" class="bindChange story-attr1 hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value=""></option>'
                         + storyAttr1Options
                         +'</select>'
                         //ATTR1 FIELD END
                         //ATTR2 FIELD START
                         +'<p class="title">' + area.storyAttr2.name + '</p>'
-                        +'<p class="description ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr2) + getNameIfExists(currentParent.storyAttr2) + '</p>'
-                        +'<select id="storyAttr2'+currentParent.id+'" class="bindChange prio hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
+                        +'<p class="description story-attr2 ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr2) + getNameIfExists(currentParent.storyAttr2) + '</p>'
+                        +'<select id="storyAttr2'+currentParent.id+'" class="bindChange story-attr2 hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value=""></option>'
                         + storyAttr2Options
                         +'</select>'
                         //ATTR2 FIELD END
                         +'</div>'
                         //ATTR1 AND ATTR2 DIV END
-                        //ATTR3 FIELD START
-                        +'<div class="effort">'
+                        //ATTR3 DIV START
+                        +'<div class="story-attr3">'
                         +'<p class="title">' + area.storyAttr3.name + '</p>'
-                        +'<p class="description ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr3) + getNameIfExists(currentParent.storyAttr3) + '</p>'
-                        +'<select id="storyAttr3' + currentParent.id +'" class="bindChange effort hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
+                        +'<p class="description story-attr3 ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr3) + getNameIfExists(currentParent.storyAttr3) + '</p>'
+                        +'<select id="storyAttr3' + currentParent.id +'" class="bindChange story-attr3 hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value=""></option>'
                         + storyAttr3Options
                         +'</select>'
                         +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveStory' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive story</p></input>'
+                        +'<button class="inline marginTop saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
                         +'<button class="inline marginTop cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
                         + getArchivedTopic(archived)
                         +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
@@ -1428,7 +1518,6 @@ $(document).ready(function () {
                         //ATTR3 FIELD END
                         +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
                         +'<br style="clear:both" />';
-
                     newContainer += '<li class="parentLi story ui-state-default editStory" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
 
 
@@ -1465,6 +1554,7 @@ $(document).ready(function () {
                         +'<option value="2">2</option>'
                         +'</select>'
                         //CALCULATEDTIME END
+                        +'<button class="saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
                         +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
                         +'<a id=' + currentChild.id + ' title="Remove task" class="icon deleteItem delete-icon"></a>'
                         +'<br style="clear:both" />'
@@ -1478,7 +1568,7 @@ $(document).ready(function () {
                         +'<a id="' + currentParent.id + '" title="Clone this epic excluding children" class="cloneItem epic"><img src="../resources/image/page_white_copy.png"></a>'
                         +'</div>'
                         //TITLE FIELDS
-                        +'<div id="titleDivThemeEpic">'
+                        +'<div class="titles-theme-epic">'
                         //TYPE MARK START
                         +'<p class="typeMark">Epic</p>'
                         //TYPE MARK END
@@ -1499,6 +1589,7 @@ $(document).ready(function () {
                         //TITLE FIELDS END
                         +'<a id=' + currentParent.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
                         +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
+                        +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
                         +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
                         + getArchivedTopic(archived)
                         +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
@@ -1515,7 +1606,7 @@ $(document).ready(function () {
                         +'<a id="' + currentChild.id + '" title="Clone this story excluding tasks" class="cloneItem story"><img src="../resources/image/page_white_copy.png"></a>'
                         +'</div>'
                         //TITLE FIELDS
-                        +'<div id="titleDivEpicStory" class="padding-left">'
+                        +'<div class="padding-left titles-epic-story">'
                         //TYPE MARK START
                         +'<p class="typeMark">Story</p>'
                         //TYPE MARK END
@@ -1576,53 +1667,54 @@ $(document).ready(function () {
                         +'<input id="added'+currentChild.id+'" type="text" class="bindChange added hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
                         +'</div>'
                         //TIME FIELDS END
-                        //STATUS AND PRIO DIV START
-                        +'<div class="status">'
+                        //ATTR 1 AND 2 DIV START
+                        +'<div class="story-attr1-2">'
                         //ATTR1 FIELD START
                         +'<p class="title">' + area.storyAttr1.name + '</p>'
-                        +'<p class="description ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr1) + getNameIfExists(currentChild.storyAttr1) + '</p>'
-                        +'<select id="storyAttr1'+currentChild.id+'" class="bindChange status hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
+                        +'<p class="description story-attr1 ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr1) + getNameIfExists(currentChild.storyAttr1) + '</p>'
+                        +'<select id="storyAttr1'+currentChild.id+'" class="bindChange story-attr1 hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value=""></option>'
                         + storyAttr1Options
                         +'</select>'
                         //ATTR1 FIELD END
                         //ATTR2 FIELD START
                         +'<p class="title">' + area.storyAttr2.name + '</p>'
-                        +'<p class="description ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr2) + getNameIfExists(currentChild.storyAttr2) + '</p>'
-                        +'<select id="storyAttr2'+currentChild.id+'" class="bindChange prio hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
+                        +'<p class="description story-attr2 ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr2) + getNameIfExists(currentChild.storyAttr2) + '</p>'
+                        +'<select id="storyAttr2'+currentChild.id+'" class="bindChange story-attr2 hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value=""></option>'
                         + storyAttr2Options
                         +'</select>'
                         //ATTR2 FIELD END
                         +'</div>'
                         //ATTR1 AND ATTR2 DIV END
-                        //ATTR3 FIELD START
-                        +'<div class="effort">'
+                        //ATTR3 DIV START
+                        +'<div class="story-attr3">'
                         +'<p class="title">' + area.storyAttr3.name + '</p>'
-                        +'<p class="description ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr3) + getNameIfExists(currentChild.storyAttr3) + '</p>'
-                        +'<select id="storyAttr3' + currentChild.id +'" class="bindChange effort hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
+                        +'<p class="description story-attr3 ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr3) + getNameIfExists(currentChild.storyAttr3) + '</p>'
+                        +'<select id="storyAttr3' + currentChild.id +'" class="bindChange story-attr3 hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
                         +'<option value=""></option>'
                         + storyAttr3Options
                         +'</select>'
                         +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveStory' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive story</p></input>'
+                        +'<button class="inline marginTop saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
                         +'<button class="inline marginTop cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
                         + getArchivedTopic(currentChild.archived)
                         +'<p class="description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
                         +'</div>'
-                        //ATTR3 FIELD END
+                        //ATTR3 DIV END
                         +'<a id=' + currentChild.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
-                        +'<br style="clear:both" />';
+                        +'<br style="clear:both" />'
                         +'</li>';
                     }
                 } else if (view == "theme-epic") {
                     var list = '<div id="icons">'
-                        +'<div title="Show tasks" class="icon ' + icon + '">'
+                        +'<div title="Show epics" class="icon ' + icon + '">'
                         +'</div>'
                         +'<a id="' + currentParent.id + '" title="Create new epic" class="icon createEpic add-child-icon"></a><br>'
                         +'<a id="' + currentParent.id + '" title="Clone this theme excluding children" class="cloneItem theme icon"><img src="../resources/image/page_white_copy.png"></a>'
                         +'</div>'
                         //TITLE FIELDS
-                        +'<div id="titleDivThemeEpic">'
+                        +'<div class="titles-theme-epic">'
                         //TYPE MARK START
                         +'<p class="typeMark">Theme</p>'
                         //TYPE MARK END
@@ -1639,6 +1731,7 @@ $(document).ready(function () {
                         //TITLE FIELDS END
                         +'<a id=' + currentParent.id + ' title="Remove theme" class="icon deleteItem delete-icon"></a>'
                         +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
+                        +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
                         +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
                         + getArchivedTopic(archived)
                         +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
@@ -1653,7 +1746,7 @@ $(document).ready(function () {
                         newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
                         +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
                         //TITLE FIELDS
-                        +'<div id="titleDivThemeEpic" class="padding-left">'
+                        +'<div class="padding-left titles-theme-epic">'
                         //TYPE MARK START
                         +'<p class="typeMark">Epic</p>'
                         //TYPE MARK END
@@ -1667,8 +1760,10 @@ $(document).ready(function () {
                         +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
                         //DESCRIPTION END
                         +'</div>'
-                        +'<button class="marginTopButton cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
-                        +'<a id=' + currentChild.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
+                        +'<a id=' + currentChild.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
+                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
+                        +'<button class="saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
                         +'<br style="clear:both" />'
                         +'</li>';
                     }
@@ -1682,10 +1777,13 @@ $(document).ready(function () {
      * Builds the visible html list using the JSON data
      */
     buildVisibleList = function (archived) {
-        if($("#hide-archived-list-container").attr("checked")){
-            $('#archived-list-container').append(generateList(true));
-            $("#archived-list-container").show();
-        }
+
+    	$('#archived-list-container').append(generateList(true)).hide();
+    	
+    	if($("#hide-archived-list-container").attr("checked")) {
+    	    $("#archived-list-container").show();
+    	}
+
         $('#list-container').append(generateList(false));
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
@@ -1693,9 +1791,7 @@ $(document).ready(function () {
         }
 
         //Make sure all items that should be invisible are invisible
-        //and fix bouncing bug on the li
         $(".childLi").each(function () {
-            $(this).css("height", $(this).height());
             var currentId = $(this).attr("id");
             if (visible[currentId] != true) {
                 $(this).addClass("ui-hidden");

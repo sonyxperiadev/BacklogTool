@@ -64,8 +64,8 @@ THE SOFTWARE.
     <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
     <c:if test="${isLoggedIn == false}">LOG IN</c:if></a>
 
-    <button id="save-changes" class="saveButton"
-        title="Save all changes" disabled>SAVE CHANGES</button>
+    <button id="save-all" class="saveButton"
+        title="Save all changes" disabled>SAVE ALL</button>
     <button id="print-stories" title="Print marked stories">PRINT
         STORIES</button>
     <a title="STORY TASK VIEW" class="story-task-link navigation-link"

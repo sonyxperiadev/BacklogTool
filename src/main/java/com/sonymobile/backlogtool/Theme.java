@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -75,7 +76,7 @@ public class Theme {
     @ManyToOne
     private Area area;
 
-    @OneToMany(mappedBy="theme")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy="theme")
     @OrderBy("prioInTheme")
     private Set<Epic> children = new HashSet<Epic>();
 
