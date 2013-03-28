@@ -193,10 +193,6 @@ public class JSONController {
                 epics = Util.castList(Epic.class, query.list());
             }
 
-            for (Epic epic : epics) {
-                Hibernate.initialize(epic.getChildren());
-            }
-
             mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
             tx.commit();
         } catch (Exception e) {
@@ -243,9 +239,6 @@ public class JSONController {
                 themes = Util.castList(Theme.class, query.list());
             }
 
-            for (Theme theme : themes) {
-                Hibernate.initialize(theme.getChildren());
-            }
             mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
             tx.commit();
         } catch (Exception e) {
@@ -629,14 +622,15 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updatetask/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean updateTask(@PathVariable String areaName,
+    public @ResponseBody Task updateTask(@PathVariable String areaName,
             @RequestBody NewTaskContainer updatedTask, @RequestParam boolean pushUpdate) {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Task task = null;
         try {
             tx = session.beginTransaction();
 
-            Task task = (Task) session.get(Task.class, updatedTask.getId());
+            task = (Task) session.get(Task.class, updatedTask.getId());
             if (!task.getStory().getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
@@ -665,20 +659,21 @@ public class JSONController {
             PushContext pushContext = PushContext.getInstance(context);
             pushContext.push(areaName);
         }
-        return true;
+        return task;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean updateStory(@PathVariable String areaName,
+    public @ResponseBody Story updateStory(@PathVariable String areaName,
             @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Story story = null;
         try {
             tx = session.beginTransaction();
 
-            Story story = (Story) session.get(Story.class, updatedStory.getId());
+            story = (Story) session.get(Story.class, updatedStory.getId());
             if (!story.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
@@ -784,22 +779,23 @@ public class JSONController {
             PushContext pushContext = PushContext.getInstance(context);
             pushContext.push(areaName);
         }
-        return true;
+        return story;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updateepic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean updateEpic(@PathVariable String areaName,
+    public @ResponseBody Epic updateEpic(@PathVariable String areaName,
             @RequestBody NewEpicContainer updatedEpic, @RequestParam boolean pushUpdate) throws Exception {
         boolean success = false;
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Epic epic = null;
         try {
             tx = session.beginTransaction();
 
-            Epic epic = (Epic) session.get(Epic.class, updatedEpic.getId());
+            epic = (Epic) session.get(Epic.class, updatedEpic.getId());
             if (!epic.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
@@ -873,22 +869,23 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return success;
+        return epic;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updatetheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean updateTheme(@PathVariable String areaName,
+    public @ResponseBody Theme updateTheme(@PathVariable String areaName,
             @RequestBody Theme updatedTheme, @RequestParam boolean pushUpdate) throws Exception {
         boolean success = false;
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Theme theme = null;
         try {
             tx = session.beginTransaction();
 
-            Theme theme = (Theme) session.get(Theme.class, updatedTheme.getId());
+            theme = (Theme) session.get(Theme.class, updatedTheme.getId());
             if (!theme.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
@@ -948,7 +945,7 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return success;
+        return theme;
     }
 
     /**

@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactoryBean;
 import org.springframework.orm.hibernate3.HibernateTransactionManager;
 import org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -55,8 +56,15 @@ public class HibernateConfiguration {
     @Autowired
     ServletContext context;
 
-    @Value("#{dataSource}")
-    private DataSource dataSource;
+    //@Value("#{dataSource}")
+    //private DataSource dataSource;
+
+	@Bean
+	public DataSource datasource() {
+		EmbeddedDatabaseFactoryBean bean = new EmbeddedDatabaseFactoryBean();
+		bean.afterPropertiesSet(); // necessary because
+		return bean.getObject();
+	}
 
     @Bean
     public AnnotationSessionFactoryBean sessionFactoryBean() {
@@ -78,7 +86,8 @@ public class HibernateConfiguration {
                 Area.class, Theme.class, Epic.class, Attribute.class,
                 AttributeOption.class});
         bean.setHibernateProperties(props);
-        bean.setDataSource(this.dataSource);
+        //bean.setDataSource(this.dataSource);
+        bean.setDataSource(datasource());
         bean.setSchemaUpdate(true);
 
         return bean;
