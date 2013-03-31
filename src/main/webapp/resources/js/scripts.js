@@ -202,8 +202,8 @@ $(document).ready(function () {
     };
 
 
-    $('#hide-archived-list-container').change(function () {
-        $('#archived-list-container').toggle($('#hide-archived-list-container').is(":checked"));
+    $('#archived-checkbox').change(function () {
+        $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
     });
 
     /**
@@ -212,13 +212,6 @@ $(document).ready(function () {
     var addLinksAndLineBreaks = function(text) {
         return text.replace(/\n/g, '<br />').replace( /(http:\/\/[^\s]+)/gi , '<a href="$1">$1</a>' );
     }
-
-    //Replacing spaces for underlines. Used for linking icons.
-    var replaceSpaces = function (string) {
-        if(string != null) {
-            return string.split(' ').join('_');
-        }
-    };
 
     var replaceNullWithEmpty = function (object) {
         if (object == null) {
@@ -433,14 +426,16 @@ $(document).ready(function () {
         for (var i = 0; i < parents.length; ++i) {
             if (parents[i].id == id) {
                 return parents[i];
+                break;
             }
         }
     };
     
     var replaceParent = function (id, newParent) {
-        for (var i = 0; i < parents.length; ++i) {
-            if (parents[i].id == id) {
+    	for (var i = 0; i < parents.length; ++i) {
+        	if (parents[i].id == id) {
             	parents[i] = newParent;
+            	break;
             }
         }
     };
@@ -603,12 +598,13 @@ $(document).ready(function () {
             }
         }
     }
+
     var editingItems = new Array();
     var lastPressed = null;
 
     var liClick = function (pressed) {
+    	//If the method was triggered by an event
         if (pressed.type != null) {
-            //If the method was triggered by an event,
             //then use $(this) as the pressed element
             pressed = $(this);
         }
@@ -942,11 +938,7 @@ $(document).ready(function () {
             $("."+id).toggleClass('hidden-edit');
             editingItems.remove({id:id});
         }
-        if(editingItems.length == 0) {
-            $('.saveButton').button( "option", "disabled", true );
-            addGroupMember();
-        }
-        reload();
+        updateWhenItemsClosed();
     };
 
     /**
@@ -1011,7 +1003,9 @@ $(document).ready(function () {
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
-            $('.saveButton.'+storyId).click(function() { saveStory(parseInt(storyId), false); });
+            $('.saveButton.'+storyId).click( function() {
+            	saveStory(parseInt(storyId), false);
+            });
             //Sets values for all edit fields
             $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
             $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
@@ -1085,11 +1079,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
-            if(editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                //reload();
-            }
+            updateWhenItemsClosed();
             //Slide toggle fix
             $('li.childLi').css("height", $('li.childLi').height());
         }
@@ -1129,7 +1119,7 @@ $(document).ready(function () {
             async: false,
             data: JSON.stringify(story),
             contentType: "application/json; charset=utf-8",
-            success: function (updatedStory) {            	
+            success: function (updatedStory) {
             	//Set updated values, we prefer to not reload the whole page.
             	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).text(updatedStory.title);
             	$('.titles, .titles-epic-story').find('p.theme.'+storyId).text((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
@@ -1149,26 +1139,32 @@ $(document).ready(function () {
             	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
             	$('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
             	
-
-            	
-
             	var li = $('#'+storyId);
-            	//Replacing the story to the updated one.
+
             	if (view == "story-task") {
-            		//Story was moved from or to archive
+            		//if Story was moved from or to archive
                 	if (getParent(storyId).archived != updatedStory.archived) {
                 		//Checks if this story is in list-container or in archived.list-container and moves it.
-                		li.fadeOut(500, function() {
-                			//move all childs
-                			$('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
-                			//move parent
-                	        (li.parent('#list-container').length) ? li.prependTo('#archived-list-container').fadeIn() : li.appendTo('#list-container').fadeIn();
+                		li.fadeOut("normal", function() {
+                			if(li.parent('#list-container').length) {
+                				//move all children and parent
+                				$('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
+                	        	li.prependTo('#archived-list-container').fadeIn();
+                			} else {
+                				//move all children and parent
+                				li.appendTo('#list-container').fadeIn();
+                				$('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
+                			}
                 	    });
                 	}
+                	//Replacing story with a new one
             		replaceParent(storyId, updatedStory);
             	} else {
+            		//If not story-task view and checked, do fade out
             		if (updatedStory.archived) {
-            			li.fadeOut(500);
+            			li.fadeOut("normal", function() {
+            		        $(this).remove();
+            		    });
             		}
             		replaceChild(storyId, updatedStory);
             	}
@@ -1245,7 +1241,9 @@ $(document).ready(function () {
             $('button.'+taskId).button();
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
-            $('.saveButton.'+taskId).click(function() { saveTask(parseInt(taskId), false); });
+            $('.saveButton.'+taskId).click(function() {
+            	saveTask(parseInt(taskId), false);
+            });
             $("."+taskId).toggleClass('hidden-edit');
             //sets values for all edit fields
             $("textarea#taskTitle" + taskId).val(task.title);
@@ -1261,11 +1259,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:taskId});
             $("."+taskId).toggleClass('hidden-edit');
-            if(editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                //reload();
-            }
+            updateWhenItemsClosed();
             //Slide toggle fix
             $('#'+taskId).css("height", $('#'+taskId).height());
         }
@@ -1296,12 +1290,40 @@ $(document).ready(function () {
             data: JSON.stringify(epic),
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
-                //$('button.'+epicId).button("option", "disabled", true);
-                //$("#list-container").sortable( "option", "disabled", false );
-            	
+
             	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).text((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
             	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).text(updatedEpic.title);
             	$('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId).text(updatedEpic.description);
+
+            	var li = $('#'+epicId);
+
+            	if (view == "epic-story") {
+            		//if Story was moved from or to archive
+                	if (getParent(epicId).archived != updatedEpic.archived) {
+                		//Checks if this story is in list-container or in archived.list-container and moves it.
+                		li.fadeOut("normal", function() {
+                			if(li.parent('#list-container').length) {
+                				//move all children and parent
+                				$('#list-container > [parentId="'+epicId+'"]').prependTo('#archived-list-container');
+                	        	li.prependTo('#archived-list-container').fadeIn();
+                			} else {
+                				//move all children and parent
+                				li.appendTo('#list-container').fadeIn();
+                				$('#archived-list-container > [parentId="'+epicId+'"]').appendTo('#list-container');
+                			}
+                	    });
+                	}
+                	//Replacing story with a new one
+            		replaceParent(epicId, updatedEpic);
+            	} else {
+            		//If not story-task view and checked, do fade out.
+            		if (updatedEpic.archived) {
+            			li.fadeOut("normal", function() {
+            		        $(this).remove();
+            		    });
+            		}
+            		replaceChild(epicId, updatedEpic);
+            	}
             	
             	//Exiting edit mode
             	$("."+epicId).toggleClass('hidden-edit');
@@ -1337,7 +1359,9 @@ $(document).ready(function () {
             $('button.'+epicId).button();
             $('button.'+epicId).unbind();
             $('.cancelButton.'+epicId).click({id: epicId},cancel);
-            $('.saveButton.'+epicId).click(function() { saveEpic(parseInt(epicId), false); });
+            $('.saveButton.'+epicId).click(function() {
+            	saveEpic(parseInt(epicId), false);
+            });
             $("."+epicId).toggleClass('hidden-edit');
 
             $("textarea#epicTheme"+epicId).autocomplete({
@@ -1360,11 +1384,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:epicId});
             $("."+epicId).toggleClass('hidden-edit');
-            if(editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                //reload();
-            }
+            updateWhenItemsClosed();
             //Slide toggle fix
             $('#'+epicId).css("height", $('#'+epicId).height());
         }
@@ -1394,12 +1414,30 @@ $(document).ready(function () {
             data: JSON.stringify(theme),
             contentType: "application/json; charset=utf-8",
             success: function (updatedTheme) {
-                //$('button.'+themeId).button("option", "disabled", true);
-                //$("#list-container").sortable( "option", "disabled", false );
-            	
+
             	$('.titles-theme-epic').find('p.titleText.'+themeId).text(updatedTheme.title);
             	$('.titles-theme-epic').find('p.description.'+themeId).text(updatedTheme.description);
-            	
+
+            	var li = $('#'+themeId);
+
+            	//if Story was moved from or to archive
+            	if (getParent(themeId).archived != updatedTheme.archived) {
+            		//Checks if this story is in list-container or in archived.list-container and moves it.
+            		li.fadeOut("normal", function() {
+            			if(li.parent('#list-container').length) {
+            				//move all children and parent
+            				$('#list-container > [parentId="'+themeId+'"]').prependTo('#archived-list-container');
+            				li.prependTo('#archived-list-container').fadeIn();
+            			} else {
+            				//move all children and parent
+            				li.appendTo('#list-container').fadeIn();
+            				$('#archived-list-container > [parentId="'+themeId+'"]').appendTo('#list-container');
+            			}
+            		});
+            	}
+            	//Replacing story with a new one
+            	replaceParent(themeId, updatedTheme);
+
             	//Exiting edit mode
             	$("."+themeId).toggleClass('hidden-edit');
                 editingItems.remove({id:themeId});
@@ -1438,19 +1476,28 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:themeId});
             $("."+themeId).toggleClass('hidden-edit');
-            if (editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                //reload();
-            }
+            updateWhenItemsClosed();
         }
     };
+    
+    /**
+     * Updates save all button and enable ranking etc, when the last editing item is going out of edit mode.
+     */
+    var updateWhenItemsClosed = function() {
+        if (editingItems.length == 0) {
+            $("#list-container").sortable( "option", "disabled", false );
+            $('.saveButton').button( "option", "disabled", true );
+            addGroupMember();
+            reload();
+        }
+    }
+
     /**
      * Prints the topic for archived parent's when the lists is generated.
      */
-    var getArchivedTopic = function(archived) {
-        if(archived) {
-            return '<p class="title ' + currentParent.id + '">Archived</p>';
+    var getArchivedTopic = function(archived, id) {
+        if (archived) {
+        	return '<p class="title ' + id + '">Archived</p>';
         } else return '';
     };
 
@@ -1594,7 +1641,7 @@ $(document).ready(function () {
                         +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveStory' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive story</p></input>'
                         +'<button class="inline marginTop saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
                         +'<button class="inline marginTop cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
-                        + getArchivedTopic(archived)
+                        + getArchivedTopic(archived, currentParent.id)
                         +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
                         +'</div>'
                         //ATTR3 FIELD END
@@ -1606,7 +1653,7 @@ $(document).ready(function () {
                     for (var i=0; i<currentParent.children.length; ++i) {
                         var currentChild = currentParent.children[i];
 
-                        newContainer += '<li class="childLi task ui-state-default editTask" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
+                        newContainer += '<li class="childLi task ui-state-default editTask" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
                         //TASKTITLE START
                         //TYPE MARK START
                         +'<p class="marginLeft typeMark">Task</p>'
@@ -1673,7 +1720,7 @@ $(document).ready(function () {
                         +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
                         +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
                         +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
-                        + getArchivedTopic(archived)
+                        + getArchivedTopic(archived, currentParent.id)
                         +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
                         +'</div>'
                         +'<br style="clear:both" />';
@@ -1683,7 +1730,7 @@ $(document).ready(function () {
 
                     for (var i=0; i<currentParent.children.length; ++i) {
                         var currentChild = currentParent.children[i];
-                        newContainer += '<li class="childLi story ui-state-default editStory" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
+                        newContainer += '<li class="childLi story ui-state-default editStory" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
                         +'<div id="icons">'
                         +'<a id="' + currentChild.id + '" title="Clone this story excluding tasks" class="cloneItem story"><img src="../resources/image/page_white_copy.png"></a>'
                         +'</div>'
@@ -1780,7 +1827,7 @@ $(document).ready(function () {
                         +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveStory' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive story</p></input>'
                         +'<button class="inline marginTop saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
                         +'<button class="inline marginTop cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
-                        + getArchivedTopic(currentChild.archived)
+                        + getArchivedTopic(currentChild.archived, currentChild.id)
                         +'<p class="description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
                         +'</div>'
                         //ATTR3 DIV END
@@ -1815,7 +1862,7 @@ $(document).ready(function () {
                         +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
                         +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
                         +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
-                        + getArchivedTopic(archived)
+                        + getArchivedTopic(archived, currentParent.id)
                         +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
                         +'</div>'
                         +'<br style="clear:both" />';
@@ -1825,7 +1872,7 @@ $(document).ready(function () {
 
                     for (var i = 0; i<currentParent.children.length; ++i) {
                         var currentChild = currentParent.children[i];
-                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
+                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
                         +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
                         //TITLE FIELDS
                         +'<div class="padding-left titles-theme-epic">'
@@ -1862,7 +1909,7 @@ $(document).ready(function () {
 
     	$('#archived-list-container').append(generateList(true)).hide();
     	
-    	if($("#hide-archived-list-container").attr("checked")) {
+    	if ($("#archived-checkbox").attr("checked")) {
     	    $("#archived-list-container").show();
     	}
 
