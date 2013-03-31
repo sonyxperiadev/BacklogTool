@@ -55,8 +55,7 @@ THE SOFTWARE.
     </div>
     <div class="showArchive">
         <p class="headerText textstyle">SHOW ARCHIVE</p>
-        <input type="checkbox" id="hide-archived-list-container"
-            name="hide-archived-list-container" />
+        <input type="checkbox" id="archived-checkbox" name="archived-checkbox" />
     </div>
     <button title="Create a new story" id="create-parent"
         class="text ui-widget-content ui-corner-all"></button>

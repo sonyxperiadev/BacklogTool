@@ -81,7 +81,7 @@ p {
     margin: 0.1em;
 }
 
-#create-parent, #save-all, #print-stories, #hide-archived-list-container, #login-out {
+#create-parent, #save-all, #print-stories, #archived-checkbox, #login-out {
     display: inline-block;
     vertical-align: top;
     width: 110px;
