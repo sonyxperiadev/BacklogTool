@@ -59,6 +59,13 @@ public class HibernateConfiguration {
     @Value("#{dataSource}")
     private DataSource dataSource;
 
+	@Bean
+	public DataSource datasource() {
+		EmbeddedDatabaseFactoryBean bean = new EmbeddedDatabaseFactoryBean();
+		bean.afterPropertiesSet(); // necessary because
+		return bean.getObject();
+	}
+	
     @Bean
     public AnnotationSessionFactoryBean sessionFactoryBean() {
         Properties propertiesFile = new Properties();
@@ -79,7 +86,8 @@ public class HibernateConfiguration {
                 Area.class, Theme.class, Epic.class, Attribute.class,
                 AttributeOption.class});
         bean.setHibernateProperties(props);
-        bean.setDataSource(this.dataSource);
+        //bean.setDataSource(this.dataSource);
+        bean.setDataSource(datasource());
         bean.setSchemaUpdate(true);
 
         return bean;
