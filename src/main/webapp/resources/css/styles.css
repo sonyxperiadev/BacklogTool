@@ -82,12 +82,11 @@ p {
     margin: 0.1em;
 }
 
-#create-parent, #save-all, #print-stories, #archived-checkbox, #login-out #filter-button {
+#create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button {
     display: inline-block;
     vertical-align: top;
     width: 110px;
     margin: 0;
-    margin-bottom: 5px;
 }
 
 .headerText {
