@@ -1525,7 +1525,7 @@ $(document).ready(function () {
 	                        +'<p class="marginLeft typeMark">Task</p>'
 	                        //TYPE MARK END
 	                        +'<div class="taskTitle ' + currentChild.id + '">'
-	                        +'<p class="taskHeading">Title: </p><p class="taskInfo">'+ addLinksAndLineBreaks(truncate(currentChild.title, 190)) +'</p>'
+	                        +'<p class="taskInfo">'+ addLinksAndLineBreaks(truncate(currentChild.title, 190)) +'</p>'
 	                        +'</div>'
 	                        +'<textarea id="taskTitle' + currentChild.id + '" class="taskInfo bindChange taskTitle hidden-edit ' + currentChild.id + '" maxlength="500">' + currentChild.title + '</textarea>'
 	                        //TASKTITLE END
