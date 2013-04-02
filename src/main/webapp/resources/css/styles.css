@@ -329,6 +329,8 @@ div#titleDivThemeEpic {
     font-size: 0.85em;
     display: inline;
     font-weight: bold;
+    margin: 0em 0em 0em 0.2em;
+    vertical-align: middle;
 }
 
 .calculatedTime {
