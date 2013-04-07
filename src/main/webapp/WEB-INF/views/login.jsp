@@ -34,7 +34,7 @@ THE SOFTWARE.
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <script type="text/javascript"

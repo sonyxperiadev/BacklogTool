@@ -261,7 +261,7 @@ p.typeMark {
 
 div.story-attr1-2, div.story-attr3, div.times {
     display: inline-block;
-    width: 11%;
+    width: 12.5%;
     float: left;
     word-wrap: break-word;
 }
@@ -301,11 +301,11 @@ input.customer,input.contributor {
 }
 
 .titles {
-    width: 45%;
+    width: 43%;
 }
 
 div.titles-epic-story {
-    width: 40%;
+    width: 38%;
 }
 
 div.titles-theme-epic {

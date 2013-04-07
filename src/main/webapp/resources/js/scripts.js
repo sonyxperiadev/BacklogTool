@@ -191,6 +191,13 @@ $(document).ready(function () {
         return -1;
     };
 
+    var enableEdits = function () {
+        $(".editTheme").dblclick(editTheme);
+        $(".editEpic").dblclick(editEpic);
+        $(".editStory").dblclick(editStory);
+        $(".editTask").dblclick(editTask);
+    };
+
     var disableEdits = function() {
         $( "#create-parent" ).button( "option", "disabled", true );
         $(".add-child-icon").addClass('disabled');
@@ -206,6 +213,13 @@ $(document).ready(function () {
         $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
         if ($("#archived-checkbox").attr("checked")) {
             $("#archived-list-container").empty().append(generateList(true));
+
+            //Unbind all items and bind them again including archived.
+            $(".editTheme").unbind("dblclick");
+            $(".editEpic").unbind("dblclick");
+            $(".editStory").unbind("dblclick");
+            $(".editTask").unbind("dblclick");
+            enableEdits();
         }
     });
 
@@ -1003,11 +1017,7 @@ $(document).ready(function () {
             $('button.'+storyId).unbind();
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
             $('.saveButton.'+storyId).click( function() {
-                if (editingItems.length == 1) {
-                    saveStory(parseInt(storyId), true);
-                } else {
-                    saveStory(parseInt(storyId), false);
-                }
+                saveStory(parseInt(storyId), true);
             });
             //Sets values for all edit fields
             $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
@@ -1092,11 +1102,9 @@ $(document).ready(function () {
         var storyId = null;
         if (typeof event == "number") {
             storyId = event;
-        }
-        else {
+        } else {
             storyId = event.data.storyId;
         }
-
         //Creates a new story and sets all updated values
         var story = new Object();
         story.id = eval(storyId);
@@ -1158,28 +1166,36 @@ $(document).ready(function () {
             	                li.appendTo('#list-container').fadeIn();
             	                $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
             	            }
-                            updateWhenItemsClosed();
+            	            exitEditMode(storyId);
             	        });
+            	    } else {
+            	        exitEditMode(storyId);
             	    }
-            	//Replacing story with a new one
-            	replaceParent(storyId, updatedStory);
+            	    //Replacing story with a new one
+            	    replaceParent(storyId, updatedStory);
+            	} else if (updatedStory.archived) {
+            	    //Save this for issue #44
+            	    //li.fadeOut("normal", function() {
+                        //replaceChild(storyId, updatedStory);
+                        exitEditMode(storyId);
+            	    //});
+            	} else {
+            	    exitEditMode(storyId);
             	}
-            	//If not story-task view and checked, do fade out
-            	else if (updatedStory.archived) {
-            	    li.fadeOut("normal", function() {
-            	        $(this).remove();
-                        replaceChild(storyId, updatedStory);
-                        updateWhenItemsClosed();
-            	    });
-            	}
-                //Exiting edit mode
-                $("."+storyId).toggleClass('hidden-edit');
-                editingItems.remove({id:storyId});
             },
             error: function (request, status, error) {
                 alert(error);
             }
         });
+    };
+
+    /**
+     * Exit edit mode on a backlog item
+     */
+    var exitEditMode = function(id) {
+        $("."+id).toggleClass('hidden-edit');
+        editingItems.remove({id:id});
+        updateWhenItemsClosed();
     };
 
     var saveTask = function(event, pushUpdate) {
@@ -1214,10 +1230,7 @@ $(document).ready(function () {
             	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").text(updatedTask.calculatedTime);
             	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
             	
-            	//Exiting edit mode
-            	$("."+taskId).toggleClass('hidden-edit');
-                editingItems.remove({id:taskId});
-                updateWhenItemsClosed();
+            	exitEditMode(taskId);
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1244,11 +1257,7 @@ $(document).ready(function () {
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
             $('.saveButton.'+taskId).click(function() {
-                if (editingItems.length == 1) {
-                    saveTask(parseInt(taskId), true);
-                } else {
-                    saveTask(parseInt(taskId), false);
-                }
+                saveTask(parseInt(taskId), true);
             });
             $("."+taskId).toggleClass('hidden-edit');
             //sets values for all edit fields
@@ -1304,8 +1313,8 @@ $(document).ready(function () {
             	var li = $('#'+epicId);
 
             	if (view == "epic-story") {
-            	    //If Story was moved,
-            	    //check if this story is in list-container or in archived.list-container and moves it.
+            	    //If epic was moved,
+            	    //check if this epic is in list-container or in archived.list-container and moves it.
             	    if (getParent(epicId).archived != updatedEpic.archived) {
             	        li.fadeOut("normal", function() {
                 	        if (li.parent('#list-container').length) {
@@ -1317,23 +1326,22 @@ $(document).ready(function () {
                     	        li.appendTo('#list-container').fadeIn();
                     	        $('#archived-list-container > [parentId="'+epicId+'"]').appendTo('#list-container');
                     	    }
-                            updateWhenItemsClosed();
+                            exitEditMode(epicId);
             	        });
+            	    } else {
+                        exitEditMode(epicId);
             	    }
         	    //Replacing story with a new one
         	    replaceParent(epicId, updatedEpic);
         	    } else if (updatedEpic.archived) {
-        	        //If not story-task view and checked, do fade out.
-    	            li.fadeOut("normal", function() {
-    	                $(this).remove();
-    	                updateWhenItemsClosed();
-    	            });
+        	        //Save this for issue #44
+    	            //li.fadeOut("normal", function() {
+    	                exitEditMode(epicId);
+    	            //});
+        	    } else {
+                    exitEditMode(epicId);
         	    }
         	    replaceChild(epicId, updatedEpic);
-
-            	//Exiting edit mode
-            	$("."+epicId).toggleClass('hidden-edit');
-                editingItems.remove({id:epicId});
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1366,11 +1374,7 @@ $(document).ready(function () {
             $('button.'+epicId).unbind();
             $('.cancelButton.'+epicId).click({id: epicId},cancel);
             $('.saveButton.'+epicId).click(function() {
-                if (editingItems.length == 1) {
-                    saveEpic(parseInt(epicId), true);
-                } else {
-                    saveEpic(parseInt(epicId), false);
-                }
+                saveEpic(parseInt(epicId), true);
             });
             $("."+epicId).toggleClass('hidden-edit');
 
@@ -1443,15 +1447,13 @@ $(document).ready(function () {
             				li.appendTo('#list-container').fadeIn();
             				$('#archived-list-container > [parentId="'+themeId+'"]').appendTo('#list-container');
             			}
-                        updateWhenItemsClosed();
+                        exitEditMode(themeId);
             		});
+            	} else {
+                    exitEditMode(themeId);
             	}
             	//Replacing story with a new one
             	replaceParent(themeId, updatedTheme);
-
-            	//Exiting edit mode
-            	$("."+themeId).toggleClass('hidden-edit');
-                editingItems.remove({id:themeId});
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1480,11 +1482,7 @@ $(document).ready(function () {
             $('button.'+themeId).unbind();
             $('.cancelButton.'+themeId).click({id: themeId},cancel);
             $('.saveButton.'+themeId).click(function() {
-                if (editingItems.length == 1) {
-                    saveTheme(parseInt(themeId), true);
-                } else {
-                    saveTheme(parseInt(themeId), false);
-                }
+                saveTheme(parseInt(themeId), true);
             });
             $("."+themeId).toggleClass('hidden-edit');
 
@@ -1968,11 +1966,8 @@ $(document).ready(function () {
             cloneItem($(this), true);
         });
 
-        $(".editTheme").dblclick(editTheme);
-        $(".editEpic").dblclick(editEpic);
-        $(".editStory").dblclick(editStory);
-        $(".editTask").dblclick(editTask);
-        
+        enableEdits();
+
         //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
         $(".bindChange").dblclick(function(event) {
         	event.stopPropagation();

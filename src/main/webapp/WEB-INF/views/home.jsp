@@ -31,7 +31,7 @@ THE SOFTWARE.
     href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
 <title>Backlog-tool</title>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <script type="text/javascript"

@@ -38,7 +38,7 @@ THE SOFTWARE.
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
 <script type="text/javascript"
@@ -48,7 +48,7 @@ THE SOFTWARE.
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery.autosize-min.js" />"></script>
 <script type="text/javascript"
-    src="<c:url value="/resources/js/scripts.js" />"></script>
+    src="<c:url value="/resources/js/scripts.js?v=1" />"></script>
 <script type="text/javascript" src="code.icepush"></script>
 </head>
 
