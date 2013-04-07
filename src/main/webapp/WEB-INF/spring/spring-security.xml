@@ -52,7 +52,6 @@ THE SOFTWARE.
 
     </security:http>
 
-
     <security:ldap-server url="${ldap.url}"
         manager-dn="${ldap.managerdn}" manager-password="${ldap.managerpassword}" />
 

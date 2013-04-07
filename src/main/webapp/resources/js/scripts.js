@@ -191,6 +191,13 @@ $(document).ready(function () {
         return -1;
     };
 
+    var enableEdits = function () {
+        $(".editTheme").dblclick(editTheme);
+        $(".editEpic").dblclick(editEpic);
+        $(".editStory").dblclick(editStory);
+        $(".editTask").dblclick(editTask);
+    };
+
     var disableEdits = function() {
         $( "#create-parent" ).button( "option", "disabled", true );
         $(".add-child-icon").addClass('disabled');
@@ -201,11 +208,19 @@ $(document).ready(function () {
         $(".editTask").unbind("dblclick");
     };
 
-    $("#archived-list-container").hide();
-    $('#hide-archived-list-container').change(function () {
-        $("#archived-list-container").hide();
-        $(".parent-child-list").empty();
-        buildVisibleList();
+
+    $('#archived-checkbox').change(function () {
+        $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
+        if ($("#archived-checkbox").attr("checked")) {
+            $("#archived-list-container").empty().append(generateList(true));
+
+            //Unbind all items and bind them again including archived.
+            $(".editTheme").unbind("dblclick");
+            $(".editEpic").unbind("dblclick");
+            $(".editStory").unbind("dblclick");
+            $(".editTask").unbind("dblclick");
+            enableEdits();
+        }
     });
 
     /**
@@ -214,13 +229,6 @@ $(document).ready(function () {
     var addLinksAndLineBreaks = function(text) {
         return text.replace(/\n/g, '<br />').replace( /(http:\/\/[^\s]+)/gi , '<a href="$1">$1</a>' );
     }
-
-    //Replacing spaces for underlines. Used for linking icons.
-    var replaceSpaces = function (string) {
-        if(string != null) {
-            return string.split(' ').join('_');
-        }
-    };
 
     var replaceNullWithEmpty = function (object) {
         if (object == null) {
@@ -240,7 +248,7 @@ $(document).ready(function () {
 
     var scrollTo = function(id) {
         var offset = $("#"+id).offset().top - $(window).scrollTop();
-        if(offset > window.innerHeight) {
+        if (offset > window.innerHeight) {
             $('html, body').animate({
                 scrollTop: $("#" + id).offset().top
             }, 2000);
@@ -274,7 +282,7 @@ $(document).ready(function () {
      */
     var truncate = function (str, limit) {
         var bits, i;
-        if(typeof str != "string") {
+        if (typeof str != "string") {
             return "";
         }
         bits = str.split('');
@@ -438,12 +446,32 @@ $(document).ready(function () {
             }
         }
     };
+    
+    var replaceParent = function (id, newParent) {
+    	for (var i = 0; i < parents.length; ++i) {
+        	if (parents[i].id == id) {
+            	parents[i] = newParent;
+            	break;
+            }
+        }
+    };
 
     var getChild = function (id) {
         for (var i = 0; i < parents.length; ++i) {
             for (var k = 0; k < parents[i].children.length; ++k) {
                 if (parents[i].children[k].id == id) {
                     return parents[i].children[k];
+                };
+            }
+        }
+    };
+    
+    var replaceChild = function (id, newChild) {
+        for (var i = 0; i < parents.length; ++i) {
+            for (var k = 0; k < parents[i].children.length; ++k) {
+                if (parents[i].children[k].id == id) {
+                    parents[i].children[k] = newChild;
+                    break;
                 };
             }
         }
@@ -492,7 +520,7 @@ $(document).ready(function () {
     } catch(error) {
         selectedItemsCookie = new Array();
     }
-    if(selectedItemsCookie != null) {
+    if (selectedItemsCookie != null) {
         for (var i=0; i<selectedItemsCookie.length; ++i) {
             var cookieItem = selectedItemsCookie[i];
             if (!isFilterActive() || isFiltered(cookieItem.id)) {
@@ -587,6 +615,7 @@ $(document).ready(function () {
             }
         }
     }
+
     var editingItems = new Array();
     var lastPressed = null;
 
@@ -736,7 +765,7 @@ $(document).ready(function () {
         removeGroupMember();
         var epicContainer = new Object();
 
-        if(view == "theme-epic") {
+        if (view == "theme-epic") {
             newEpicThemeID = event.target.id;
             var theme = getParent(newEpicThemeID);
             epicContainer.themeTitle = theme.title;
@@ -910,11 +939,7 @@ $(document).ready(function () {
         var id = event.data.id;
         editingItems.remove({id:id});
         $("."+id).toggleClass('hidden-edit');
-        if(editingItems.length == 0) {
-            addGroupMember();
-            reload();
-            $('.saveButton').button( "option", "disabled", true ); 
-        }
+        updateWhenItemsClosed();
     };
 
     /**
@@ -926,11 +951,7 @@ $(document).ready(function () {
             $("."+id).toggleClass('hidden-edit');
             editingItems.remove({id:id});
         }
-        if(editingItems.length == 0) {
-            $('.saveButton').button( "option", "disabled", true );
-            addGroupMember();
-        }
-        reload();
+        updateWhenItemsClosed();
     };
 
     /**
@@ -939,22 +960,24 @@ $(document).ready(function () {
     var bulkSave = function() {
         displayUpdateMsg();
         var pushUpdate = false;
-        for(var j = 0; j < editingItems.length; j++) {
-            if (j == editingItems.length-1) {
-                //If last item, we want to trigger a push update
+        while (editingItems.length > 0) {
+        	//If last item, we want to trigger a push update
+        	if (editingItems.length == 1) {               
                 pushUpdate = true;
             }
-            var id = eval(editingItems[j].id);
-            if(editingItems[j].type == "task") {
+            var lastElement = $(editingItems).last()[0];
+            var id = eval(lastElement.id);
+
+            if (lastElement.type == "task") {
                 saveTask(id, pushUpdate);
-            } else if(editingItems[j].type == "story") {
+            } else if (lastElement.type == "story") {
                 saveStory(id, pushUpdate);
-            } else if (editingItems[j].type == "epic") {
+            } else if (lastElement.type == "epic") {
                 saveEpic(id, pushUpdate);
-            } else if (editingItems[j].type == "theme") {
+            } else if (lastElement.type == "theme") {
                 saveTheme(id, pushUpdate);
             }
-            $("."+id).toggleClass('hidden-edit');
+
         }
         editingItems = new Array();
         reload();
@@ -966,7 +989,7 @@ $(document).ready(function () {
      */
     var isGoingIntoEdit = function isGoingIntoEdit(editId){
         for(var i = 0; editingItems.length > i; i++) {
-            if(editingItems[i].id == editId) {
+            if (editingItems[i].id == editId) {
                 return false;
             }
         }
@@ -980,12 +1003,12 @@ $(document).ready(function () {
         } else {
             storyId = $(this).attr('id');
         }
-        if(view == "story-task") {
+        if (view == "story-task") {
             var story = getParent(storyId);
         } else {
             story = getChild(storyId);
         }
-        if(isGoingIntoEdit(storyId)) {
+        if (isGoingIntoEdit(storyId)) {
             //Because the height is fixed when the list is generated(to fix the slidetoggle-bug)
             $('li.childLi').css("height", "auto");
             editingItems.push({id:storyId, type:"story"});
@@ -993,6 +1016,9 @@ $(document).ready(function () {
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
+            $('.saveButton.'+storyId).click( function() {
+                saveStory(parseInt(storyId), true);
+            });
             //Sets values for all edit fields
             $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
             $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
@@ -1066,11 +1092,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
-            if(editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                reload();
-            }
+            updateWhenItemsClosed();
             //Slide toggle fix
             $('li.childLi').css("height", $('li.childLi').height());
         }
@@ -1078,14 +1100,11 @@ $(document).ready(function () {
 
     var saveStory = function(event, pushUpdate) {
         var storyId = null;
-        if(typeof event == "number") {
+        if (typeof event == "number") {
             storyId = event;
-        }
-        else {
+        } else {
             storyId = event.data.storyId;
         }
-        displayUpdateMsg();
-
         //Creates a new story and sets all updated values
         var story = new Object();
         story.id = eval(storyId);
@@ -1111,9 +1130,58 @@ $(document).ready(function () {
             async: false,
             data: JSON.stringify(story),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $("#list-container").sortable( "option", "disabled", false );
-                $('button.' + storyId).button("option", "disabled", true);
+            success: function (updatedStory) {
+            	//Set updated values, we prefer to not reload the whole page.
+            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).text(updatedStory.title);
+            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).text((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
+            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).text((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+            	$('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId).text(updatedStory.description);
+
+            	$('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
+            	$('.stakeholders').find('p.customer.'+storyId).text(updatedStory.customer);
+
+            	$('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(updatedStory.contributorSite));
+            	$('.stakeholders').find('p.contributor.'+storyId).text(updatedStory.contributor);
+
+            	$('.times').find('p.added.' + storyId).text(getDate(updatedStory.added));
+            	$('.times').find('p.deadline.' + storyId).text(getDate(updatedStory.deadline));
+
+            	$('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
+            	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
+            	$('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
+            	
+            	var li = $('#'+storyId);
+
+            	if (view == "story-task") {
+            	    //If Story was moved,
+            	    //check if this story is in list-container or in archived.list-container and moves it.
+            	    if (getParent(storyId).archived != updatedStory.archived) {
+            	        li.fadeOut("normal", function() {
+            	            if (li.parent('#list-container').length) {
+            	                //move all children and parent
+            	                $('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
+            	                li.prependTo('#archived-list-container').fadeIn();
+            	            } else {
+            	                //move all children and parent
+            	                li.appendTo('#list-container').fadeIn();
+            	                $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
+            	            }
+            	            exitEditMode(storyId);
+            	        });
+            	    } else {
+            	        exitEditMode(storyId);
+            	    }
+            	    //Replacing story with a new one
+            	    replaceParent(storyId, updatedStory);
+            	} else if (updatedStory.archived) {
+            	    //Save this for issue #44
+            	    //li.fadeOut("normal", function() {
+                        //replaceChild(storyId, updatedStory);
+                        exitEditMode(storyId);
+            	    //});
+            	} else {
+            	    exitEditMode(storyId);
+            	}
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1121,15 +1189,24 @@ $(document).ready(function () {
         });
     };
 
+    /**
+     * Exit edit mode on a backlog item
+     */
+    var exitEditMode = function(id) {
+        $("."+id).toggleClass('hidden-edit');
+        editingItems.remove({id:id});
+        updateWhenItemsClosed();
+    };
+
     var saveTask = function(event, pushUpdate) {
         var taskId;
-        if(typeof event == "number") {
+        if (typeof event == "number") {
             taskId = event;
         }
         else {
             taskId = event.data.taskId;
         }
-        displayUpdateMsg();
+
         //Creates a new task and sets all updated values
         var task = new Object();
         task.id = taskId;
@@ -1146,9 +1223,14 @@ $(document).ready(function () {
             dataType: 'json',
             data: JSON.stringify(task),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $('button.'+taskId).button("option", "disabled", true);
-                $("#list-container").sortable( "option", "disabled", false );
+            success: function (updatedTask) {
+            	//Set the updated values
+            	$(".taskTitle."+updatedTask.id).find("p.taskInfo").text(updatedTask.title);
+            	$(".taskOwner."+updatedTask.id).find("p.taskInfo").text(updatedTask.owner);
+            	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").text(updatedTask.calculatedTime);
+            	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
+            	
+            	exitEditMode(taskId);
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1158,14 +1240,14 @@ $(document).ready(function () {
 
     var editTask = function(event) {
         var taskId = null;
-        if(typeof event == "number") {
+        if (typeof event == "number") {
             taskId = event;
         }
         else {
             taskId = $(this).closest('li').attr('id');
         }
         var task = getChild(taskId);
-        if(isGoingIntoEdit(taskId)) {
+        if (isGoingIntoEdit(taskId)) {
             //Because the height is fixed when the list is generated(to fix the slidetoggle-bug)
             $('#'+taskId).css("height", "auto");
 
@@ -1174,6 +1256,9 @@ $(document).ready(function () {
             $('button.'+taskId).button();
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
+            $('.saveButton.'+taskId).click(function() {
+                saveTask(parseInt(taskId), true);
+            });
             $("."+taskId).toggleClass('hidden-edit');
             //sets values for all edit fields
             $("textarea#taskTitle" + taskId).val(task.title);
@@ -1189,11 +1274,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:taskId});
             $("."+taskId).toggleClass('hidden-edit');
-            if(editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                reload();
-            }
+            updateWhenItemsClosed();
             //Slide toggle fix
             $('#'+taskId).css("height", $('#'+taskId).height());
         }
@@ -1201,13 +1282,13 @@ $(document).ready(function () {
 
     var saveEpic = function(event, pushUpdate) {
         var epicId;
-        if(typeof event == "number") {
+        if (typeof event == "number") {
             epicId = event;
         }
         else {
             epicId = event.data.epicId;
         }
-        displayUpdateMsg();
+
         //Creates a new epic and sets all updated values
         var epic = new Object();
         epic.id = eval(epicId);
@@ -1223,9 +1304,44 @@ $(document).ready(function () {
             dataType: 'json',
             data: JSON.stringify(epic),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $('button.'+epicId).button("option", "disabled", true);
-                $("#list-container").sortable( "option", "disabled", false );
+            success: function (updatedEpic) {
+
+            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).text((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
+            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).text(updatedEpic.title);
+            	$('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId).text(updatedEpic.description);
+
+            	var li = $('#'+epicId);
+
+            	if (view == "epic-story") {
+            	    //If epic was moved,
+            	    //check if this epic is in list-container or in archived.list-container and moves it.
+            	    if (getParent(epicId).archived != updatedEpic.archived) {
+            	        li.fadeOut("normal", function() {
+                	        if (li.parent('#list-container').length) {
+                    	        //move all children and parent
+                    	        $('#list-container > [parentId="'+epicId+'"]').prependTo('#archived-list-container');
+                    	        li.prependTo('#archived-list-container').fadeIn();
+                	        } else {
+                    	        //move all children and parent
+                    	        li.appendTo('#list-container').fadeIn();
+                    	        $('#archived-list-container > [parentId="'+epicId+'"]').appendTo('#list-container');
+                    	    }
+                            exitEditMode(epicId);
+            	        });
+            	    } else {
+                        exitEditMode(epicId);
+            	    }
+        	    //Replacing story with a new one
+        	    replaceParent(epicId, updatedEpic);
+        	    } else if (updatedEpic.archived) {
+        	        //Save this for issue #44
+    	            //li.fadeOut("normal", function() {
+    	                exitEditMode(epicId);
+    	            //});
+        	    } else {
+                    exitEditMode(epicId);
+        	    }
+        	    replaceChild(epicId, updatedEpic);
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1235,7 +1351,7 @@ $(document).ready(function () {
 
     var editEpic = function(event) {
         var epicId = null;
-        if(typeof event == "number") {
+        if (typeof event == "number") {
             epicId = event;
         }
         else {
@@ -1247,7 +1363,7 @@ $(document).ready(function () {
             epic = getChild(epicId);
         }
 
-        if(isGoingIntoEdit(epicId)) {
+        if (isGoingIntoEdit(epicId)) {
             //Because the height is fixed when the list is generated(to fix the slidetoggle-bug)
             $('#'+epicId).css("height", "auto");
 
@@ -1257,6 +1373,9 @@ $(document).ready(function () {
             $('button.'+epicId).button();
             $('button.'+epicId).unbind();
             $('.cancelButton.'+epicId).click({id: epicId},cancel);
+            $('.saveButton.'+epicId).click(function() {
+                saveEpic(parseInt(epicId), true);
+            });
             $("."+epicId).toggleClass('hidden-edit');
 
             $("textarea#epicTheme"+epicId).autocomplete({
@@ -1279,11 +1398,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:epicId});
             $("."+epicId).toggleClass('hidden-edit');
-            if(editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                reload();
-            }
+            updateWhenItemsClosed();
             //Slide toggle fix
             $('#'+epicId).css("height", $('#'+epicId).height());
         }
@@ -1291,13 +1406,13 @@ $(document).ready(function () {
 
     var saveTheme = function(event, pushUpdate) {
         var themeId;
-        if(typeof event == "number") {
+        if (typeof event == "number") {
             themeId = event;
         }
         else {
             themeId = event.data.themeId;
         }
-        displayUpdateMsg();
+
         //Creates a new epic and sets all updated values
         var theme = new Object();
         theme.id = eval(themeId);
@@ -1312,9 +1427,33 @@ $(document).ready(function () {
             dataType: 'json',
             data: JSON.stringify(theme),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                $('button.'+themeId).button("option", "disabled", true);
-                $("#list-container").sortable( "option", "disabled", false );
+            success: function (updatedTheme) {
+
+            	$('.titles-theme-epic').find('p.titleText.'+themeId).text(updatedTheme.title);
+            	$('.titles-theme-epic').find('p.description.'+themeId).text(updatedTheme.description);
+
+            	var li = $('#'+themeId);
+
+            	//if Story was moved from or to archive
+            	if (getParent(themeId).archived != updatedTheme.archived) {
+            		//Checks if this story is in list-container or in archived.list-container and moves it.
+            		li.fadeOut("normal", function() {
+            			if (li.parent('#list-container').length) {
+            				//move all children and parent
+            				$('#list-container > [parentId="'+themeId+'"]').prependTo('#archived-list-container');
+            				li.prependTo('#archived-list-container').fadeIn();
+            			} else {
+            				//move all children and parent
+            				li.appendTo('#list-container').fadeIn();
+            				$('#archived-list-container > [parentId="'+themeId+'"]').appendTo('#list-container');
+            			}
+                        exitEditMode(themeId);
+            		});
+            	} else {
+                    exitEditMode(themeId);
+            	}
+            	//Replacing story with a new one
+            	replaceParent(themeId, updatedTheme);
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1334,7 +1473,7 @@ $(document).ready(function () {
         } else {
             theme = getChild(themeId);
         }
-        if(isGoingIntoEdit(themeId)) {
+        if (isGoingIntoEdit(themeId)) {
 
             editingItems.push({id:themeId, type:"theme"});
             removeGroupMember();
@@ -1342,6 +1481,9 @@ $(document).ready(function () {
             $('button.'+themeId).button();
             $('button.'+themeId).unbind();
             $('.cancelButton.'+themeId).click({id: themeId},cancel);
+            $('.saveButton.'+themeId).click(function() {
+                saveTheme(parseInt(themeId), true);
+            });
             $("."+themeId).toggleClass('hidden-edit');
 
             //auto resize the textareas to fit the text
@@ -1349,19 +1491,29 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:themeId});
             $("."+themeId).toggleClass('hidden-edit');
-            if (editingItems.length == 0) {
-                $('.saveButton').button( "option", "disabled", true );
-                addGroupMember();
-                reload();
-            }
+            updateWhenItemsClosed();
         }
     };
+    
+    /**
+     * Updates save all button and enable ranking etc, when the last editing item is going out of edit mode.
+     */
+    var updateWhenItemsClosed = function() {
+        if (editingItems.length == 0) {
+            displayUpdateMsg();
+            $("#list-container").sortable( "option", "disabled", false );
+            $('.saveButton').button( "option", "disabled", true );
+            addGroupMember();
+            reload();
+        }
+    };
+
     /**
      * Prints the topic for archived parent's when the lists is generated.
      */
-    var getArchivedTopic = function(archived) {
-        if(archived) {
-            return '<p class="title ' + currentParent.id + '">Archived</p>';
+    var getArchivedTopic = function(archived, id) {
+        if (archived) {
+        	return '<p class="title ' + id + '">Archived</p>';
         } else return '';
     };
 
@@ -1375,8 +1527,7 @@ $(document).ready(function () {
         for (var k = 0; k < parents.length; ++k) {
         	currentParent = parents[k];
         	if (!isFilterActive() || isFiltered(currentParent.id)) {
-	            if(parents[k].archived == archived) {
-	                
+	            if (currentParent.archived == archived) {
 	                var belongingChildren = ' ';
 	
 	                var oneVisible = false;
@@ -1415,7 +1566,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentParent.id + '" title="Clone this story including tasks" class="cloneItem-with-children story"><img src="../resources/image/page_white_stack.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div id="titleDiv">'
+	                        +'<div class="titles">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Story ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -1476,50 +1627,50 @@ $(document).ready(function () {
 	                        +'<input id="added'+currentParent.id+'" type="text" class="bindChange added hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'</div>'
 	                        //TIME FIELDS END
-	                        //STATUS AND PRIO DIV START
-	                        +'<div class="status">'
+	                        //ATTR1 AND ATTR2 DIV START
+	                        +'<div class="story-attr1-2">'
 	                        //ATTR1 FIELD START
 	                        +'<p class="title">' + area.storyAttr1.name + '</p>'
-	                        +'<p class="description ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr1) + getNameIfExists(currentParent.storyAttr1) + '</p>'
-	                        +'<select id="storyAttr1'+currentParent.id+'" class="bindChange status hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
+	                        +'<p class="description story-attr1 ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr1) + getNameIfExists(currentParent.storyAttr1) + '</p>'
+	                        +'<select id="storyAttr1'+currentParent.id+'" class="bindChange story-attr1 hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value=""></option>'
 	                        + storyAttr1Options
 	                        +'</select>'
 	                        //ATTR1 FIELD END
 	                        //ATTR2 FIELD START
 	                        +'<p class="title">' + area.storyAttr2.name + '</p>'
-	                        +'<p class="description ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr2) + getNameIfExists(currentParent.storyAttr2) + '</p>'
-	                        +'<select id="storyAttr2'+currentParent.id+'" class="bindChange prio hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
+	                        +'<p class="description story-attr2 ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr2) + getNameIfExists(currentParent.storyAttr2) + '</p>'
+	                        +'<select id="storyAttr2'+currentParent.id+'" class="bindChange story-attr2 hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value=""></option>'
 	                        + storyAttr2Options
 	                        +'</select>'
 	                        //ATTR2 FIELD END
 	                        +'</div>'
 	                        //ATTR1 AND ATTR2 DIV END
-	                        //ATTR3 FIELD START
-	                        +'<div class="effort">'
+	                        //ATTR3 DIV START
+	                        +'<div class="story-attr3">'
 	                        +'<p class="title">' + area.storyAttr3.name + '</p>'
-	                        +'<p class="description ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr3) + getNameIfExists(currentParent.storyAttr3) + '</p>'
-	                        +'<select id="storyAttr3' + currentParent.id +'" class="bindChange effort hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
+	                        +'<p class="description story-attr3 ' + currentParent.id + '">' + getAttrImage(currentParent.storyAttr3) + getNameIfExists(currentParent.storyAttr3) + '</p>'
+	                        +'<select id="storyAttr3' + currentParent.id +'" class="bindChange story-attr3 hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value=""></option>'
 	                        + storyAttr3Options
 	                        +'</select>'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveStory' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive story</p></input>'
+	                        +'<button class="inline marginTop saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
 	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
-	                        + getArchivedTopic(archived)
+	                        + getArchivedTopic(archived, currentParent.id)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        //ATTR3 FIELD END
 	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />';
-	
 	                    newContainer += '<li class="parentLi story ui-state-default editStory" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
 	
 	
 	                    for (var i=0; i<currentParent.children.length; ++i) {
 	                        var currentChild = currentParent.children[i];
 	
-	                        newContainer += '<li class="childLi task ui-state-default editTask" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
+	                        newContainer += '<li class="childLi task ui-state-default editTask" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
 	                        //TASKTITLE START
 	                        //TYPE MARK START
 	                        +'<p class="marginLeft typeMark">Task</p>'
@@ -1549,6 +1700,7 @@ $(document).ready(function () {
 	                        +'<option value="2">2</option>'
 	                        +'</select>'
 	                        //CALCULATEDTIME END
+	                        +'<button class="saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
 	                        +'<a id=' + currentChild.id + ' title="Remove task" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />'
@@ -1562,7 +1714,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentParent.id + '" title="Clone this epic excluding children" class="cloneItem epic"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div id="titleDivThemeEpic">'
+	                        +'<div class="titles-theme-epic">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Epic ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -1583,8 +1735,9 @@ $(document).ready(function () {
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
 	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
+	                        +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
-	                        + getArchivedTopic(archived)
+	                        + getArchivedTopic(archived, currentParent.id)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
@@ -1594,12 +1747,12 @@ $(document).ready(function () {
 	
 	                    for (var i=0; i<currentParent.children.length; ++i) {
 	                        var currentChild = currentParent.children[i];
-	                        newContainer += '<li class="childLi story ui-state-default editStory" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
+	                        newContainer += '<li class="childLi story ui-state-default editStory" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
 	                        +'<div id="icons">'
 	                        +'<a id="' + currentChild.id + '" title="Clone this story excluding tasks" class="cloneItem story"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div id="titleDivEpicStory" class="padding-left">'
+	                        +'<div class="padding-left titles-epic-story">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Story</p>'
 	                        //TYPE MARK END
@@ -1660,53 +1813,54 @@ $(document).ready(function () {
 	                        +'<input id="added'+currentChild.id+'" type="text" class="bindChange added hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'</div>'
 	                        //TIME FIELDS END
-	                        //STATUS AND PRIO DIV START
-	                        +'<div class="status">'
+	                        //ATTR 1 AND 2 DIV START
+	                        +'<div class="story-attr1-2">'
 	                        //ATTR1 FIELD START
 	                        +'<p class="title">' + area.storyAttr1.name + '</p>'
-	                        +'<p class="description ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr1) + getNameIfExists(currentChild.storyAttr1) + '</p>'
-	                        +'<select id="storyAttr1'+currentChild.id+'" class="bindChange status hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
+	                        +'<p class="description story-attr1 ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr1) + getNameIfExists(currentChild.storyAttr1) + '</p>'
+	                        +'<select id="storyAttr1'+currentChild.id+'" class="bindChange story-attr1 hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value=""></option>'
 	                        + storyAttr1Options
 	                        +'</select>'
 	                        //ATTR1 FIELD END
 	                        //ATTR2 FIELD START
 	                        +'<p class="title">' + area.storyAttr2.name + '</p>'
-	                        +'<p class="description ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr2) + getNameIfExists(currentChild.storyAttr2) + '</p>'
-	                        +'<select id="storyAttr2'+currentChild.id+'" class="bindChange prio hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
+	                        +'<p class="description story-attr2 ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr2) + getNameIfExists(currentChild.storyAttr2) + '</p>'
+	                        +'<select id="storyAttr2'+currentChild.id+'" class="bindChange story-attr2 hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value=""></option>'
 	                        + storyAttr2Options
 	                        +'</select>'
 	                        //ATTR2 FIELD END
 	                        +'</div>'
 	                        //ATTR1 AND ATTR2 DIV END
-	                        //ATTR3 FIELD START
-	                        +'<div class="effort">'
+	                        //ATTR3 DIV START
+	                        +'<div class="story-attr3">'
 	                        +'<p class="title">' + area.storyAttr3.name + '</p>'
-	                        +'<p class="description ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr3) + getNameIfExists(currentChild.storyAttr3) + '</p>'
-	                        +'<select id="storyAttr3' + currentChild.id +'" class="bindChange effort hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
+	                        +'<p class="description story-attr3 ' + currentChild.id + '">' + getAttrImage(currentChild.storyAttr3) + getNameIfExists(currentChild.storyAttr3) + '</p>'
+	                        +'<select id="storyAttr3' + currentChild.id +'" class="bindChange story-attr3 hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value=""></option>'
 	                        + storyAttr3Options
 	                        +'</select>'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveStory' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive story</p></input>'
+	                        +'<button class="inline marginTop saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
 	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
-	                        + getArchivedTopic(currentChild.archived)
+	                        + getArchivedTopic(currentChild.archived, currentChild.id)
 	                        +'<p class="description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
 	                        +'</div>'
-	                        //ATTR3 FIELD END
+	                        //ATTR3 DIV END
 	                        +'<a id=' + currentChild.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
-	                        +'<br style="clear:both" />';
+	                        +'<br style="clear:both" />'
 	                        +'</li>';
 	                    }
 	                } else if (view == "theme-epic") {
 	                    var list = '<div id="icons">'
-	                        +'<div title="Show tasks" class="icon ' + icon + '">'
+	                        +'<div title="Show epics" class="icon ' + icon + '">'
 	                        +'</div>'
 	                        +'<a id="' + currentParent.id + '" title="Create new epic" class="icon createEpic add-child-icon"></a><br>'
 	                        +'<a id="' + currentParent.id + '" title="Clone this theme excluding children" class="cloneItem theme icon"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div id="titleDivThemeEpic">'
+	                        +'<div class="titles-theme-epic">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Theme ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -1723,8 +1877,9 @@ $(document).ready(function () {
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove theme" class="icon deleteItem delete-icon"></a>'
 	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
+	                        +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
-	                        + getArchivedTopic(archived)
+	                        + getArchivedTopic(archived, currentParent.id)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
@@ -1734,10 +1889,10 @@ $(document).ready(function () {
 	
 	                    for (var i = 0; i<currentParent.children.length; ++i) {
 	                        var currentChild = currentParent.children[i];
-	                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentChild.parentId + '"' + 'id="' + currentChild.id + '">'
+	                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
 	                        +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
 	                        //TITLE FIELDS
-	                        +'<div id="titleDivThemeEpic" class="padding-left">'
+	                        +'<div class="padding-left titles-theme-epic">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Epic</p>'
 	                        //TYPE MARK END
@@ -1751,8 +1906,10 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
-	                        +'<button class="marginTopButton cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
-	                        +'<a id=' + currentChild.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
+	                        +'<a id=' + currentChild.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
+	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
+	                        +'<button class="saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
 	                        +'<br style="clear:both" />'
 	                        +'</li>';
 	                    }
@@ -1767,10 +1924,10 @@ $(document).ready(function () {
      * Builds the visible html list using the JSON data
      */
     buildVisibleList = function (archived) {
-        if($("#hide-archived-list-container").attr("checked")){
-            $('#archived-list-container').append(generateList(true));
-            $("#archived-list-container").show();
-        }
+    	if ($("#archived-checkbox").attr("checked")) {
+    	    $("#archived-list-container").append(generateList(true)).show();
+    	}
+
         $('#list-container').append(generateList(false));
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
@@ -1778,9 +1935,7 @@ $(document).ready(function () {
         }
 
         //Make sure all items that should be invisible are invisible
-        //and fix bouncing bug on the li
         $(".childLi").each(function () {
-            $(this).css("height", $(this).height());
             var currentId = $(this).attr("id");
             if (visible[currentId] != true) {
                 $(this).addClass("ui-hidden");
@@ -1811,11 +1966,8 @@ $(document).ready(function () {
             cloneItem($(this), true);
         });
 
-        $(".editTheme").dblclick(editTheme);
-        $(".editEpic").dblclick(editEpic);
-        $(".editStory").dblclick(editStory);
-        $(".editTask").dblclick(editTask);
-        
+        enableEdits();
+
         //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
         $(".bindChange").dblclick(function(event) {
         	event.stopPropagation();
@@ -1879,7 +2031,7 @@ $(document).ready(function () {
             $(".saveButton").button( "option", "disabled", false );
         });
 
-        if(disableEditsBoolean) {
+        if (disableEditsBoolean) {
             disableEdits();
         }
         
@@ -1895,14 +2047,14 @@ $(document).ready(function () {
 
     $(window).resize(function() {
         $('li.childLi').css("height", "auto");
-        if($(window).width() < 1490) {
+        if ($(window).width() < 1490) {
             setHeightAndMargin(116);
         } else {
             setHeightAndMargin(85);
         }
     });
 
-    if($(window).width() < 1490) {
+    if ($(window).width() < 1490) {
         setHeightAndMargin(116);
     }
 
@@ -1921,7 +2073,7 @@ $(document).ready(function () {
         $(".story-task-link").css("color", "#1c94c4");
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
-    } else if(view == "epic-story") {
+    } else if (view == "epic-story") {
         $("#print-stories").remove();
         $( "#create-parent" ).button().click(function() {
             createEpic();
@@ -2052,7 +2204,7 @@ $(document).ready(function () {
         }
 
     });
-    if(disableEditsBoolean) {
+    if (disableEditsBoolean) {
         $("#list-container").sortable("option", "disabled", true);
     }
     //$(".parent-child-list").not("textarea").disableSelection();
