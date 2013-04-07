@@ -638,14 +638,19 @@ $(document).ready(function () {
     };
     
     /**
-     * Gets the most recently selected item of
-     * specified type (child/parent).
+     * Gets the most recently selected item.
+     * Optional argument is type specification ("child" or "parent").
      */
     var getLastSelected = function(type) {
         var i = selectedItems.length;
-        while(i--) {
-            if (selectedItems[i].type == type) {
-                return selectedItems[i];
+        if (i > 0) {
+            if (arguments.length == 0) {
+                return selectedItems[i-1];
+            }
+            while(i--) {
+                if (selectedItems[i].type == type) {
+                    return selectedItems[i];
+                }
             }
         }
         return null;
@@ -697,7 +702,19 @@ $(document).ready(function () {
             storyContainer.themeTitle = epic.themeTitle;
             storyContainer.lastItem = getLastSelected("child");
         } else {
-            storyContainer.lastItem = getLastSelected("parent");
+            var lastSelected = getLastSelected();
+            if (lastSelected != null && lastSelected.type == "child") {
+                //Find the parent of the last selected child since we want
+                //the newly created item to end up after that parent.
+                var lastChild = getChild(lastSelected.id);
+                if (lastChild != null) {
+                    var lastParentId = lastChild.parentId;
+                    lastSelected = new Object();
+                    lastSelected.type = "parent";
+                    lastSelected.id = lastParentId; 
+                }
+            }
+            storyContainer.lastItem = lastSelected;
         }
         $.ajax({
             url : "../json/createstory/" + areaName,
@@ -742,7 +759,19 @@ $(document).ready(function () {
             epicContainer.themeTitle = theme.title;
             epicContainer.lastItem = getLastSelected("child");
         } else {
-            epicContainer.lastItem = getLastSelected("parent");
+            var lastSelected = getLastSelected();
+            if (lastSelected != null && lastSelected.type == "child") {
+                //Find the parent of the last selected child since we want
+                //the newly created item to end up after that parent.
+                var lastChild = getChild(lastSelected.id);
+                if (lastChild != null) {
+                    var lastParentId = lastChild.epicId;
+                    lastSelected = new Object();
+                    lastSelected.type = "parent";
+                    lastSelected.id = lastParentId; 
+                }
+            }
+            epicContainer.lastItem = lastSelected;
         }
 
         $.ajax({
@@ -781,7 +810,20 @@ $(document).ready(function () {
         displayUpdateMsg();
         removeGroupMember();
         var themeContainer = new Object();
-        themeContainer.lastItem = getLastSelected("parent");
+        
+        var lastSelected = getLastSelected();
+        if (lastSelected != null && lastSelected.type == "child") {
+            //Find the parent of the last selected child since we want
+            //the newly created item to end up after that parent.
+            var lastChild = getChild(lastSelected.id);
+            if (lastChild != null) {
+                var lastParentId = lastChild.themeId;
+                lastSelected = new Object();
+                lastSelected.type = "parent";
+                lastSelected.id = lastParentId; 
+            }
+        }
+        themeContainer.lastItem = lastSelected;
         
         $.ajax({
             url : "../json/createtheme/" + areaName,
