@@ -275,33 +275,6 @@ $(document).ready(function () {
     };
 
     /**
-     * Truncate a string to the given length, breaking at word boundaries and adding an elipsis
-     * @param string str String to be truncated
-     * @param integer limit Max length of the string
-     * @return string
-     */
-    var truncate = function (str, limit) {
-        var bits, i;
-        if (typeof str != "string") {
-            return "";
-        }
-        bits = str.split('');
-        if (bits.length > limit) {
-            for (i = bits.length - 1; i > -1; --i) {
-                if (i > limit) {
-                    bits.length = i;
-                }
-                else if (' ' === bits[i]) {
-                    bits.length = i;
-                    break;
-                }
-            }
-            bits.push('...');
-        }
-        return bits.join('');
-    };
-
-    /**
      * Updates the cookie with information about which elements that are selected.
      * Triggered when an item is selected or unselected.
      */
@@ -1009,8 +982,6 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
-            //Because the height is fixed when the list is generated(to fix the slidetoggle-bug)
-            $('li.childLi').css("height", "auto");
             editingItems.push({id:storyId, type:"story"});
             removeGroupMember();
             $('button.'+storyId).button();
@@ -1093,8 +1064,6 @@ $(document).ready(function () {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
             updateWhenItemsClosed();
-            //Slide toggle fix
-            $('li.childLi').css("height", $('li.childLi').height());
         }
     };
 
@@ -1135,7 +1104,15 @@ $(document).ready(function () {
             	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).text(updatedStory.title);
             	$('.titles, .titles-epic-story').find('p.theme.'+storyId).text((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
             	$('.titles, .titles-epic-story').find('p.epic.'+storyId).text((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
-            	$('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId).text(updatedStory.description);
+            	
+            	var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+            	descriptionParagraph.text(updatedStory.description);
+
+            	descriptionParagraph.truncate({
+                    max_length: 200,
+                    more: '...',
+                    less: 'less'
+                });
 
             	$('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
             	$('.stakeholders').find('p.customer.'+storyId).text(updatedStory.customer);
@@ -1225,10 +1202,17 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTask) {
             	//Set the updated values
-            	$(".taskTitle."+updatedTask.id).find("p.taskInfo").text(updatedTask.title);
             	$(".taskOwner."+updatedTask.id).find("p.taskInfo").text(updatedTask.owner);
             	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").text(updatedTask.calculatedTime);
             	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
+            	
+                var titleParagraph = $(".taskTitle."+updatedTask.id).find("p.taskInfo");
+                titleParagraph.text(updatedTask.title);
+                titleParagraph.truncate({
+                    max_length: 200,
+                    more: '...',
+                    less: 'less'
+                });
             	
             	exitEditMode(taskId);
             },
@@ -1248,9 +1232,6 @@ $(document).ready(function () {
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
-            //Because the height is fixed when the list is generated(to fix the slidetoggle-bug)
-            $('#'+taskId).css("height", "auto");
-
             editingItems.push({id:taskId, type:"task"});
             removeGroupMember();
             $('button.'+taskId).button();
@@ -1308,7 +1289,14 @@ $(document).ready(function () {
 
             	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).text((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
             	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).text(updatedEpic.title);
-            	$('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId).text(updatedEpic.description);
+            	
+                var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
+                descriptionParagraph.text(updatedEpic.description);
+                descriptionParagraph.truncate({
+                    max_length: 200,
+                    more: '...',
+                    less: 'less'
+                });
 
             	var li = $('#'+epicId);
 
@@ -1364,9 +1352,6 @@ $(document).ready(function () {
         }
 
         if (isGoingIntoEdit(epicId)) {
-            //Because the height is fixed when the list is generated(to fix the slidetoggle-bug)
-            $('#'+epicId).css("height", "auto");
-
             editingItems.push({id:epicId, type:"epic"});
             removeGroupMember();
 
@@ -1399,8 +1384,6 @@ $(document).ready(function () {
             editingItems.remove({id:epicId});
             $("."+epicId).toggleClass('hidden-edit');
             updateWhenItemsClosed();
-            //Slide toggle fix
-            $('#'+epicId).css("height", $('#'+epicId).height());
         }
     };
 
@@ -1430,7 +1413,14 @@ $(document).ready(function () {
             success: function (updatedTheme) {
 
             	$('.titles-theme-epic').find('p.titleText.'+themeId).text(updatedTheme.title);
-            	$('.titles-theme-epic').find('p.description.'+themeId).text(updatedTheme.description);
+            	
+                var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
+                descriptionParagraph.text(updatedTheme.description);
+                descriptionParagraph.truncate({
+                    max_length: 200,
+                    more: '...',
+                    less: 'less'
+                });
 
             	var li = $('#'+themeId);
 
@@ -1584,7 +1574,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="title'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
-	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate(currentParent.description, 190)) + '</p>'
+	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
@@ -1676,7 +1666,7 @@ $(document).ready(function () {
 	                        +'<p class="marginLeft typeMark">Task</p>'
 	                        //TYPE MARK END
 	                        +'<div class="taskTitle ' + currentChild.id + '">'
-	                        +'<p class="taskInfo">'+ addLinksAndLineBreaks(truncate(currentChild.title, 190)) +'</p>'
+	                        +'<p class="taskInfo">'+ addLinksAndLineBreaks(currentChild.title) +'</p>'
 	                        +'</div>'
 	                        +'<textarea id="taskTitle' + currentChild.id + '" class="taskInfo bindChange taskTitle hidden-edit ' + currentChild.id + '" maxlength="500">' + currentChild.title + '</textarea>'
 	                        //TASKTITLE END
@@ -1728,7 +1718,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="epicTitle'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
 	                        //EPIC TITLE END
 	                        //EPIC DESCRIPTION START
-	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate(currentParent.description, 190)) + '</p>'
+	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
 	                        //EPIC DESCRIPTION END
 	                        +'</div>'
@@ -1770,7 +1760,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="title'+currentChild.id+'" class="bindChange titleText hidden-edit title ' + currentChild.id + '" rows="1" maxlength="100">' + currentChild.title + '</textarea>'
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
-	                        +'<p class="description ' + currentChild.id + '">' + addLinksAndLineBreaks(truncate(currentChild.description, 190)) + '</p>'
+	                        +'<p class="description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="description'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
@@ -1870,7 +1860,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="themeTitle'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
 	                        //TITLE END
 	                        //DESCRIPTION START
-	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(truncate(currentParent.description, 190)) + '</p>'
+	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="themeDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
@@ -1902,7 +1892,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="epicTitle'+currentChild.id+'" class="bindChange titleText hidden-edit title ' + currentChild.id + '" rows="1" maxlength="100">' + currentChild.title + '</textarea>'
 	                        //TITLE END
 	                        //DESCRIPTION START
-	                        +'<p class="description ' + currentChild.id + '">' + addLinksAndLineBreaks(truncate(currentChild.description, 190)) + '</p>'
+	                        +'<p class="description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
@@ -1941,6 +1931,9 @@ $(document).ready(function () {
                 $(this).addClass("ui-hidden");
             }
         });
+        
+        //Fixing bouncing <li>-bug
+        $("li").css("width", $("li").width());
 
         $('.expand-icon').click(expandClick);
         $(".parent-child-list").children("li").click(liClick);
@@ -2038,6 +2031,13 @@ $(document).ready(function () {
         if (isFilterActive()) {
             $("#list-container").sortable("option", "disabled", true);
         }
+
+        $('p.description, p.taskInfo').truncate({
+            max_length: 200,
+            more: '...',
+            less: 'less'
+        });
+
     };
 
     var setHeightAndMargin = function (value) {
@@ -2046,7 +2046,10 @@ $(document).ready(function () {
     };
 
     $(window).resize(function() {
-        $('li.childLi').css("height", "auto");
+        //Update the width of all <li>-elements.
+        //This has to be done in order to avoid bouncing-<li> bug.
+        $("li").css("width", "auto");
+        $("li").css("width", $("li").width());
         if ($(window).width() < 1490) {
             setHeightAndMargin(116);
         } else {

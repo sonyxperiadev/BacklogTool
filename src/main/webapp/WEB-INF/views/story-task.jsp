@@ -50,6 +50,8 @@ THE SOFTWARE.
 <script type="text/javascript"
     src="<c:url value="/resources/js/scripts.js?v=1" />"></script>
 <script type="text/javascript" src="code.icepush"></script>
+<script type="text/javascript"
+    src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
 </head>
 
 <body>
