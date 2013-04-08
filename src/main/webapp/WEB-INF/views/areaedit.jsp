@@ -38,7 +38,7 @@ THE SOFTWARE.
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery-ui-1.8.21.custom.min.js" />"></script>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
 
 <script type="text/javascript"
     src="<c:url value="/resources/js/scripts-areaedit.js" />"></script>

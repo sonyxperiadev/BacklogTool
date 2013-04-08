@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -82,7 +83,7 @@ public class Epic {
     @ManyToOne
     private Area area;
 
-    @OneToMany(mappedBy="epic")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy="epic")
     @OrderBy("prioInEpic")
     private Set<Story> children = new HashSet<Story>();
 
