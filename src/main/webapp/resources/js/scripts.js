@@ -655,6 +655,26 @@ $(document).ready(function () {
         }
         return null;
     };
+    
+    /**
+     * Gets the last selected item and returns it directly if it's a parent.
+     * If it's a child, then it returns the parent of that item.
+     */
+    var getParentOfLastSelected = function() {
+        var lastSelected = getLastSelected();
+        if (lastSelected != null && lastSelected.type == "child") {
+            //Find the parent of the last selected child
+            var lastChild = getChild(lastSelected.id);
+            if (lastChild != null) {
+                var lastParentId = (lastChild.parentId
+                        || lastChild.epicId || lastChild.themeId);
+                lastSelected = new Object();
+                lastSelected.type = "parent";
+                lastSelected.id = lastParentId; 
+            }
+        }
+        return lastSelected;
+    };
 
     var createTask = function(event) {
         displayUpdateMsg();
@@ -702,19 +722,7 @@ $(document).ready(function () {
             storyContainer.themeTitle = epic.themeTitle;
             storyContainer.lastItem = getLastSelected("child");
         } else {
-            var lastSelected = getLastSelected();
-            if (lastSelected != null && lastSelected.type == "child") {
-                //Find the parent of the last selected child since we want
-                //the newly created item to end up after that parent.
-                var lastChild = getChild(lastSelected.id);
-                if (lastChild != null) {
-                    var lastParentId = lastChild.parentId;
-                    lastSelected = new Object();
-                    lastSelected.type = "parent";
-                    lastSelected.id = lastParentId; 
-                }
-            }
-            storyContainer.lastItem = lastSelected;
+            storyContainer.lastItem = getParentOfLastSelected();
         }
         $.ajax({
             url : "../json/createstory/" + areaName,
@@ -759,19 +767,7 @@ $(document).ready(function () {
             epicContainer.themeTitle = theme.title;
             epicContainer.lastItem = getLastSelected("child");
         } else {
-            var lastSelected = getLastSelected();
-            if (lastSelected != null && lastSelected.type == "child") {
-                //Find the parent of the last selected child since we want
-                //the newly created item to end up after that parent.
-                var lastChild = getChild(lastSelected.id);
-                if (lastChild != null) {
-                    var lastParentId = lastChild.epicId;
-                    lastSelected = new Object();
-                    lastSelected.type = "parent";
-                    lastSelected.id = lastParentId; 
-                }
-            }
-            epicContainer.lastItem = lastSelected;
+            epicContainer.lastItem = getParentOfLastSelected();
         }
 
         $.ajax({
@@ -810,20 +806,7 @@ $(document).ready(function () {
         displayUpdateMsg();
         removeGroupMember();
         var themeContainer = new Object();
-        
-        var lastSelected = getLastSelected();
-        if (lastSelected != null && lastSelected.type == "child") {
-            //Find the parent of the last selected child since we want
-            //the newly created item to end up after that parent.
-            var lastChild = getChild(lastSelected.id);
-            if (lastChild != null) {
-                var lastParentId = lastChild.themeId;
-                lastSelected = new Object();
-                lastSelected.type = "parent";
-                lastSelected.id = lastParentId; 
-            }
-        }
-        themeContainer.lastItem = lastSelected;
+        themeContainer.lastItem = getParentOfLastSelected();
         
         $.ajax({
             url : "../json/createtheme/" + areaName,
