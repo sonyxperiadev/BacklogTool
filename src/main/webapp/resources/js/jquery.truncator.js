@@ -25,14 +25,14 @@
 
       truncated_node.insertAfter(full_node);
       
-      findNodeForMore(truncated_node).append(' <br\>(<a href="#show more content">'+opts.more+'</a>)');
-      findNodeForLess(full_node).append(' <br\>(<a href="#show less content">'+opts.less+'</a>)');
+      findNodeForMore(truncated_node).append(' <br\><a href="#show more content"' + 'class="' + opts.className + '">'+opts.more+'</a>');
+      findNodeForLess(full_node).append(' <br\><a href="#show less content"' + 'class="' + opts.className + '">'+opts.less+'</a>');
       
       truncated_node.find('a:last').click(function() {
-        truncated_node.hide(); full_node.show(); return false;
+        truncated_node.hide(); full_node.show(); opts.onExpand($(this)); return false;
       });
       full_node.find('a:last').click(function() {
-        truncated_node.show(); full_node.hide(); return false;
+        truncated_node.show(); full_node.hide(); opts.onCollapse($(this)); return false;
       });
 
     });
@@ -43,7 +43,10 @@
   $.fn.truncate.defaults = {
     max_length: 100,
     more: '...more',
-    less: 'less'
+    less: 'less',
+    className: '',
+    onExpand: function(){},
+    onCollapse: function(){}
   };
 
   function recursivelyTruncate(node, max_length) {

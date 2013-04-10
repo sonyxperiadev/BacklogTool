@@ -46,7 +46,7 @@ THE SOFTWARE.
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery.autosize-min.js" />"></script>
 <script type="text/javascript"
-    src="<c:url value="/resources/js/scripts.js?v=1" />"></script>
+    src="<c:url value="/resources/js/resources/js/scripts.js?v=2" />"></script>
 <script type="text/javascript" src="code.icepush"></script>
 </head>
 

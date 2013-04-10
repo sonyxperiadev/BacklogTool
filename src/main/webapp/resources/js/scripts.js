@@ -449,6 +449,41 @@ $(document).ready(function () {
             }
         }
     };
+    
+    /**
+     * Function to trigger when a long description is expanded.
+     */
+    var expandText = function (item) {
+        extendedDescriptions.push(item.attr("class"));
+    };
+    
+    /**
+     * Function to trigger when a long description is collapsed.
+     */
+    var collapseText = function (item) {
+        extendedDescriptions.remove(item.attr("class"));
+    };
+    
+    var truncateOptions = {
+            max_length: 140,
+            more: '...',
+            less: 'less',
+            onExpand: expandText,
+            onCollapse: collapseText
+    };
+    
+    /**
+     * Untruncates a paragraph item and sets a new text in it. 
+     */
+    var untruncate = function (paragraph, newText) {
+        if (paragraph.length == 2) {
+            $(paragraph[0]).remove();
+            paragraph = $(paragraph[1]);
+        }
+        paragraph.css({display: "block"});
+        paragraph.text(newText);
+        return paragraph;
+    };
 
     var focusAndSelectText = function(id) {
         $("#"+id).focus();
@@ -486,6 +521,8 @@ $(document).ready(function () {
         e.stopPropagation();
     };
 
+    var extendedDescriptions = new Array();
+    
     //Read cookie with selected items..
     var selectedItems = new Array();
     try {
@@ -1105,14 +1142,15 @@ $(document).ready(function () {
             	$('.titles, .titles-epic-story').find('p.theme.'+storyId).text((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
             	$('.titles, .titles-epic-story').find('p.epic.'+storyId).text((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
             	
-            	var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
-            	descriptionParagraph.text(updatedStory.description);
-
-            	descriptionParagraph.truncate({
-                    max_length: 200,
-                    more: '...',
-                    less: 'less'
-                });
+                //Re-add truncate on the description paragraph
+                var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+                descriptionParagraph = untruncate(descriptionParagraph, updatedStory.description);
+                descriptionParagraph.truncate(
+                        $.extend({}, truncateOptions, {className: 'truncate'+storyId})
+                );
+                if (extendedDescriptions.indexOf('truncate'+storyId) != -1) {
+                    $('a.truncate'+storyId, descriptionParagraph.parent()).click();
+                }
 
             	$('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
             	$('.stakeholders').find('p.customer.'+storyId).text(updatedStory.customer);
@@ -1205,15 +1243,18 @@ $(document).ready(function () {
             	$(".taskOwner."+updatedTask.id).find("p.taskInfo").text(updatedTask.owner);
             	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").text(updatedTask.calculatedTime);
             	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
-            	
+                
+                //Re-add truncate on the title paragraph
                 var titleParagraph = $(".taskTitle."+updatedTask.id).find("p.taskInfo");
-                titleParagraph.text(updatedTask.title);
-                titleParagraph.truncate({
-                    max_length: 200,
-                    more: '...',
-                    less: 'less'
-                });
-            	
+                titleParagraph = untruncate(titleParagraph, updatedTask.title);
+                titleParagraph.truncate(
+                        $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
+                );
+                if (extendedDescriptions.indexOf('truncate'+taskId) != -1) {
+                    $('a.truncate'+taskId, titleParagraph.parent()).click();
+                }
+                
+                replaceChild(taskId, updatedTask);
             	exitEditMode(taskId);
             },
             error: function (request, status, error) {
@@ -1289,14 +1330,16 @@ $(document).ready(function () {
 
             	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).text((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
             	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).text(updatedEpic.title);
-            	
+                
+                //Re-add truncate on the description paragraph
                 var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
-                descriptionParagraph.text(updatedEpic.description);
-                descriptionParagraph.truncate({
-                    max_length: 200,
-                    more: '...',
-                    less: 'less'
-                });
+                descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
+                descriptionParagraph.truncate(
+                        $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
+                );
+                if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
+                    $('a.truncate'+epicId, descriptionParagraph.parent()).click();
+                }
 
             	var li = $('#'+epicId);
 
@@ -1413,14 +1456,16 @@ $(document).ready(function () {
             success: function (updatedTheme) {
 
             	$('.titles-theme-epic').find('p.titleText.'+themeId).text(updatedTheme.title);
-            	
+
+                //Re-add truncate on the description paragraph
                 var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
-                descriptionParagraph.text(updatedTheme.description);
-                descriptionParagraph.truncate({
-                    max_length: 200,
-                    more: '...',
-                    less: 'less'
-                });
+                descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
+                descriptionParagraph.truncate(
+                        $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
+                );
+                if (extendedDescriptions.indexOf('truncate'+themeId) != -1) {
+                    $('a.truncate'+themeId, descriptionParagraph.parent()).click();
+                }
 
             	var li = $('#'+themeId);
 
@@ -1574,7 +1619,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="title'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
-	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
+	                        +'<p class="description story-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
@@ -1718,7 +1763,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="epicTitle'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
 	                        //EPIC TITLE END
 	                        //EPIC DESCRIPTION START
-	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
+	                        +'<p class="description epic-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
 	                        //EPIC DESCRIPTION END
 	                        +'</div>'
@@ -1760,7 +1805,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="title'+currentChild.id+'" class="bindChange titleText hidden-edit title ' + currentChild.id + '" rows="1" maxlength="100">' + currentChild.title + '</textarea>'
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
-	                        +'<p class="description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
+	                        +'<p class="description story-description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="description'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
@@ -1860,7 +1905,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="themeTitle'+currentParent.id+'" class="bindChange titleText hidden-edit title ' + currentParent.id + '" rows="1" maxlength="100">' + currentParent.title + '</textarea>'
 	                        //TITLE END
 	                        //DESCRIPTION START
-	                        +'<p class="description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
+	                        +'<p class="description theme-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="themeDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
@@ -1892,7 +1937,7 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Title" id="epicTitle'+currentChild.id+'" class="bindChange titleText hidden-edit title ' + currentChild.id + '" rows="1" maxlength="100">' + currentChild.title + '</textarea>'
 	                        //TITLE END
 	                        //DESCRIPTION START
-	                        +'<p class="description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
+	                        +'<p class="description epic-description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
@@ -1929,6 +1974,24 @@ $(document).ready(function () {
             var currentId = $(this).attr("id");
             if (visible[currentId] != true) {
                 $(this).addClass("ui-hidden");
+            }
+        });
+        
+        //Truncating long description texts
+        $("li").each(function() {
+            var currentId = $(this).attr("id");
+            $('p.story-description', this).truncate(
+                    $.extend(truncateOptions, {className: 'truncate'+currentId})
+            );
+            $('p.epic-description, p.theme-description', this).truncate(
+                    $.extend(truncateOptions, {className: 'truncate'+currentId, max_length: 200})
+            );
+            $('p.taskInfo', this).truncate(
+                    $.extend(truncateOptions, {className: 'truncate'+currentId, max_length: 90})
+            );
+            
+            if (extendedDescriptions.indexOf('truncate'+currentId) != -1) {
+                $('a.truncate'+currentId, this).click();
             }
         });
         
@@ -2031,12 +2094,6 @@ $(document).ready(function () {
         if (isFilterActive()) {
             $("#list-container").sortable("option", "disabled", true);
         }
-
-        $('p.description, p.taskInfo').truncate({
-            max_length: 200,
-            more: '...',
-            less: 'less'
-        });
 
     };
 
