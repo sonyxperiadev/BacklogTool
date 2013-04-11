@@ -667,17 +667,42 @@ $(document).ready(function () {
     };
     
     /**
-     * Gets the most recently selected item of
-     * specified type (child/parent).
+     * Gets the most recently selected item.
+     * Optional argument is type specification ("child" or "parent").
      */
     var getLastSelected = function(type) {
         var i = selectedItems.length;
-        while(i--) {
-            if (selectedItems[i].type == type) {
-                return selectedItems[i];
+        if (i > 0) {
+            if (arguments.length == 0) {
+                return selectedItems[i-1];
+            }
+            while(i--) {
+                if (selectedItems[i].type == type) {
+                    return selectedItems[i];
+                }
             }
         }
         return null;
+    };
+    
+    /**
+     * Gets the last selected item and returns it directly if it's a parent.
+     * If it's a child, then it returns the parent of that item.
+     */
+    var getParentOfLastSelected = function() {
+        var lastSelected = getLastSelected();
+        if (lastSelected != null && lastSelected.type == "child") {
+            //Find the parent of the last selected child
+            var lastChild = getChild(lastSelected.id);
+            if (lastChild != null) {
+                var lastParentId = (lastChild.parentId
+                        || lastChild.epicId || lastChild.themeId);
+                lastSelected = new Object();
+                lastSelected.type = "parent";
+                lastSelected.id = lastParentId; 
+            }
+        }
+        return lastSelected;
     };
 
     var createTask = function(event) {
@@ -726,7 +751,7 @@ $(document).ready(function () {
             storyContainer.themeTitle = epic.themeTitle;
             storyContainer.lastItem = getLastSelected("child");
         } else {
-            storyContainer.lastItem = getLastSelected("parent");
+            storyContainer.lastItem = getParentOfLastSelected();
         }
         $.ajax({
             url : "../json/createstory/" + areaName,
@@ -771,7 +796,7 @@ $(document).ready(function () {
             epicContainer.themeTitle = theme.title;
             epicContainer.lastItem = getLastSelected("child");
         } else {
-            epicContainer.lastItem = getLastSelected("parent");
+            epicContainer.lastItem = getParentOfLastSelected();
         }
 
         $.ajax({
@@ -810,7 +835,7 @@ $(document).ready(function () {
         displayUpdateMsg();
         removeGroupMember();
         var themeContainer = new Object();
-        themeContainer.lastItem = getLastSelected("parent");
+        themeContainer.lastItem = getParentOfLastSelected();
         
         $.ajax({
             url : "../json/createtheme/" + areaName,
