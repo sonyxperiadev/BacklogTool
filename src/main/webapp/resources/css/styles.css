@@ -34,6 +34,7 @@ h1 {
 
 #archived-list-container {
     border-top: 15px solid #555555;
+    display: none;
 }
 
 .story p {
