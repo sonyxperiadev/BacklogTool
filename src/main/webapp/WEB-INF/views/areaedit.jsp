@@ -71,7 +71,19 @@ THE SOFTWARE.
             </c:if>
             </a>
     </header>
+
     <div id="list-container-div">
+        <br/>
+        <h4>Area name</h4>
+        <p>Change area name</p>
+        <input type="text"
+                class="ui-corner-all"
+                id="area-name" size="33" maxlength="50">
+        <input id="name-button" class="ui-corner-all areaedit-button"
+                type="submit" value="Change">
+        
+        <br/><br/>
+        <h4>Permissions</h4>
         <table>
             <tr>
                 <td style="width: 280px">
@@ -86,7 +98,7 @@ THE SOFTWARE.
                     </c:forEach> <br />
                     <p>Add new admin</p> <input id="admin-username"
                     class="ui-corner-all" placeholder="Username">
-                    <input id="add-admin" class="ui-corner-all"
+                    <input id="add-admin" class="ui-corner-all areaedit-button"
                     type="submit" value="Add"> <br> <br>
                 </td>
                 <td style="width: 280px">
@@ -101,7 +113,7 @@ THE SOFTWARE.
                     </c:forEach> <br />
                     <p>Add new editor</p> <input id="editor-username"
                     class="ui-corner-all" placeholder="Username">
-                    <input id="add-editor" class="ui-corner-all"
+                    <input id="add-editor" class="ui-corner-all areaedit-button"
                     type="submit" value="Add"> <br> <br>
                 </td>
             </tr>
@@ -262,7 +274,9 @@ THE SOFTWARE.
             </tr>
         </table>
 
-        <a title="Save" id="save">Save</a> <br> <br>
+        <input id="save" class="ui-corner-all areaedit-button"
+                    type="submit" value="Save">
+        <br/><br/>
 
         <div id="image_container">
             <c:forEach items="${icons}" var="icon">

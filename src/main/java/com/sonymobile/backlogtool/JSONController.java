@@ -1446,7 +1446,7 @@ public class JSONController {
 
     /**
      * Used when creating an area
-     * @return true if everything was ok
+     * @return new area name if everything was ok
      */
     @RequestMapping(value="/createArea", method = RequestMethod.POST)
     @Transactional
@@ -1481,6 +1481,45 @@ public class JSONController {
             session.close();
         }
         return areaName;
+    }
+    
+    /**
+     * Used when changing name of an area.
+     * @return new area name if everything was ok
+     */
+    @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
+    @RequestMapping(value="/changeAreaName/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody String changeAreaName(@PathVariable String areaName, @RequestParam String newName) {        
+        //Replacing all invalid characters:
+        newName = newName.replaceAll("\\<.*?>","").replaceAll("\"", "").replaceAll("/", "");
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            //Only create if it was a valid area name, and the area does not already exist
+            Area sameNameArea = (Area) session.get(Area.class, newName);
+            if (!newName.isEmpty() && sameNameArea == null) {
+                String hql="update Area set name=? where name=? ";
+                Query query=session.createQuery(hql);
+                query.setString(0, newName);
+                query.setString(1, areaName);
+                query.executeUpdate();
+            } else {
+                newName = null;
+            }
+            tx.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+        return newName;
     }
 
 

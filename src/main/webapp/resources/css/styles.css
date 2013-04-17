@@ -568,3 +568,7 @@ div.filter, div.orderBy {
 input.filter {
 	height: 13px;
 }
+
+.areaedit-button {
+	font-size: 0.9em;
+}
