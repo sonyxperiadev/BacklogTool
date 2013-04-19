@@ -1491,7 +1491,7 @@ public class JSONController {
     @RequestMapping(value="/changeAreaName/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody String changeAreaName(@PathVariable String areaName, @RequestParam String newName) {        
-        //Replacing all invalid characters:
+        //Removing all invalid characters:
         newName = newName.replaceAll("\\<.*?>","").replaceAll("\"", "").replaceAll("/", "");
 
         Session session = sessionFactory.openSession();
@@ -1501,12 +1501,45 @@ public class JSONController {
 
             //Only create if it was a valid area name, and the area does not already exist
             Area sameNameArea = (Area) session.get(Area.class, newName);
-            if (!newName.isEmpty() && sameNameArea == null) {
-                String hql="update Area set name=? where name=? ";
-                Query query=session.createQuery(hql);
-                query.setString(0, newName);
-                query.setString(1, areaName);
-                query.executeUpdate();
+            if (!newName.isEmpty() && sameNameArea == null && newName.length() <= 50) {
+                //Since the area name is primary key in DB, we need to create
+                //a new area with the new name and move all existing items there.
+                Area oldArea = (Area) session.get(Area.class, areaName);
+                Area newArea = new Area();
+                newArea.setName(newName);
+                session.save(newArea);
+                
+                newArea.setStoryAttr1(oldArea.getStoryAttr1());
+                newArea.setStoryAttr2(oldArea.getStoryAttr2());
+                newArea.setStoryAttr3(oldArea.getStoryAttr3());
+                newArea.setTaskAttr1(oldArea.getTaskAttr1());
+                newArea.setAdmins(oldArea.getAdmins());
+                oldArea.setAdmins(null);
+                newArea.setEditors(oldArea.getEditors());
+                oldArea.setEditors(null);
+                
+                Query storyQuery = session.createQuery("from Story where area like ?");
+                storyQuery.setParameter(0, oldArea);
+                List<Story> stories = Util.castList(Story.class, storyQuery.list());
+                for (Story story : stories) {
+                    story.setArea(newArea);
+                }
+
+                Query epicQuery = session.createQuery("from Epic where area like ?");
+                epicQuery.setParameter(0, oldArea);
+                List<Epic> epics = Util.castList(Epic.class, epicQuery.list());
+                for (Epic epic : epics) {
+                    epic.setArea(newArea);
+                }
+
+                Query themeQuery = session.createQuery("from Theme where area like ?");
+                themeQuery.setParameter(0, oldArea);
+                List<Theme> themes = Util.castList(Theme.class, themeQuery.list());
+                for (Theme theme : themes) {
+                    theme.setArea(newArea);
+                }
+                
+                session.delete(oldArea);
             } else {
                 newName = null;
             }
@@ -1516,6 +1549,7 @@ public class JSONController {
             if (tx != null) {
                 tx.rollback();
             }
+            newName = null;
         } finally {
             session.close();
         }

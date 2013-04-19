@@ -59,7 +59,7 @@ THE SOFTWARE.
                 <p id="topic" class="textstyle inline">Backlog tool
                     /&nbsp</p>
             </a>
-            <p id="topic-area" class="textstyle inline">Edit area</p>
+            <p id="topic-area" class="textstyle inline">Edit area ${area.name}</p>
         </h1>
         <br style="clear: both" /> <a title="Log out" id="login-out"
             href="../auth/logout">
@@ -78,7 +78,7 @@ THE SOFTWARE.
         <p>Change area name</p>
         <input type="text"
                 class="ui-corner-all"
-                id="area-name" size="33" maxlength="50">
+                id="area-name" size="33" maxlength="50" value="${area.name}">
         <input id="name-button" class="ui-corner-all areaedit-button"
                 type="submit" value="Change">
         
