@@ -29,13 +29,15 @@ $(document).ready(function() {
     
     $("#name-button").click(function() {
         $.ajax({
-            url : "../json/changeAreaName/" + areaName + "?newName=" + $("#area-name").val(),
+            url : "../json/changeAreaName/" + areaName,
             type : 'POST',
-            success : function(data) {
-                if (data == "") {
+            data : $("#area-name").val(),
+            contentType : "application/json; charset=utf-8",
+            success : function(response) {
+                if (response == "") {
                     location.reload();
                 } else {
-                    window.location.href = "./" + data;
+                    window.location.href = "./" + response;
                 }
             },
             error : function(request, status, error) {

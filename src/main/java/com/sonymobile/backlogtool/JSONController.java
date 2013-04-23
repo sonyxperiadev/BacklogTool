@@ -1450,9 +1450,10 @@ public class JSONController {
      */
     @RequestMapping(value="/createArea", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String createArea(@RequestParam String areaName) {
-        //Replacing all invalid characters:
-        areaName = areaName.replaceAll("\\<.*?>","").replaceAll("\"", "").replaceAll("/", "");
+    public @ResponseBody String createArea(@RequestBody String areaName) {
+        //Removing all invalid characters:
+        areaName = areaName.replaceAll("\\<.*?>","").replaceAll("[\"/\\.?;#%]", "");        
+        areaName = areaName.trim();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -1466,7 +1467,8 @@ public class JSONController {
 
             //Only create if it was a valid area name, and the area does not already exist
             //and the user is logged in
-            if (!areaName.isEmpty() && sameNameArea == null && isLoggedIn()) {
+            if (!areaName.isEmpty() && sameNameArea == null
+                    && isLoggedIn() && areaName.length() <= 50) {
                 Area area = new Area(areaName, session);
                 area.makeAdmin(username);
                 session.save(area);
@@ -1490,9 +1492,10 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
     @RequestMapping(value="/changeAreaName/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String changeAreaName(@PathVariable String areaName, @RequestParam String newName) {        
+    public @ResponseBody String changeAreaName(@PathVariable String areaName, @RequestBody String newName) {        
         //Removing all invalid characters:
-        newName = newName.replaceAll("\\<.*?>","").replaceAll("\"", "").replaceAll("/", "");
+        newName = newName.replaceAll("\\<.*?>","").replaceAll("[\"/\\.?;#%]", "");        
+        newName = newName.trim();
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;

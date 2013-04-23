@@ -572,3 +572,8 @@ input.filter {
 .areaedit-button {
 	font-size: 0.9em;
 }
+
+div#namechange-div {
+	margin-top: 105px;
+	margin-bottom: 40px;
+}

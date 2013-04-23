@@ -41,7 +41,7 @@ THE SOFTWARE.
     href="<c:url value="/resources/css/styles.css?v=1" />"></link>
 
 <script type="text/javascript"
-    src="<c:url value="/resources/js/scripts-areaedit.js" />"></script>
+    src="<c:url value="/resources/js/scripts-areaedit.js?v=1" />"></script>
 
 <script type="text/javascript">
     var areaName = "${area.name}";
@@ -73,16 +73,16 @@ THE SOFTWARE.
     </header>
 
     <div id="list-container-div">
-        <br/>
-        <h4>Area name</h4>
-        <p>Change area name</p>
-        <input type="text"
-                class="ui-corner-all"
-                id="area-name" size="33" maxlength="50" value="${area.name}">
-        <input id="name-button" class="ui-corner-all areaedit-button"
-                type="submit" value="Change">
-        
-        <br/><br/>
+    	<div id=namechange-div>
+	        <h4>Area name</h4>
+	        <p>Change area name</p>
+	        <input type="text"
+	                class="ui-corner-all"
+	                id="area-name" size="33" maxlength="50" value="${area.name}">
+	        <input id="name-button" class="ui-corner-all areaedit-button"
+	                type="submit" value="Change">
+    	</div>
+
         <h4>Permissions</h4>
         <table>
             <tr>
