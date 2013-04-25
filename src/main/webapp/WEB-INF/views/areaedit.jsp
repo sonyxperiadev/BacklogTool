@@ -73,7 +73,7 @@ THE SOFTWARE.
     </header>
 
     <div id="list-container-div">
-    	<div id=namechange-div>
+    	<div id="namechange-div">
 	        <h4>Area name</h4>
 	        <p>Change area name</p>
 	        <input type="text"
@@ -276,7 +276,6 @@ THE SOFTWARE.
 
         <input id="save" class="ui-corner-all areaedit-button"
                     type="submit" value="Save">
-        <br/><br/>
 
         <div id="image_container">
             <c:forEach items="${icons}" var="icon">

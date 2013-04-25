@@ -1452,7 +1452,7 @@ public class JSONController {
     @Transactional
     public @ResponseBody String createArea(@RequestBody String areaName) {
         //Removing all invalid characters:
-        areaName = areaName.replaceAll("\\<.*?>","").replaceAll("[\"/\\.?;#%]", "");        
+        areaName = areaName.replaceAll("\\<.*?>","").replaceAll("[\"/\\\\.?;#%\u20AC]", "");        
         areaName = areaName.trim();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -1494,7 +1494,7 @@ public class JSONController {
     @Transactional
     public @ResponseBody String changeAreaName(@PathVariable String areaName, @RequestBody String newName) {        
         //Removing all invalid characters:
-        newName = newName.replaceAll("\\<.*?>","").replaceAll("[\"/\\.?;#%]", "");        
+        newName = newName.replaceAll("\\<.*?>","").replaceAll("[\"/\\\\.?;#%\u20AC]", "");        
         newName = newName.trim();
 
         Session session = sessionFactory.openSession();
