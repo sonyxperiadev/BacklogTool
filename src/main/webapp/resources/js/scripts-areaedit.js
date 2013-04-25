@@ -25,6 +25,27 @@ $(document).ready(function() {
     $('#login-out').button();
     $("#add-admin").button();
     $("#add-editor").button();
+    $("#name-button").button();
+    
+    $("#name-button").click(function() {
+        $.ajax({
+            url : "../json/changeAreaName/" + areaName,
+            type : 'POST',
+            data : $("#area-name").val(),
+            contentType : "application/json; charset=utf-8",
+            success : function(response) {
+                if (response == "") {
+                    location.reload();
+                } else {
+                    window.location.href = "./" + response;
+                }
+            },
+            error : function(request, status, error) {
+                alert(error);
+                location.reload();
+            }
+        });
+    });
 
     $("#add-admin").click(function() {
         $.ajax({

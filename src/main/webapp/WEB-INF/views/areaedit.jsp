@@ -41,7 +41,7 @@ THE SOFTWARE.
     href="<c:url value="/resources/css/styles.css?v=1" />"></link>
 
 <script type="text/javascript"
-    src="<c:url value="/resources/js/scripts-areaedit.js" />"></script>
+    src="<c:url value="/resources/js/scripts-areaedit.js?v=1" />"></script>
 
 <script type="text/javascript">
     var areaName = "${area.name}";
@@ -59,7 +59,7 @@ THE SOFTWARE.
                 <p id="topic" class="textstyle inline">Backlog tool
                     /&nbsp</p>
             </a>
-            <p id="topic-area" class="textstyle inline">Edit area</p>
+            <p id="topic-area" class="textstyle inline">Edit area ${area.name}</p>
         </h1>
         <br style="clear: both" /> <a title="Log out" id="login-out"
             href="../auth/logout">
@@ -71,7 +71,19 @@ THE SOFTWARE.
             </c:if>
             </a>
     </header>
+
     <div id="list-container-div">
+    	<div id="namechange-div">
+	        <h4>Area name</h4>
+	        <p>Change area name</p>
+	        <input type="text"
+	                class="ui-corner-all"
+	                id="area-name" size="33" maxlength="50" value="${area.name}">
+	        <input id="name-button" class="ui-corner-all areaedit-button"
+	                type="submit" value="Change">
+    	</div>
+
+        <h4>Permissions</h4>
         <table>
             <tr>
                 <td style="width: 280px">
@@ -86,7 +98,7 @@ THE SOFTWARE.
                     </c:forEach> <br />
                     <p>Add new admin</p> <input id="admin-username"
                     class="ui-corner-all" placeholder="Username">
-                    <input id="add-admin" class="ui-corner-all"
+                    <input id="add-admin" class="ui-corner-all areaedit-button"
                     type="submit" value="Add"> <br> <br>
                 </td>
                 <td style="width: 280px">
@@ -101,7 +113,7 @@ THE SOFTWARE.
                     </c:forEach> <br />
                     <p>Add new editor</p> <input id="editor-username"
                     class="ui-corner-all" placeholder="Username">
-                    <input id="add-editor" class="ui-corner-all"
+                    <input id="add-editor" class="ui-corner-all areaedit-button"
                     type="submit" value="Add"> <br> <br>
                 </td>
             </tr>
@@ -262,7 +274,8 @@ THE SOFTWARE.
             </tr>
         </table>
 
-        <a title="Save" id="save">Save</a> <br> <br>
+        <input id="save" class="ui-corner-all areaedit-button"
+                    type="submit" value="Save">
 
         <div id="image_container">
             <c:forEach items="${icons}" var="icon">

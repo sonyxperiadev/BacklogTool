@@ -48,13 +48,15 @@ THE SOFTWARE.
 
         $("#create-area").button().click(function() {
             $.ajax({
-                url : "json/createArea?areaName=" + $("#area-name").val(),
+                url : "json/createArea",
                 type : 'POST',
-                success : function(data) {
-                    if (data == "") {
+                data: $("#area-name").val(),
+                contentType : "application/json; charset=utf-8",
+                success : function(response) {
+                    if (response == "") {
                         location.reload();
                     } else {
-                        window.location.href = "story-task/" + data;
+                        window.location.href = "story-task/" + response;
                     }
                 },
                 error : function(request, status, error) {
