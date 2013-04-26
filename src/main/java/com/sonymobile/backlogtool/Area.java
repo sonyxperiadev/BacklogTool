@@ -220,4 +220,12 @@ public class Area {
         this.taskAttr1 = taskAttr1;
     }
 
+    public void setEditors(Set<String> editors) {
+        this.editors = editors;
+    }
+
+    public void setAdmins(Set<String> admins) {
+        this.admins = admins;
+    }
+    
 }

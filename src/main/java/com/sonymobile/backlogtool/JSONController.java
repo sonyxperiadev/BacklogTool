@@ -1446,13 +1446,14 @@ public class JSONController {
 
     /**
      * Used when creating an area
-     * @return true if everything was ok
+     * @return new area name if everything was ok
      */
     @RequestMapping(value="/createArea", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String createArea(@RequestParam String areaName) {
-        //Replacing all invalid characters:
-        areaName = areaName.replaceAll("\\<.*?>","").replaceAll("\"", "").replaceAll("/", "");
+    public @ResponseBody String createArea(@RequestBody String areaName) {
+        //Removing all invalid characters:
+        areaName = areaName.replaceAll("\\<.*?>","").replaceAll("[\"/\\\\.?;#%\u20AC]", "");        
+        areaName = areaName.trim();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -1466,7 +1467,8 @@ public class JSONController {
 
             //Only create if it was a valid area name, and the area does not already exist
             //and the user is logged in
-            if (!areaName.isEmpty() && sameNameArea == null && isLoggedIn()) {
+            if (!areaName.isEmpty() && sameNameArea == null
+                    && isLoggedIn() && areaName.length() <= 50) {
                 Area area = new Area(areaName, session);
                 area.makeAdmin(username);
                 session.save(area);
@@ -1481,6 +1483,80 @@ public class JSONController {
             session.close();
         }
         return areaName;
+    }
+    
+    /**
+     * Used when changing name of an area.
+     * @return new area name if everything was ok
+     */
+    @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
+    @RequestMapping(value="/changeAreaName/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody String changeAreaName(@PathVariable String areaName, @RequestBody String newName) {        
+        //Removing all invalid characters:
+        newName = newName.replaceAll("\\<.*?>","").replaceAll("[\"/\\\\.?;#%\u20AC]", "");        
+        newName = newName.trim();
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            //Only create if it was a valid area name, and the area does not already exist
+            Area sameNameArea = (Area) session.get(Area.class, newName);
+            if (!newName.isEmpty() && sameNameArea == null && newName.length() <= 50) {
+                //Since the area name is primary key in DB, we need to create
+                //a new area with the new name and move all existing items there.
+                Area oldArea = (Area) session.get(Area.class, areaName);
+                Area newArea = new Area();
+                newArea.setName(newName);
+                session.save(newArea);
+                
+                newArea.setStoryAttr1(oldArea.getStoryAttr1());
+                newArea.setStoryAttr2(oldArea.getStoryAttr2());
+                newArea.setStoryAttr3(oldArea.getStoryAttr3());
+                newArea.setTaskAttr1(oldArea.getTaskAttr1());
+                newArea.setAdmins(oldArea.getAdmins());
+                oldArea.setAdmins(null);
+                newArea.setEditors(oldArea.getEditors());
+                oldArea.setEditors(null);
+                
+                Query storyQuery = session.createQuery("from Story where area like ?");
+                storyQuery.setParameter(0, oldArea);
+                List<Story> stories = Util.castList(Story.class, storyQuery.list());
+                for (Story story : stories) {
+                    story.setArea(newArea);
+                }
+
+                Query epicQuery = session.createQuery("from Epic where area like ?");
+                epicQuery.setParameter(0, oldArea);
+                List<Epic> epics = Util.castList(Epic.class, epicQuery.list());
+                for (Epic epic : epics) {
+                    epic.setArea(newArea);
+                }
+
+                Query themeQuery = session.createQuery("from Theme where area like ?");
+                themeQuery.setParameter(0, oldArea);
+                List<Theme> themes = Util.castList(Theme.class, themeQuery.list());
+                for (Theme theme : themes) {
+                    theme.setArea(newArea);
+                }
+                
+                session.delete(oldArea);
+            } else {
+                newName = null;
+            }
+            tx.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+            newName = null;
+        } finally {
+            session.close();
+        }
+        return newName;
     }
 
 
