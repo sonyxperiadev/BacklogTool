@@ -345,6 +345,16 @@ $(document).ready(function () {
         $('#filter').focus();
     }
 
+    //Load sorting from cookie if it exists
+    var sorting = readCookie("backlogtool-orderby");
+    if (sorting != null) {
+        $("#orderBy").val(sorting);
+        sorting = $("#orderBy").val(); //Update with the value that was matched
+        if (sorting != "prio") {
+            disableEditsBoolean = true;
+        }
+    }
+
     var readData = function readData() {
         $.ajax({
             url: "../json/read" + view + "/" + areaName + "?order=" + $("#orderBy").val(),
@@ -493,11 +503,13 @@ $(document).ready(function () {
     $('#orderBy').bind('change', function() {
         displayUpdateMsg();
         reload();
-        if ($("#orderBy").val() == "prio") {
+        var orderBy = $("#orderBy").val();
+        if (orderBy == "prio") {
             $("#list-container").sortable("option", "disabled", false);
         } else {
             $("#list-container").sortable("option", "disabled", true);
         }
+        createCookie("backlogtool-orderby", orderBy, 60);
     });
 
     var expandClick = function (e) {
