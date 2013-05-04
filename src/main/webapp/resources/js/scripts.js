@@ -349,10 +349,6 @@ $(document).ready(function () {
     var sorting = readCookie("backlogtool-orderby");
     if (sorting != null) {
         $("#orderBy").val(sorting);
-        sorting = $("#orderBy").val(); //Update with the value that was matched
-        if (sorting != "prio") {
-            disableEditsBoolean = true;
-        }
     }
 
     var readData = function readData() {
@@ -2127,11 +2123,10 @@ $(document).ready(function () {
         if (disableEditsBoolean) {
             disableEdits();
         }
-        
-        if (isFilterActive()) {
+
+        if (isFilterActive() || disableEditsBoolean || $("#orderBy").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
-
     };
 
     var setHeightAndMargin = function (value) {
@@ -2256,7 +2251,7 @@ $(document).ready(function () {
         }
     }
 
-    buildVisibleList();
+
     $("#list-container").sortable({
         tolerance: 'pointer',
         cursor: 'pointer',
@@ -2301,9 +2296,8 @@ $(document).ready(function () {
         }
 
     });
-    if (disableEditsBoolean) {
-        $("#list-container").sortable("option", "disabled", true);
-    }
+    buildVisibleList();
+
     //$(".parent-child-list").not("textarea").disableSelection();
 
     $('#filter-button').button().click(function() {
