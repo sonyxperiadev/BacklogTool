@@ -345,6 +345,12 @@ $(document).ready(function () {
         $('#filter').focus();
     }
 
+    //Load sorting from cookie if it exists
+    var sorting = readCookie("backlogtool-orderby");
+    if (sorting != null) {
+        $("#orderBy").val(sorting);
+    }
+
     var readData = function readData() {
         $.ajax({
             url: "../json/read" + view + "/" + areaName + "?order=" + $("#orderBy").val(),
@@ -493,11 +499,13 @@ $(document).ready(function () {
     $('#orderBy').bind('change', function() {
         displayUpdateMsg();
         reload();
-        if ($("#orderBy").val() == "prio") {
+        var orderBy = $("#orderBy").val();
+        if (orderBy == "prio") {
             $("#list-container").sortable("option", "disabled", false);
         } else {
             $("#list-container").sortable("option", "disabled", true);
         }
+        createCookie("backlogtool-orderby", orderBy, 60);
     });
 
     var expandClick = function (e) {
@@ -2115,11 +2123,10 @@ $(document).ready(function () {
         if (disableEditsBoolean) {
             disableEdits();
         }
-        
-        if (isFilterActive()) {
+
+        if (isFilterActive() || disableEditsBoolean || $("#orderBy").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
-
     };
 
     var setHeightAndMargin = function (value) {
@@ -2244,7 +2251,7 @@ $(document).ready(function () {
         }
     }
 
-    buildVisibleList();
+
     $("#list-container").sortable({
         tolerance: 'pointer',
         cursor: 'pointer',
@@ -2289,9 +2296,8 @@ $(document).ready(function () {
         }
 
     });
-    if (disableEditsBoolean) {
-        $("#list-container").sortable("option", "disabled", true);
-    }
+    buildVisibleList();
+
     //$(".parent-child-list").not("textarea").disableSelection();
 
     $('#filter-button').button().click(function() {
