@@ -23,11 +23,14 @@
  */
 package com.sonymobile.backlogtool.permission;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.sonymobile.backlogtool.ApplicationVersion;
 
 /**
  * This class handles the login page.
@@ -35,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/auth")
 public class AuthenticationController {
+    
+    @Autowired
+    ApplicationVersion version;
 
     /**
      * Handles and retrieves the login JSP page
@@ -45,6 +51,8 @@ public class AuthenticationController {
     public String getLoginPage(@RequestParam(value="error", required=false) boolean error,
             ModelMap model) {
         model.put("errorMsg", "");
+        model.put("version", version.getVersion());
+        model.put("versionNoDots", version.getVersion().replace(".", ""));
 
         if (error) {
             // Assign an error message

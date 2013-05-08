@@ -31,7 +31,7 @@ THE SOFTWARE.
     href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
 <title>Backlog-tool</title>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <script type="text/javascript"
@@ -107,85 +107,94 @@ THE SOFTWARE.
 </head>
 
 <body>
-    <header>
-        <h1>
-            <a href="${pageContext.request.contextPath}/${area.name}">
-                <p id="topic" class="textstyle inline">Backlog tool</p>
-            </a>
-        </h1>
-        <br style="clear: both" /> <a id="login-out" href="auth/logout"><c:if
-                test="${isLoggedIn == true}">LOG OUT</c:if> <c:if
-                test="${isLoggedIn == false}">LOG IN</c:if></a>
-        <c:if test="${lastArea != null}">
-            <a title="STORY TASK VIEW"
-                class="story-task-link navigation-link"
-                href="story-task/${lastArea}">STORY TASK </a>
-            <a title="EPIC STORY VIEW"
-                class="epic-story-link navigation-link"
-                href="epic-story/${lastArea}">EPIC STORY /&nbsp</a>
-            <a title="THEME EPIC VIEW"
-                class="theme-epic-link navigation-link"
-                href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a>
-            <a title="AREA VIEW" class="home-link navigation-link"
-                href="${lastArea}">AREA /&nbsp</a>
-        </c:if>
-    </header>
-    <div id="list-container-div">
-        <div id="area-container-div" class="inline">
-            <p style="margin-top: 15px;">Areas:</p>
-            <c:forEach var="area" items="${adminAreas}">
-                <c:set var="style" value="" />
-                <c:if test="${area == lastArea}">
-                    <c:set var="style" value='style="color: #1C94C4;"' />
-                </c:if>
-                <a class="area-links" href="story-task/${area}" ${style}>
-                    ${area} </a>
-                <a><img
-                    src="resources/css/ui-lightness/images/delete.png"
-                    class="deletebutton" id="${area}"
-                    title="Delete area" alt="Delete area" /></a>
-                <a href="areaedit/${area}"><img
-                    src="resources/css/ui-lightness/images/pencil_go.png"
-                    class="editbutton" title="Edit area" alt="Edit area" /></a>
-                <br />
-            </c:forEach>
-            <br>
-            <c:forEach var="area" items="${nonAdminAreas}">
-                <c:set var="style" value="" />
-                <c:if test="${area == lastArea}">
-                    <c:set var="style" value='style="color: #1C94C4;"' />
-                </c:if>
-                <a class="area-links" href="story-task/${area}" ${style}>
-                    ${area} </a>
-                <br />
-            </c:forEach>
-            <br> <br>
-            <p>Create new area</p>
-            <input type="text"
-                class="text ui-widget-content ui-corner-all"
-                id="area-name" size="33" maxlength="50"> <a
-                title="Create area" id="create-area">Create area</a>
+    <div id="wrap">
+        <div id="header">
+            <h1>
+                <a href="${pageContext.request.contextPath}/${area.name}">
+                    <p id="topic" class="textstyle inline">Backlog tool</p>
+                </a>
+            </h1>
+            <br style="clear: both" /> <a id="login-out" href="auth/logout"><c:if
+                    test="${isLoggedIn == true}">LOG OUT</c:if> <c:if
+                    test="${isLoggedIn == false}">LOG IN</c:if></a>
+            <c:if test="${lastArea != null}">
+                <a title="STORY TASK VIEW"
+                    class="story-task-link navigation-link"
+                    href="story-task/${lastArea}">STORY TASK </a>
+                <a title="EPIC STORY VIEW"
+                    class="epic-story-link navigation-link"
+                    href="epic-story/${lastArea}">EPIC STORY /&nbsp</a>
+                <a title="THEME EPIC VIEW"
+                    class="theme-epic-link navigation-link"
+                    href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a>
+                <a title="AREA VIEW" class="home-link navigation-link"
+                    href="${lastArea}">AREA /&nbsp</a>
+            </c:if>
         </div>
+        <div id="main">
+            <div id="list-container-div">
+                <div id="area-container-div" class="inline">
+                    <p style="margin-top: 15px;">Areas:</p>
+                    <c:forEach var="area" items="${adminAreas}">
+                        <c:set var="style" value="" />
+                        <c:if test="${area == lastArea}">
+                            <c:set var="style" value='style="color: #1C94C4;"' />
+                        </c:if>
+                        <a class="area-links" href="story-task/${area}" ${style}>
+                            ${area} </a>
+                        <a><img
+                            src="resources/css/ui-lightness/images/delete.png"
+                            class="deletebutton" id="${area}"
+                            title="Delete area" alt="Delete area" /></a>
+                        <a href="areaedit/${area}"><img
+                            src="resources/css/ui-lightness/images/pencil_go.png"
+                            class="editbutton" title="Edit area" alt="Edit area" /></a>
+                        <br />
+                    </c:forEach>
+                    <br>
+                    <c:forEach var="area" items="${nonAdminAreas}">
+                        <c:set var="style" value="" />
+                        <c:if test="${area == lastArea}">
+                            <c:set var="style" value='style="color: #1C94C4;"' />
+                        </c:if>
+                        <a class="area-links" href="story-task/${area}" ${style}>
+                            ${area} </a>
+                        <br />
+                    </c:forEach>
+                    <br> <br>
+                    <p>Create new area</p>
+                    <input type="text"
+                        class="text ui-widget-content ui-corner-all"
+                        id="area-name" size="33" maxlength="50"> <a
+                        title="Create area" id="create-area">Create area</a>
+                </div>
 
-        <div id="info-container-div" class="inline">
-            <p>This tool keeps track of the backlog for software
-                development teams.</p>
-            <p>
-                Backlog items can be inserted as <b>themes</b>, <b>epics</b>,
-                <b>stories</b> and <b>tasks</b> as a tree structure in
-                that order.
-            </p>
-            <p>Three different views are available when managing the
-                backlog, namely theme-epic, epic-story and story-task.
-                In these views, double click on the backlog
-                items in order to edit them.</p>
-            <br>
-            <p>
-                Currently only <b>Chrome</b> and <b>Firefox</b> browsers
-                are supported.
-            <p>Thanks to famfamfam.com for the icons!</p>
+                <div id="info-container-div" class="inline">
+                    <p>This tool keeps track of the backlog for software
+                        development teams.</p>
+                    <p>
+                        Backlog items can be inserted as <b>themes</b>, <b>epics</b>,
+                        <b>stories</b> and <b>tasks</b> as a tree structure in
+                        that order.
+                    </p>
+                    <p>Three different views are available when managing the
+                        backlog, namely theme-epic, epic-story and story-task.
+                        In these views, double click on the backlog
+                        items in order to edit them.</p>
+                    <br>
+                    <p>
+                        Currently only <b>Chrome</b> and <b>Firefox</b> browsers
+                        are supported.
+                    <p>Thanks to famfamfam.com for the icons!</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    <div id="footer">
+        <c:import url="footer.jsp" />
+    </div>
+
     <div id="delete-area" title="Delete area">
         <p>
             <span style="float: left; margin: 0 7px 20px 0;"></span> Do

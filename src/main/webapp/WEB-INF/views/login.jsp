@@ -34,7 +34,7 @@ THE SOFTWARE.
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <script type="text/javascript"
@@ -52,28 +52,39 @@ THE SOFTWARE.
 </head>
 
 <body>
-    <header>
-        <h1>
-            <a href="${pageContext.request.contextPath}/${area.name}">
-                <p id="topic" class="textstyle inline">Backlog tool</p>
-            </a>
-        </h1>
-        <br style="clear:both" />
-    </header>
-    <div id="list-container-div">
-        <form action="../j_spring_security_check" method="post">
-            <p>
-                <label for="j_username" class="view textstyle">Username</label>
-                <input id="j_username" name="j_username" type="text" />
-            </p>
-            <p>
-                <label for="j_password" class="view textstyle">Password</label>
-                <input id="j_password" name="j_password" type="password" />
-            </p>
-            <input id="submit" type="submit" value="Login" />
-        </form>
-        <div id="login-error"><p class="view error-message">${errorMsg}</p></div>
+    <div id="wrap">
+        <div id="header">
+            <h1>
+                <a href="${pageContext.request.contextPath}/${area.name}">
+                    <p id="topic" class="textstyle inline">Backlog tool</p>
+                </a>
+            </h1>
+            <br style="clear:both" />
+        </div>
+    
+        <div id="main">
+            <div id="list-container-div">
+                <form action="../j_spring_security_check" method="post">
+                    <p>
+                        <label for="j_username" class="view textstyle">Username</label>
+                        <input id="j_username" name="j_username" type="text" />
+                    </p>
+                    <p>
+                        <label for="j_password" class="view textstyle">Password</label>
+                        <input id="j_password" name="j_password" type="password" />
+                    </p>
+                    <input id="submit" type="submit" value="Login" />
+                </form>
+                <div id="login-error"><p class="view error-message">${errorMsg}</p></div>
+            </div>
+        </div>
+
     </div>
+
+    <div id="footer">
+        <c:import url="footer.jsp" />
+    </div>
+
 </body>
 
 </html>
