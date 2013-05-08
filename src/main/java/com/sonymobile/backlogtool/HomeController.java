@@ -68,6 +68,9 @@ public class HomeController {
 
     @Autowired
     ServletContext context;
+    
+    @Autowired
+    ApplicationVersion version;
 
     @RequestMapping(value = "/{lastArea}", method = RequestMethod.GET)
     public ModelAndView home(Locale locale, Model model, @PathVariable String lastArea,
@@ -119,6 +122,8 @@ public class HomeController {
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("lastArea", lastArea);
         view.addObject("view", "home");
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         return view;
     }
 
@@ -159,6 +164,8 @@ public class HomeController {
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("area", area);
         view.addObject("icons", icons);
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         return view;
     }
 
@@ -201,6 +208,8 @@ public class HomeController {
         ModelAndView view = new ModelAndView("print-stories");
         view.addObject("area", area);
         view.addObject("stories", stories);
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         return view;
     }
 
@@ -213,6 +222,8 @@ public class HomeController {
         view.addObject("area", area);
         view.addObject("disableEdits", isDisableEdits(areaName));
         view.addObject("view", "story-task");
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -231,6 +242,8 @@ public class HomeController {
         view.addObject("area", area);
         view.addObject("disableEdits", isDisableEdits(areaName));
         view.addObject("view", "epic-story");
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -249,6 +262,8 @@ public class HomeController {
         view.addObject("area", area);
         view.addObject("disableEdits", isDisableEdits(areaName));
         view.addObject("view", "theme-epic");
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
 
         if (area == null) {
             view.setViewName("area-noexist");

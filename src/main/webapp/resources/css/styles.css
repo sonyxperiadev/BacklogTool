@@ -21,6 +21,37 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+ 
+html, body {
+	height: 100%;
+}
+
+#wrap {
+	min-height: 100%;
+}
+
+#main {
+	overflow:auto;
+	padding-bottom: 20px;  /* must be same height as the footer */
+}
+
+#footer {
+	position: relative;
+	margin-top: -20px; /* negative value of footer height */
+	height: 20px;
+	clear:both;
+	text-align: center;
+} 
+
+/*Opera Fix*/
+body:before {
+	content:"";
+	height:100%;
+	float:left;
+	width:0;
+	margin-top:-32767px;/
+}
+ 
 body {
     font-family: arial, Helvetica, sans-serif;
     font-size: 15px;
@@ -42,12 +73,6 @@ h1 {
     margin: 1px 0 1px 0;
 }
 
-html,body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-}
-
 form {
     margin: 0.2em;
 }
@@ -62,7 +87,7 @@ form {
     opacity: 0.5;
 }
 
-header {
+#header {
     position:fixed;
     top:0;
     z-index: 1;

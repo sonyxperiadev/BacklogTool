@@ -37,7 +37,7 @@ THE SOFTWARE.
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
 <script type="text/javascript"
@@ -47,21 +47,32 @@ THE SOFTWARE.
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery.autosize-min.js" />"></script>
 <script type="text/javascript"
-    src="<c:url value="/resources/js/scripts.js?v=2" />"></script>
+    src="<c:url value="/resources/js/scripts.js?v=${versionNoDots}" />"></script>
 <script type="text/javascript" src="code.icepush"></script>
 <script type="text/javascript"
     src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
 </head>
 
 <body>
-    <c:import url="header.jsp"></c:import>
-    <div id="list-container-div">
-        <ul class="parent-child-list" id="list-container"></ul>
-        <ul class="parent-child-list" id="archived-list-container"></ul>
+    <div id="wrap">
+        <div id="header">
+            <c:import url="header.jsp" />
+        </div>
+
+        <div id="main">
+            <div id="list-container-div">
+                <ul class="parent-child-list" id="list-container"></ul>
+                <ul class="parent-child-list" id="archived-list-container"></ul>
+            </div>
+        </div>
+
     </div>
-    <br>
-    <br>
-    <br>
+
+    <div id="footer">
+        <c:import url="footer.jsp" />
+    </div>
+
     <c:import url="delete.jsp"></c:import>
 </body>
+
 </html>
