@@ -31,7 +31,7 @@ THE SOFTWARE.
     href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
 <title>Backlog-tool</title>
 <link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=1" />"></link>
+    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
 <link rel="stylesheet" type="text/css"
     href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
 <script type="text/javascript"
@@ -50,21 +50,31 @@ THE SOFTWARE.
 </head>
 
 <body>
-    <header>
-        <h1>
-            <a href="${pageContext.request.contextPath}">
-                <p id="topic" class="textstyle inline">Backlog tool</p>
-            </a>
-        </h1>
-        <br style="clear: both" /> <a id="login-out" href="auth/logout"><c:if
-                test="${isLoggedIn == true}">LOG OUT</c:if>
-            <c:if test="${isLoggedIn == false}">LOG IN</c:if></a>
-
-    </header>
-<div id="list-container-div">
-<a class="error-text" href="${pageContext.request.contextPath}">Could not find area "<b>${areaName}</b>"</a>
-
-</div>
+    <div id="wrap">
+        <div id="header">
+            <h1>
+                <a href="${pageContext.request.contextPath}">
+                    <p id="topic" class="textstyle inline">Backlog
+                        tool</p>
+                </a>
+            </h1>
+            <br style="clear: both" /> <a id="login-out"
+                href="auth/logout"><c:if
+                    test="${isLoggedIn == true}">LOG OUT</c:if> <c:if
+                    test="${isLoggedIn == false}">LOG IN</c:if></a>
+        </div>
+        <div id="main">
+            <div id="list-container-div">
+                <a class="error-text"
+                    href="${pageContext.request.contextPath}">Could
+                    not find area "<b>${areaName}</b>"
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+        <c:import url="footer.jsp" />
+    </div>
 
 </body>
 
