@@ -487,7 +487,7 @@ $(document).ready(function () {
             paragraph = $(paragraph[1]);
         }
         paragraph.css({display: "block"});
-        paragraph.html(newText);
+        paragraph.text(newText);
         return paragraph;
     };
 
@@ -943,7 +943,7 @@ $(document).ready(function () {
         };
 
         $('#delete-item').attr("title","Delete "+item);
-        $("#deleteDescription").html("Are you sure you want to delete this " + item + "?");
+        $("#deleteDescription").text("Are you sure you want to delete this " + item + "?");
         $('#delete-item').dialog({
             resizable: false,
             height:180,
@@ -1171,9 +1171,9 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedStory) {
             	//Set updated values, we prefer to not reload the whole page.
-            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
-            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
-            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).text(updatedStory.title);
+            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).text((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
+            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).text((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
             	
                 //Re-add truncate on the description paragraph
                 var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
@@ -1186,13 +1186,13 @@ $(document).ready(function () {
                 }
 
             	$('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
-            	$('.stakeholders').find('p.customer.'+storyId).html(updatedStory.customer);
+            	$('.stakeholders').find('p.customer.'+storyId).text(updatedStory.customer);
 
             	$('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(updatedStory.contributorSite));
-            	$('.stakeholders').find('p.contributor.'+storyId).html(updatedStory.contributor);
+            	$('.stakeholders').find('p.contributor.'+storyId).text(updatedStory.contributor);
 
-            	$('.times').find('p.added.' + storyId).html(getDate(updatedStory.added));
-            	$('.times').find('p.deadline.' + storyId).html(getDate(updatedStory.deadline));
+            	$('.times').find('p.added.' + storyId).text(getDate(updatedStory.added));
+            	$('.times').find('p.deadline.' + storyId).text(getDate(updatedStory.deadline));
 
             	$('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
             	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
@@ -1273,8 +1273,8 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTask) {
             	//Set the updated values
-            	$(".taskOwner."+updatedTask.id).find("p.taskInfo").html(updatedTask.owner);
-            	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").html(updatedTask.calculatedTime);
+            	$(".taskOwner."+updatedTask.id).find("p.taskInfo").text(updatedTask.owner);
+            	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").text(updatedTask.calculatedTime);
             	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
                 
                 //Re-add truncate on the title paragraph
@@ -1316,8 +1316,8 @@ $(document).ready(function () {
             });
             $("."+taskId).toggleClass('hidden-edit');
             //sets values for all edit fields
-            $("textarea#taskTitle" + taskId).html(task.title);
-            $("textarea#taskDescription" + taskId).html(task.description);
+            $("textarea#taskTitle" + taskId).val(task.title);
+            $("textarea#taskDescription" + taskId).val(task.description);
             $("select#calculatedTime" + taskId).val(task.calculatedTime);
 
             if (task.taskAttr1 != null) {
@@ -1361,8 +1361,8 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
 
-            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
-            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
+            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).text((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
+            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).text(updatedEpic.title);
                 
                 //Re-add truncate on the description paragraph
                 var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
@@ -1488,7 +1488,7 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTheme) {
 
-            	$('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
+            	$('.titles-theme-epic').find('p.titleText.'+themeId).text(updatedTheme.title);
 
                 //Re-add truncate on the description paragraph
                 var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);

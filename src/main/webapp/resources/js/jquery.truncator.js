@@ -2,7 +2,7 @@
 // by Henrik Nyh <http://henrik.nyh.se> 2008-02-28.
 // Free to modify and redistribute with credit.
 //
-// Slightly modified by Fredrik Persson, Nicklas Nilsson,
+// Slightly modified by Fredrik Persson,
 // Sony Mobile Communications AB 2012-04-08
 
 (function($) {
@@ -16,14 +16,13 @@
     $(this).each(function() {
 
       var content_length = $.trim(squeeze($(this).text())).length;
-      if (content_length <= opts.max_length) {
-    	  $(this).html($(this).text());
-    	  return;  // bail early if not overlong
-      }
+      if (content_length <= opts.max_length)
+        return;  // bail early if not overlong
 
       var actual_max_length = opts.max_length - opts.more.length - 3;  // 3 for " ()"
       var truncated_node = recursivelyTruncate(this, actual_max_length);
       var full_node = $(this).hide();
+
       truncated_node.insertAfter(full_node);
       
       findNodeForMore(truncated_node).append(' <br\><a href="#show more content"' + 'class="' + opts.className + '">'+opts.more+'</a>');
@@ -75,7 +74,7 @@
     var text = text.slice(0, max_length);
     // Ensure HTML entities are encoded
     // http://debuggable.com/posts/encode-html-entities-with-jquery:480f4dd6-13cc-4ce9-8071-4710cbdd56cb
-    text = $('<div/>').html(text).html();
+    text = $('<div/>').text(text).html();
     return text;
   }
 
