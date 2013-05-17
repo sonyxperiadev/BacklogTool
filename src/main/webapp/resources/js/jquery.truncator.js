@@ -17,7 +17,6 @@
 
       var content_length = $.trim(squeeze($(this).text())).length;
       if (content_length <= opts.max_length) {
-    	  $(this).html($(this).text());
     	  return;  // bail early if not overlong
       }
 
@@ -75,7 +74,7 @@
     var text = text.slice(0, max_length);
     // Ensure HTML entities are encoded
     // http://debuggable.com/posts/encode-html-entities-with-jquery:480f4dd6-13cc-4ce9-8071-4710cbdd56cb
-    text = $('<div/>').html(text).html();
+    text = $('<div/>').text(text).html();
     return text;
   }
 
