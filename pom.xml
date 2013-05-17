@@ -6,7 +6,7 @@
     <artifactId>backlogtool</artifactId>
     <name>backlog-tool</name>
     <packaging>war</packaging>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <description>
         <![CDATA[A tool for managing backlogs]]>
     </description>
