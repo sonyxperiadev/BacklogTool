@@ -61,5 +61,4 @@ THE SOFTWARE.
             user-search-base="${ldap.user-search-base}">
         </security:ldap-authentication-provider>
     </security:authentication-manager>
-
 </beans>
