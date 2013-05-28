@@ -219,7 +219,9 @@ $(document).ready(function () {
             $(".editEpic").unbind("dblclick");
             $(".editStory").unbind("dblclick");
             $(".editTask").unbind("dblclick");
-            enableEdits();
+            if (!disableEditsBoolean) {
+                enableEdits();
+            }
         }
     });
 
