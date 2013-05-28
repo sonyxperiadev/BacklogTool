@@ -73,6 +73,12 @@ THE SOFTWARE.
                         <label for="j_password" class="view textstyle">Password</label>
                         <input id="j_password" name="j_password" type="password" />
                     </p>
+                    <div>
+                        <p>
+                            <input id="j_remember" class="remember-me" name="_spring_security_remember_me" type="checkbox" />
+                            <label for="j_remember" class="remember-me">Remember Me</label>
+                        </p>
+                    </div>
                     <input id="submit" type="submit" value="Login" />
                 </form>
                 <div id="login-error"><p class="view error-message">${errorMsg}</p></div>

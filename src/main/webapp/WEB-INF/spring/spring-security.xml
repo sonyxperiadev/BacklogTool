@@ -50,6 +50,8 @@ THE SOFTWARE.
         <security:logout invalidate-session="true"
             logout-success-url="/auth/login" logout-url="/auth/logout" />
 
+        <security:remember-me key="BacklogTool" token-validity-seconds="864000" />
+
     </security:http>
 
     <security:ldap-server url="${ldap.url}"
