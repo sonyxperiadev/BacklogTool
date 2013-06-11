@@ -6,4 +6,5 @@ target
 .metadata
 .springBeans
 .idea
+.DS_Store
 backlogtool.iml
