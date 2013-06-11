@@ -29,13 +29,31 @@ THE SOFTWARE.
     <p id="topic-area" class="textstyle inline"></p>
 </h1>
 <br style="clear: both" />
-<div class="hideShowAll">
-    <a id="expand-all" class="headerText textstyle">EXPAND ALL /</a><br>
-    <a id="collapse-all" class="headerText textstyle">COLLAPSE ALL</a>
+<button id="settings" data-dropdown="#settings-div" class="fff" title="Settings">#</button>
+<div id="settings-div" class="dropdown dropdown-tip">
+    <div class="dropdown-panel">
+        <a id="login-out" class="settings-textstyle navigation-link" href="../auth/logout">
+            <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
+            <c:if test="${isLoggedIn == false}">LOG IN</c:if>
+        </a>
+        <br>
+        <a id="expand-all" class="settings-textstyle navigation-link">EXPAND ALL</a>
+        <br>
+        <a id="collapse-all" class="settings-textstyle navigation-link">COLLAPSE ALL</a>
+        <br>
+        <a id="print-stories" class="settings-textstyle navigation-link" title="Print selected stories">PRINT SELECTED</a>
+    </div>
 </div>
-<div class="orderBy">
+<button title="Save all changes" id="save-all" class="save-button fff" disabled>#</button>
+<button title="Create a new story" id="create-parent" class="fff"></button>
+<button id="filter-button" title="Filter selected items">FILTER SELECTED</button>
+<div class="filter">
+    <p class="headerText textstyle">FILTER BY ID</p>
+    <input title="Filter by ID, comma-separated" id="filter" class="filter"/>
+</div>
+<div class="order-by">
     <p class="headerText textstyle">ORDER BY</p>
-    <select name="orderBy" id="orderBy"
+    <select name="order-by" id="order-by"
         class="text ui-widget-content ui-corner-all">
         <option selected value="prio">Rank</option>
         <option value="title">Title</option>
@@ -43,8 +61,7 @@ THE SOFTWARE.
         <c:if test="${view == 'story-task'}">
             <option value="contributor">Contributor</option>
             <option value="customer">Customer</option>
-            <option value="contributorsite">Contributor
-                site</option>
+            <option value="contributorsite">Contributor site</option>
             <option value="customersite">Customer site</option>
             <option value="storyAttr1">${area.storyAttr1.name}</option>
             <option value="storyAttr2">${area.storyAttr2.name}</option>
@@ -52,32 +69,14 @@ THE SOFTWARE.
         </c:if>
     </select>
 </div>
-<div class="filter">
-    <p class="headerText textstyle">FILTER BY ID</p>
-    <input title="Filter by ID, comma-separated" id="filter" class="filter"/>
-</div>
 <div class="showArchive">
-    <p class="headerText textstyle">SHOW ARCHIVE</p>
+    <p class="headerText textstyle">ARCHIVE</p>
     <input type="checkbox" id="archived-checkbox" name="archived-checkbox" />
 </div>
-<button title="Create a new story" id="create-parent"
-    class="text ui-widget-content ui-corner-all"></button>
-<a id="login-out" href="../auth/logout">
-<c:if test="${isLoggedIn == true}">LOG OUT</c:if>
-<c:if test="${isLoggedIn == false}">LOG IN</c:if></a>
-
-<button id="save-all" class="saveButton"
-    title="Save all changes" disabled>SAVE ALL</button>
-<button id="print-stories" title="Print selected stories">PRINT
-    SELECTED</button>
-<button id="filter-button" title="Filter selected items">FILTER
-    SELECTED</button>
-<a title="STORY TASK VIEW" class="story-task-link navigation-link"
-    href="../story-task/${area.name}">STORY TASK </a> <a
-    title="EPIC STORY VIEW" class="epic-story-link navigation-link"
-    href="../epic-story/${area.name}">EPIC STORY /&nbsp</a> <a
-    title="THEME EPIC VIEW" class="theme-epic-link navigation-link"
-    href="../theme-epic/${area.name}">THEME EPIC /&nbsp</a> <a
-    title="AREA VIEW" class="home-link navigation-link"
-    href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> <br
-    style="clear: both" />
+<div class="navigation-links">
+    <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="../story-task/${area.name}">STORY TASK </a> 
+    <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="../epic-story/${area.name}">EPIC STORY /&nbsp</a> 
+    <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="../theme-epic/${area.name}">THEME EPIC /&nbsp</a> 
+    <a title="AREA VIEW" class="home-link navigation-link" href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> 
+</div>
+<br style="clear: both" />
