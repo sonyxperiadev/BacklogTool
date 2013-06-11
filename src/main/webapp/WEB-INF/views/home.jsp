@@ -27,17 +27,13 @@ THE SOFTWARE.
 <html>
 
 <head>
-<link rel="shortcut icon"
-    href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
+<link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
 <title>Backlog-tool</title>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-ui-1.8.21.custom.min.js" />"></script>
+<link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
+<link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
+<script type="text/javascript" src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
+<script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.8.21.custom.min.js" />"></script>
+
 <script type="text/javascript">
     var lastArea = "${lastArea}";
     var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
@@ -114,21 +110,18 @@ THE SOFTWARE.
                     <p id="topic" class="textstyle inline">Backlog tool</p>
                 </a>
             </h1>
-            <br style="clear: both" /> <a id="login-out" href="auth/logout"><c:if
-                    test="${isLoggedIn == true}">LOG OUT</c:if> <c:if
-                    test="${isLoggedIn == false}">LOG IN</c:if></a>
+            <br style="clear: both" /> 
+            <a id="login-out" class="login-out-area" href="auth/logout">
+                <c:if test="${isLoggedIn == true}">LOG OUT</c:if> 
+                <c:if test="${isLoggedIn == false}">LOG IN</c:if>
+            </a>
             <c:if test="${lastArea != null}">
-                <a title="STORY TASK VIEW"
-                    class="story-task-link navigation-link"
-                    href="story-task/${lastArea}">STORY TASK </a>
-                <a title="EPIC STORY VIEW"
-                    class="epic-story-link navigation-link"
-                    href="epic-story/${lastArea}">EPIC STORY /&nbsp</a>
-                <a title="THEME EPIC VIEW"
-                    class="theme-epic-link navigation-link"
-                    href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a>
-                <a title="AREA VIEW" class="home-link navigation-link"
-                    href="${lastArea}">AREA /&nbsp</a>
+                <div class="navigation-links">
+                    <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="story-task/${lastArea}">STORY TASK </a> 
+                    <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="epic-story/${lastArea}">EPIC STORY /&nbsp</a> 
+                    <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a> 
+                    <a title="AREA VIEW" class="home-link navigation-link" href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> 
+                </div>
             </c:if>
         </div>
         <div id="main">
