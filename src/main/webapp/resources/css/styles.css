@@ -112,6 +112,10 @@ p {
     width: 80%;
 }
 
+#list-container > li {
+    width: 100%;
+}
+
 #create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button, #settings {
     display: inline-block;
     vertical-align: top;

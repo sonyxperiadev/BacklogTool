@@ -2006,6 +2006,7 @@ $(document).ready(function () {
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
         }
+        $( "#list-container" ).sortable("refresh");
 
         //Make sure all items that should be invisible are invisible
         $(".childLi").each(function () {
@@ -2251,7 +2252,6 @@ $(document).ready(function () {
         }
     }
 
-
     $("#list-container").sortable({
         tolerance: 'pointer',
         cursor: 'pointer',
@@ -2296,9 +2296,8 @@ $(document).ready(function () {
         }
 
     });
-    buildVisibleList();
 
-    //$(".parent-child-list").not("textarea").disableSelection();
+    buildVisibleList();
 
     $('#filter-button').button().click(function() {
         $('#filter').val(selectedToString());
