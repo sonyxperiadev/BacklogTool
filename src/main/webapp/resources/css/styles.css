@@ -68,6 +68,7 @@ h1 {
     display: none;
 }
 
+
 .story p {
     min-height: 15px;
     margin: 1px 0 1px 0;
@@ -107,13 +108,17 @@ p {
     margin: 0.1em;
 }
 
+.dropdown-menu > li > a {
+    width: 80%;
+}
+
 #create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button, #settings {
     display: inline-block;
     vertical-align: top;
     margin: 0;
 }
 
-.login-out-area {
+.login-out-margin {
     margin-bottom: 10px !important;
 }
 
@@ -616,7 +621,7 @@ input.filter {
 
 div.filter, div.order-by, div.showArchive {
 	position: relative;
-	bottom: 5px;
+	bottom: 9px;
 }
 
 .areaedit-button {

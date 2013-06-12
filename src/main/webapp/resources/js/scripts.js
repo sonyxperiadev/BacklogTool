@@ -211,7 +211,7 @@ $(document).ready(function () {
 
     $('#archived-checkbox').change(function () {
         $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
-        if ($("#archived-checkbox").attr("checked")) {
+        if ($("#archived-checkbox").prop("checked")) {
             $("#archived-list-container").empty().append(generateList(true));
 
             //Unbind all items and bind them again including archived.
@@ -249,10 +249,10 @@ $(document).ready(function () {
     };
 
     var scrollTo = function(id) {
-        var offset = $("#"+id).offset().top - $(window).scrollTop();
+        var offset = $('#'+id).offset().top - $(window).scrollTop();
         if (offset > window.innerHeight) {
             $('html, body').animate({
-                scrollTop: $("#" + id).offset().top
+                scrollTop: $('#' + id).offset().top
             }, 2000);
         }
     };
@@ -1058,10 +1058,13 @@ $(document).ready(function () {
             removeGroupMember();
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
+            $('.save-button.'+storyId).button( "option", "disabled", true );
+
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
             $('.save-button.'+storyId).click( function() {
                 saveStory(parseInt(storyId), true);
             });
+
             //Sets values for all edit fields
             $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
             $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
@@ -1994,7 +1997,7 @@ $(document).ready(function () {
      * Builds the visible html list using the JSON data
      */
     buildVisibleList = function (archived) {
-    	if ($("#archived-checkbox").attr("checked")) {
+    	if ($("#archived-checkbox").prop("checked")) {
     	    $("#archived-list-container").append(generateList(true)).show();
     	}
 
@@ -2029,9 +2032,6 @@ $(document).ready(function () {
                 $('a.truncate'+currentId, this).click();
             }
         });
-        
-        //Fixing bouncing <li>-bug
-        $("li").css("width", $("li").width());
 
         $('.expand-icon').click(expandClick);
         $(".parent-child-list").children("li").click(liClick);
@@ -2043,7 +2043,7 @@ $(document).ready(function () {
         $(".parent-child-list").children("li").mouseup(function () {
             $(".parent-child-list").children("li").removeClass("over");
         });
-        $('.save-button').button( "option", "disabled", true );
+        $('.save-button').button().attr("disabled", true);
 
         $("a.createEpic").click(createEpic);
         $("a.createStory").click(createStory);
@@ -2114,12 +2114,14 @@ $(document).ready(function () {
 
         $(".bindChange").change( function(event){
             var id = ($(event.target)).closest('li').attr('id');
-            $('.save-button').button( "option", "disabled", false );
+            $('#save-all').button( "option", "disabled", false );
+            $(".save-button."+id).button( "option", "disabled", false );
         });
 
         $(".bindChange").bind('input propertychange', function(event) {
             var id = ($(event.target)).closest('li').attr('id');
-            $(".save-button").button( "option", "disabled", false );
+            $("#save-all").button( "option", "disabled", false );
+            $(".save-button."+id).button( "option", "disabled", false );
         });
 
         if (disableEditsBoolean) {
@@ -2136,10 +2138,6 @@ $(document).ready(function () {
     };
 
     $(window).resize(function() {
-        //Update the width of all <li>-elements.
-        //This has to be done in order to avoid bouncing-<li> bug.
-        $("li").css("width", "auto");
-        $("li").css("width", $("li").width());
         setHeightAndMargin($("#header").height());
     });
 

@@ -29,20 +29,19 @@ THE SOFTWARE.
     <p id="topic-area" class="textstyle inline"></p>
 </h1>
 <br style="clear: both" />
-<button id="settings" data-dropdown="#settings-div" class="fff" title="Settings">#</button>
+<button id="settings" data-dropdown="#settings-div" class="fff" title="More options">#</button>
 <div id="settings-div" class="dropdown dropdown-tip">
-    <div class="dropdown-panel">
-        <a id="login-out" class="settings-textstyle navigation-link" href="../auth/logout">
-            <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
-            <c:if test="${isLoggedIn == false}">LOG IN</c:if>
-        </a>
-        <br>
-        <a id="expand-all" class="settings-textstyle navigation-link">EXPAND ALL</a>
-        <br>
-        <a id="collapse-all" class="settings-textstyle navigation-link">COLLAPSE ALL</a>
-        <br>
-        <a id="print-stories" class="settings-textstyle navigation-link" title="Print selected stories">PRINT SELECTED</a>
-    </div>
+        <ul class="dropdown-menu">
+        <li>
+            <a id="login-out" class="" href="../auth/logout">
+                <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
+                <c:if test="${isLoggedIn == false}">LOG IN</c:if>
+            </a>
+        </li>
+        <li><a id="expand-all" href="#" class="">EXPAND ALL</a></li>
+        <li><a id="collapse-all" class="" >COLLAPSE ALL</a></li>
+        <li><a id="print-stories" class="" title="Print selected stories">PRINT SELECTED</a></li>
+        </ul>
 </div>
 <button title="Save all changes" id="save-all" class="save-button fff" disabled>#</button>
 <button title="Create a new story" id="create-parent" class="fff"></button>
