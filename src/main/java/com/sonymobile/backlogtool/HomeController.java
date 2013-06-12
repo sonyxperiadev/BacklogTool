@@ -24,13 +24,22 @@
 package com.sonymobile.backlogtool;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -135,7 +144,8 @@ public class HomeController {
 
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
     @RequestMapping(value = "/areaedit/{areaName}", method = RequestMethod.GET)
-    public ModelAndView areaedit(Locale locale, Model model, @PathVariable String areaName) {
+    public ModelAndView areaedit(Locale locale, Model model, @PathVariable String areaName)
+            throws JsonGenerationException, JsonMappingException, IOException {
         Area area = null;
 
         Session session = sessionFactory.openSession();
@@ -159,10 +169,67 @@ public class HomeController {
 
         File dir = new File(context.getRealPath("/resources/image"));
         String[] icons = dir.list();
-
+        
+        //Kan vara gemensam för alla.
+        //För varje serieID, skapa alla underliggande positioners IDn.
+        //SerieID -> position -> specifik id
+        HashMap<Integer,HashMap<Integer,Integer>> seriesIds = new HashMap<Integer,HashMap<Integer,Integer>>();
+        
+        Set<AttributeOption> options = area.getStoryAttr1().getOptions();
+        
+        Set<AttributeOption> newOptions = new LinkedHashSet<AttributeOption>();
+        
+        String lastName = null;
+        String lastIcon = null;
+        boolean lastIconEnabled = false;
+        int lastCompareValue = -1;
+        int lastSeriesStart = -1;
+        int lastSeriesEnd = -1;
+        int lastSeriesId = -1;
+        Integer lastSeriesIncrement = null;
+        HashMap<Integer,Integer> lastIds = new HashMap<Integer, Integer>();
+        for (AttributeOption option : options) {
+            Integer seriesIncrement = option.getSeriesIncrement();
+            if (seriesIncrement != null) { //If current is part of series.
+                if (lastSeriesIncrement == seriesIncrement
+                        && lastName != null && lastName.equals(option.getNameNoNumber())
+                        && lastIcon != null && lastIcon.equals(option.getIcon())) { //If current series was same as last
+                    lastSeriesEnd = option.getNumber();
+                } else { //Not same as last
+                    lastSeriesStart = option.getNumber();
+                    lastCompareValue = option.getCompareValue();
+                    lastName = option.getNameNoNumber();
+                    lastIcon = option.getIcon();
+                    lastIconEnabled = option.isIconEnabled();
+                    lastSeriesId = option.getId();
+                    lastIds = new HashMap<Integer, Integer>();
+                }
+                lastIds.put(option.getNumber(),option.getId());
+            } else { //Not part of series                
+                if (lastSeriesIncrement != null) {//If current is not part of series, but last was
+                    seriesIds.put(lastSeriesId, lastIds);
+                    AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                            lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+                    newOptions.add(series);
+                } 
+                newOptions.add(option);
+            }
+            lastSeriesIncrement = seriesIncrement;
+        }
+        if (lastSeriesIncrement != null) {
+            seriesIds.put(lastSeriesId, lastIds);
+            AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                    lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+            newOptions.add(series);
+        }
+        area.getStoryAttr1().setOptions(newOptions);
+        
+        String seriesIdsString = new ObjectMapper().writeValueAsString(seriesIds);
+        
         ModelAndView view = new ModelAndView("areaedit");
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("area", area);
+        view.addObject("seriesIds", seriesIdsString);
         view.addObject("icons", icons);
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));

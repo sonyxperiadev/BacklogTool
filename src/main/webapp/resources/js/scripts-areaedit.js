@@ -163,7 +163,9 @@ $(document).ready(function() {
         $("#ul" + id).children("li").each(function() {
             var option = new Object();
 
+            var isSeries = $(this).hasClass("series");
             var id = $(this).attr("id");
+            
             if (id.indexOf("NewOption") == -1) {
                 option.id = id;
             } else {
@@ -175,9 +177,38 @@ $(document).ready(function() {
             option.name = $(this).children("input#name"+id).val();
             option.iconEnabled = $("#iconEnabled"+id).is(':checked');
             option.icon = $("#icon"+id).attr("icon");
-            option.compareValue = compareValue++;
-
-            options.push(option);
+            
+            if (isSeries) {
+                var seriesStart = parseInt($(this).children("input#seriesStart"+id).val());
+                var seriesEnd = parseInt($(this).children("input#seriesEnd"+id).val());
+                var seriesIncrement = parseInt($(this).children("input#seriesIncrement"+id).val());
+                var name = option.name;
+                var iconEnabled = option.iconEnabled;
+                var icon = option.icon;
+                
+                //Check for no infinite loop.
+                
+                for (var number = seriesStart; number <= seriesEnd; number+=seriesIncrement) {
+                    var option = new Object();
+                    option.iconEnabled = iconEnabled;
+                    option.icon = icon;
+                    option.seriesIncrement = seriesIncrement;
+                    option.name = name + " " + number;
+                    option.compareValue = compareValue++;
+                    var series = seriesIds[id];
+                    if (series != null) {
+                        option.id = seriesIds[id][number];
+                    }
+                    if (option.id == null) {
+                        option.id = -compareValue;
+                    }
+                    options.push(option);
+                };
+                
+            } else {
+                option.compareValue = compareValue++;
+                options.push(option);
+            };
         });
         attribute.options = options;
 
@@ -233,7 +264,7 @@ $(document).ready(function() {
                 + '<span class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>'
                 + '<div class="inline-block icon-container">'
                 + '<input id="iconEnabled' + id + '"'
-                + 'class="checkbox inline-block" type="checkbox" checked="checked" />'
+                + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
                 + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
                 + 'src="../resources/image/new.png" icon="new.png" /> '
                 + '</div> <input id="name' + id + '" maxlength="15"'
@@ -246,6 +277,34 @@ $(document).ready(function() {
             $(this).closest("li").remove();
         });
     });
+    
+    $(".addOptionSeries").click(function(event) {
+        var parentId = $(this).attr("id");
+        var id = 'NewOption' + ++newCount;
+        $("#ul" + parentId).append('<li id="' + id + '" class="series" >'
+                + '<span class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>'
+                + '<div class="inline-block icon-container">'
+                + '<input id="iconEnabled' + id + '"'
+                + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
+                + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
+                + 'src="../resources/image/new.png" icon="new.png" /> '
+                + '</div> <input id="name' + id + '" maxlength="15"'
+                + 'class="inline-block attrOptionTitle ui-corner-all">'
+                + '<input id="seriesStart' + id + '" maxlength="3" title="Series start" value="1"'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all"> -'
+                + '<input id="seriesEnd' + id + '" maxlength="3" title="Series end" value="10"'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
+                + '<input id="seriesIncrement' + id + '" maxlength="3" title="Series increment" value="1"'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
+                + '<img style="margin: 0px 4px" class="removeOption" src="../resources/image/delete.png" />'
+                + '</li>');
+        event.stopPropagation();
+        $(".attrIcon").click(selectIcon);
+        $(".removeOption").click(function(event) {
+            $(this).closest("li").remove();
+        });
+    });
+    
 
     $(".removeOption").click(function(event) {
         $(this).closest("li").remove();

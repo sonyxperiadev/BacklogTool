@@ -56,10 +56,11 @@ THE SOFTWARE.
         manager-dn="${ldap.managerdn}" manager-password="${ldap.managerpassword}" />
 
     <security:authentication-manager>
-        <security:ldap-authentication-provider
-            user-search-filter="${ldap.user-search-filter}"
-            user-search-base="${ldap.user-search-base}">
-        </security:ldap-authentication-provider>
+        <security:authentication-provider>
+        <security:user-service>
+                <security:user name="rod" password="koala" authorities="supervisor, teller, user" />
+            </security:user-service>
+        </security:authentication-provider>
     </security:authentication-manager>
 
 </beans>

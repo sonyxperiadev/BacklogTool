@@ -562,11 +562,15 @@ fieldset {
 }
 
 .attrTitle {
-    width: 250px;
+    width: 200px;
 }
 
 .attrOptionTitle {
-    width: 150px;
+    width: 130px;
+}
+
+.attrOptionSeriesBox {
+    width: 45px;
 }
 
 .marginTop {
