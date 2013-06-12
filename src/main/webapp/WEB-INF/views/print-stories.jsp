@@ -30,133 +30,131 @@ THE SOFTWARE.
 <html>
 
 <head>
-<link rel="shortcut icon"
-    href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
-<title>Backlog-tool</title>
-<style type="text/css">
-body {
-    font-family: arial, Helvetica, sans-serif;
-    font-size: 8px;
-    line-height: 1.6;
-}
-
-p {
-    margin: 0.1em;
-}
-
-#story-container {
-    border: 2px solid;
-    width: 450px;
-    height: 245px;
-    padding: 5px;
-}
-
-#theme-epic {
-    height: 40px;
-}
-
-#epic,#theme {
-    float: left;
-    display: inline-block;
-    width: 220px;
-    height: 40px;
-    text-indent: 2px;
-}
-
-#title,#effort-prio {
-    float: left;
-    border: 1px solid;
-    display: inline-block;
-    height: 85px;
-    text-indent: 2px;
-}
-
-.dotted {
-    border: 1px dashed #2F6FAB;
-}
-
-#title {
-    width: 255px;
-}
-
-#effort-prio {
-    border: 1px solid;
-    width: 185px;
-}
-
-#effort {
-    margin: 5px;
-}
-
-#prio {
-    margin: 5px;
-}
-
-#task-story {
-    font-size: 12px;
-    overflow: hidden;
-    max-height: 20px;
-}
-
-#task-id {
-    float: right;
-    padding-right: 10px;
-}
-
-#task-description {
-    width: 440px;
-    height: 170px;
-    padding: 5px;
-    border-top: 1px solid;
-    overflow: hidden;
-}
-
-#task-footer {
-    border: 1px solid;
-}
-
-#footer-owner {
-    float: left;
-}
-
-#footer-time {
-    float: right;
-}
-
-p {
-    display: inline;
-    word-wrap: break-word;
-}
-
-p.content {
-    font-weight: bold;
-}
-
-p.title {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-p.task {
-    font-size: 12px;
-    font-weight: bold;
-}
-
-td.timebox {
-    border: 1px solid;
-    width: 25px;
-    height: 25px;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 2px;
-}
-
-p.task-story {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-</style>
+    <title>Backlog Tool</title>
+    <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
+    <style type="text/css">
+        body {
+            font-family: arial, Helvetica, sans-serif;
+            font-size: 8px;
+            line-height: 1.6;
+        }
+        
+        p {
+            margin: 0.1em;
+        }
+        
+        #story-container {
+            border: 2px solid;
+            width: 450px;
+            height: 245px;
+            padding: 5px;
+        }
+        
+        #theme-epic {
+            height: 40px;
+        }
+        
+        #epic,#theme {
+            float: left;
+            display: inline-block;
+            width: 220px;
+            height: 40px;
+            text-indent: 2px;
+        }
+        
+        #title,#effort-prio {
+            float: left;
+            border: 1px solid;
+            display: inline-block;
+            height: 85px;
+            text-indent: 2px;
+        }
+        
+        .dotted {
+            border: 1px dashed #2F6FAB;
+        }
+        
+        #title {
+            width: 255px;
+        }
+        
+        #effort-prio {
+            border: 1px solid;
+            width: 185px;
+        }
+        
+        #effort {
+            margin: 5px;
+        }
+        
+        #prio {
+            margin: 5px;
+        }
+        
+        #task-story {
+            font-size: 12px;
+            overflow: hidden;
+            max-height: 20px;
+        }
+        
+        #task-id {
+            float: right;
+            padding-right: 10px;
+        }
+        
+        #task-description {
+            width: 440px;
+            height: 170px;
+            padding: 5px;
+            border-top: 1px solid;
+            overflow: hidden;
+        }
+        
+        #task-footer {
+            border: 1px solid;
+        }
+        
+        #footer-owner {
+            float: left;
+        }
+        
+        #footer-time {
+            float: right;
+        }
+        
+        p {
+            display: inline;
+            word-wrap: break-word;
+        }
+        
+        p.content {
+            font-weight: bold;
+        }
+        
+        p.title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        p.task {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        td.timebox {
+            border: 1px solid;
+            width: 25px;
+            height: 25px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px;
+        }
+        
+        p.task-story {
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
 </head>
 
 <body>
