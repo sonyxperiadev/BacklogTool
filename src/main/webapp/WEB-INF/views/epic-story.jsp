@@ -35,7 +35,7 @@ THE SOFTWARE.
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/jquery.dropdown.css" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
-    <script type="text/javascript" src="<c:url value="/resources/js/jquery.blockUI.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.blockUI-2.61.0.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.autosize-min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/scripts.js?v=${versionNoDots}" />"></script>
