@@ -994,7 +994,7 @@ $(document).ready(function () {
         } else if (li.hasClass("epic")) {
             li.dblclick(editEpic);
         } else if (li.hasClass("theme")) {
-            li.dblclick(editTask);
+            li.dblclick(editTheme);
         }       
         updateWhenItemsClosed();
     };
