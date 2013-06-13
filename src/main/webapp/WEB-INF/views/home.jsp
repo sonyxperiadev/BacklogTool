@@ -27,83 +27,79 @@ THE SOFTWARE.
 <html>
 
 <head>
-<link rel="shortcut icon"
-    href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
-<title>Backlog-tool</title>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-ui-1.8.21.custom.min.js" />"></script>
-<script type="text/javascript">
-    var lastArea = "${lastArea}";
-    var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
-
-    $(document).ready(function() {
-        $(".home-link").css("color", "#1c94c4");
-        $('#login-out').button();
-
-        $("#create-area").button().click(function() {
-            $.ajax({
-                url : "json/createArea",
-                type : 'POST',
-                data: $("#area-name").val(),
-                contentType : "application/json; charset=utf-8",
-                success : function(response) {
-                    if (response == "") {
-                        location.reload();
-                    } else {
-                        window.location.href = "story-task/" + response;
-                    }
-                },
-                error : function(request, status, error) {
-                    alert(error);
-                    location.reload();
-                }
-            });
-        });
-
-        if (!isLoggedIn) {
-            $("#create-area").button("option", "disabled", true);
-            $("#area-name").attr('disabled', 'disabled');
-        }
-
-        var deleteArea = function(event) {
-            $('#delete-area').dialog({
-                resizable : false,
-                height : 180,
-                modal : true,
-                buttons : {
-                    "Delete this area" : function() {
-                        $.ajax({
-                            url : "json/deleteArea/" + event.target.id,
-                            type : 'POST',
-                            dataType : 'json',
-                            data : JSON.stringify(event.target.id),
-                            contentType : "application/json; charset=utf-8",
-                            success : function(data) {
-                                window.location.href = "${pageContext.request.contextPath}";
-                            },
-                            error : function(request, status, error) {
-                                alert(error);
-                                location.reload();
-                            }
-                        });
-                        $(this).dialog("close");
+    <title>Backlog Tool</title>
+    
+    <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
+    
+    <script type="text/javascript">
+        var lastArea = "${lastArea}";
+        var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
+    
+        $(document).ready(function() {
+            $(".home-link").css("color", "#1c94c4");
+            $('#login-out').button();
+    
+            $("#create-area").button().click(function() {
+                $.ajax({
+                    url : "json/createArea",
+                    type : 'POST',
+                    data: $("#area-name").val(),
+                    contentType : "application/json; charset=utf-8",
+                    success : function(response) {
+                        if (response == "") {
+                            location.reload();
+                        } else {
+                            window.location.href = "story-task/" + response;
+                        }
                     },
-                    Cancel : function() {
-                        $(this).dialog("close");
+                    error : function(request, status, error) {
+                        alert(error);
+                        location.reload();
                     }
-                }
+                });
             });
-        };
-        $(".deletebutton").click(deleteArea);
-    });
-</script>
-
+    
+            if (!isLoggedIn) {
+                $("#create-area").button("option", "disabled", true);
+                $("#area-name").attr('disabled', 'disabled');
+            }
+    
+            var deleteArea = function(event) {
+                $('#delete-area').dialog({
+                    resizable : false,
+                    height : 180,
+                    modal : true,
+                    buttons : {
+                        "Delete this area" : function() {
+                            $.ajax({
+                                url : "json/deleteArea/" + event.target.id,
+                                type : 'POST',
+                                dataType : 'json',
+                                data : JSON.stringify(event.target.id),
+                                contentType : "application/json; charset=utf-8",
+                                success : function(data) {
+                                    window.location.href = "${pageContext.request.contextPath}";
+                                },
+                                error : function(request, status, error) {
+                                    alert(error);
+                                    location.reload();
+                                }
+                            });
+                            $(this).dialog("close");
+                        },
+                        Cancel : function() {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            };
+            $(".deletebutton").click(deleteArea);
+        });
+    </script>
 </head>
 
 <body>
@@ -114,21 +110,18 @@ THE SOFTWARE.
                     <p id="topic" class="textstyle inline">Backlog tool</p>
                 </a>
             </h1>
-            <br style="clear: both" /> <a id="login-out" href="auth/logout"><c:if
-                    test="${isLoggedIn == true}">LOG OUT</c:if> <c:if
-                    test="${isLoggedIn == false}">LOG IN</c:if></a>
+            <br style="clear: both" /> 
+            <a id="login-out" class="login-out-margin" href="auth/logout">
+                <c:if test="${isLoggedIn == true}">LOG OUT</c:if> 
+                <c:if test="${isLoggedIn == false}">LOG IN</c:if>
+            </a>
             <c:if test="${lastArea != null}">
-                <a title="STORY TASK VIEW"
-                    class="story-task-link navigation-link"
-                    href="story-task/${lastArea}">STORY TASK </a>
-                <a title="EPIC STORY VIEW"
-                    class="epic-story-link navigation-link"
-                    href="epic-story/${lastArea}">EPIC STORY /&nbsp</a>
-                <a title="THEME EPIC VIEW"
-                    class="theme-epic-link navigation-link"
-                    href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a>
-                <a title="AREA VIEW" class="home-link navigation-link"
-                    href="${lastArea}">AREA /&nbsp</a>
+                <div class="navigation-links">
+                    <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="story-task/${lastArea}">STORY TASK </a> 
+                    <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="epic-story/${lastArea}">EPIC STORY /&nbsp</a> 
+                    <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a> 
+                    <a title="AREA VIEW" class="home-link navigation-link" href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> 
+                </div>
             </c:if>
         </div>
         <div id="main">
