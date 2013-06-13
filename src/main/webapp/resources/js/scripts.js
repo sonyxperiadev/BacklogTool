@@ -1058,7 +1058,7 @@ $(document).ready(function () {
             removeGroupMember();
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
-            $('.save-button.'+storyId).button( "option", "disabled", true );
+            //$('.save-button.'+storyId).button( "option", "disabled", true );
 
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
             $('.save-button.'+storyId).click( function() {
@@ -1102,7 +1102,7 @@ $(document).ready(function () {
                     $("textarea#epic"+storyId).attr("value", "");
                 },
                 select: function (event, data) {
-                    $('.save-button').button( "option", "disabled", false );
+                    //$('.save-button').button( "option", "disabled", false );
                     $("textarea#epic"+storyId).attr("value", "");
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
@@ -1116,7 +1116,7 @@ $(document).ready(function () {
                     $("textarea#epic"+storyId).autocomplete({source: "../json/autocompleteepics/" + areaName + "?theme=" + themeName});
                 },
                 select: function (event, data) {
-                    $('.save-button').button( "option", "disabled", false );
+                    //$('.save-button').button( "option", "disabled", false );
                     $("textarea#epic"+storyId).attr("value", "");
 
                     //Used for deselecting the input field.
@@ -1448,7 +1448,7 @@ $(document).ready(function () {
                 minLength: 0,
                 source: "../json/autocompletethemes/" + areaName,
                 select: function (event, data) {
-                    $('.save-button').button( "option", "disabled", false );
+                    //$('.save-button').button( "option", "disabled", false );
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
@@ -1575,7 +1575,7 @@ $(document).ready(function () {
         if (editingItems.length == 0) {
             displayUpdateMsg();
             $("#list-container").sortable( "option", "disabled", false );
-            $('.save-button').button( "option", "disabled", true );
+            //$('.save-button').button( "option", "disabled", true );
             addGroupMember();
             reload();
         }
@@ -2044,7 +2044,7 @@ $(document).ready(function () {
         $(".parent-child-list").children("li").mouseup(function () {
             $(".parent-child-list").children("li").removeClass("over");
         });
-        $('.save-button').button().attr("disabled", true);
+        //$('.save-button').button().attr("disabled", true);
 
         $("a.createEpic").click(createEpic);
         $("a.createStory").click(createStory);
@@ -2116,13 +2116,13 @@ $(document).ready(function () {
         $(".bindChange").change( function(event){
             var id = ($(event.target)).closest('li').attr('id');
             $('#save-all').button( "option", "disabled", false );
-            $(".save-button."+id).button( "option", "disabled", false );
+            //$(".save-button."+id).button( "option", "disabled", false );
         });
 
         $(".bindChange").bind('input propertychange', function(event) {
             var id = ($(event.target)).closest('li').attr('id');
             $("#save-all").button( "option", "disabled", false );
-            $(".save-button."+id).button( "option", "disabled", false );
+            //$(".save-button."+id).button( "option", "disabled", false );
         });
 
         if (disableEditsBoolean) {
