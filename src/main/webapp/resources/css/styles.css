@@ -614,3 +614,7 @@ input#submit {
 	clear: both;
 	margin-top: 10px;
 }
+
+div#login-error {
+	clear: both;
+}
