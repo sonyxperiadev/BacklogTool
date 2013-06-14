@@ -509,6 +509,14 @@ $(document).ready(function () {
         }
         createCookie("backlogtool-orderby", orderBy, 60);
     });
+    
+    $('#toArea').bind('change', function() {
+        var toArea = $("#toArea").val();
+        if (toArea != '') {
+            moveToArea();
+        }
+        $("#toArea").val(''); //Reset to default value
+    }); 
 
     var expandClick = function (e) {
         if ($(this).attr("class").indexOf("ui-icon-triangle-1-s") != -1) {
@@ -1569,6 +1577,56 @@ $(document).ready(function () {
     };
     
     /**
+     * Used when moving stories to another area.
+     */
+    var moveToArea = function() {
+        $('#settings').dropdown('hide');
+        var newArea = $("#toArea").val();
+        
+        var storiesToMove = new Array();
+        for (var i = 0; i < selectedItems.length; i++) {
+            if (selectedItems[i].type == "parent") {
+                storiesToMove.push(selectedItems[i].id);
+            }
+        }
+        if (storiesToMove.length > 0) {
+            var moveStoryDialog = $(document.createElement('div'));
+            $(moveStoryDialog).attr('title', 'Move stories to area');
+            $(moveStoryDialog).html('<p>Do you want to move the ' + storiesToMove.length
+                    + ' selected item(s) to ' + newArea + '?</p>');
+            $(moveStoryDialog).dialog({
+                resizable : false,
+                height : 180,
+                modal : true,
+                buttons : {
+                    "Move stories" : function() {
+                        $.ajax({
+                            url: "../json/moveToArea" + "/" + areaName + "?newAreaName="+newArea,
+                            type: 'POST',
+                            dataType: 'json',
+                            data: JSON.stringify(storiesToMove),
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                reload();
+                            },
+                            error: function (request, status, error) {
+                                alert(error);
+                                reload();
+                            }
+                        });
+                        $(this).dialog("close");
+                    },
+                    Cancel : function() {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        } else {
+            alert("No stories selected!");
+        }
+    }; 
+
+    /**
      * Updates save all button and enable ranking etc, when the last editing item is going out of edit mode.
      */
     var updateWhenItemsClosed = function() {
@@ -2162,7 +2220,8 @@ $(document).ready(function () {
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
     } else if (view == "epic-story") {
-        $("#print-stories").remove();
+        $("#print-stories-li").remove();
+        $("#move-li").remove();
         $( "#create-parent" ).button({ label: "CREATE EPIC" }).click(function() {
             createEpic();
         });
@@ -2170,7 +2229,8 @@ $(document).ready(function () {
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
     } else if (view == "theme-epic") {
-        $("#print-stories").remove();
+        $("#print-stories-li").remove();
+        $("#move-li").remove();
         $( "#create-parent" ).button({ label: "CREATE THEME" }).click(function() {
             createTheme();
         });
@@ -2178,8 +2238,9 @@ $(document).ready(function () {
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
     } else if (view == "home") {
-        $("#print-stories").remove();
+        $("#print-stories-li").remove();
         $("create-parent").remove();
+        $("#move-li").remove();
         $(".home-link").css("color", "#1c94c4");
         $("#topic-area").text("BACKLOG TOOL");
     }

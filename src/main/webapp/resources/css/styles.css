@@ -147,6 +147,15 @@ select#order-by {
     font-size: 10px;
 }
 
+#move-div {
+	margin-left: 15px;
+	margin-right: 13px;
+}
+
+#toArea {
+	width: 140px;
+}
+
 #topic,#topic-area {
     padding: 10px 0 10px 0;
 }
@@ -635,4 +644,9 @@ div.filter, div.order-by, div.showArchive {
 div#namechange-div {
 	margin-top: 105px;
 	margin-bottom: 40px;
+}
+
+hr.menu-divider {
+	margin-top: 3px;
+	margin-bottom: 3px;
 }

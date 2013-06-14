@@ -27,11 +27,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hibernate.Query;
+import org.hibernate.Session; 
+
 
 /**
  * Utility class.
  *
  * @author David Pursehouse &lt;david.pursehouse@sonymobile.com&gt;
+ * @author Fredrik Persson &lt;fredrik6.persson@sonymobile.com&gt; 
  */
 public final class Util {
     public static <T> List<T> castList(Class<? extends T> clazz, Collection<?> c) {
@@ -41,4 +45,32 @@ public final class Util {
         }
         return r;
     }
+
+    /**
+     * Returns next available rank. Used when creating new backlog items that should be placed 
+     * at the bottom of the backlog.
+     * @param type backlog type to check rank on
+     * @param area the area to look in
+     * @param session hibernate session
+     * @return next available rank (the last1)
+     * @throws RuntimeException if invalid type was specified
+     */
+    public static int getNextPrio(BacklogType type, Area area, Session session) throws RuntimeException {
+        Query q = null;
+        switch (type) {
+        case STORY:
+            q=session.createQuery("from Story where area like ? and archived=false");
+            break;
+        case EPIC:
+            q=session.createQuery("from Epic where area like ? and archived=false");
+            break;
+        case THEME: 
+            q=session.createQuery("from Theme where area like ? and archived=false");
+            break;
+        default:
+            throw new RuntimeException("Invalid type specified");
+        }
+        q.setParameter(0, area);
+        return q.list().size() + 1;
+    } 
 }
