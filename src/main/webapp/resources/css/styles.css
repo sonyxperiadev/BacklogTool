@@ -636,3 +636,18 @@ div#namechange-div {
 	margin-top: 105px;
 	margin-bottom: 40px;
 }
+
+.remember-me {
+	margin-top: 6px;
+	float: left;
+}
+
+input#submit {
+	float: left;
+	clear: both;
+	margin-top: 10px;
+}
+
+div#login-error {
+	clear: both;
+}
