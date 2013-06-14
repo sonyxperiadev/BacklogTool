@@ -31,24 +31,19 @@ THE SOFTWARE.
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css" />"></link>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-ui-1.8.21.custom.min.js" />"></script>
-
-<script type="text/javascript">
-    $(document).ready(function () {
-        $("#submit").button();
-    });
-</script>
-
-<title>Backlog tool - Login</title>
+    <title>Backlog Tool - Login</title>
+    
+    <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#submit").button();
+        });
+    </script>
 </head>
 
 <body>
