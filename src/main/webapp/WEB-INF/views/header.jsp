@@ -30,7 +30,7 @@ THE SOFTWARE.
 </h1>
 <br style="clear: both" />
 <button id="settings" data-dropdown="#settings-div" class="fff" title="More options">#</button>
-<div id="settings-div" class="dropdown dropdown-tip">
+<div id="settings-div" class="dropdown dropdown-tip dropdown-relative">
         <ul class="dropdown-menu">
         <li>
             <a id="login-out" class="" href="../auth/logout">
