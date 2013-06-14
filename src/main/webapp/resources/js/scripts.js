@@ -212,7 +212,8 @@ $(document).ready(function () {
     $('#archived-checkbox').change(function () {
         $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
         if ($("#archived-checkbox").prop("checked")) {
-            $("#archived-list-container").empty().append(generateList(true));
+            $("#archived-list-container").empty();
+            buildVisibleList(true);
 
             //Unbind all items and bind them again including archived.
             $(".editTheme").unbind("dblclick");
@@ -2014,8 +2015,9 @@ $(document).ready(function () {
     	if ($("#archived-checkbox").prop("checked")) {
     	    $("#archived-list-container").append(generateList(true)).show();
     	}
-
-        $('#list-container').append(generateList(false));
+    	if (archived != true) {
+    	    $('#list-container').append(generateList(false));    	    
+    	}
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
