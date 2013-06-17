@@ -30,6 +30,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator; 
 
 import javax.servlet.ServletContext;
 
@@ -37,7 +40,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -61,6 +63,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.sonymobile.backlogtool.permission.User;
 
 
 /**
@@ -1443,6 +1447,218 @@ public class JSONController {
         pushContext.push(areaName);
         return true;
     }
+
+    /**
+     * Used when moving stories between areas.
+     * @param areaName area to move from
+     * @param storyIds ids of the stories to move
+     * @param newAreaName target area
+     * @return true if everything was ok
+     */
+    @PreAuthorize("hasPermission(#areaName, 'isEditor')")
+    @RequestMapping(value="/moveToArea/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody boolean moveToArea(@PathVariable String areaName,
+            @RequestBody int[] storyIds, @RequestParam String newAreaName) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Area oldArea = (Area) session.get(Area.class, areaName);
+            Area newArea = (Area) session.get(Area.class, newAreaName);
+            User user = (User) session.get(User.class, username);
+
+            //Check that the user has rights for the new area as well
+            if ((newArea != null && (newArea.isAdmin(username) || newArea.isEditor(username)))
+                    || (user != null && user.isMasterAdmin())) {
+                List<Story> storiesToMove = new ArrayList<Story>(); 
+
+                //Get all the stories to move
+                for (int id : storyIds) {
+                    Query storyQuery = session.createQuery("from Story where area like ? and id=?");
+                    storyQuery.setParameter(0, oldArea);
+                    storyQuery.setParameter(1, id);
+                    Story story = (Story) storyQuery.uniqueResult();
+                    storiesToMove.add(story);
+                }
+
+                Collections.sort(storiesToMove, new Comparator<Story>() {
+                    @Override
+                    public int compare(Story o1, Story o2) {
+                        return o1.getPrio() - o2.getPrio();
+                    }
+                });
+
+                for (Story story : storiesToMove) {
+                    //Set new rank
+                    int newPrio = -1;
+                    if (!story.isArchived()) {
+                        newPrio = Util.getNextPrio(BacklogType.STORY, newArea, session);
+                    }
+                    story.setPrio(newPrio);
+                    story.setArea(newArea);
+
+                    //Change all story attribute options
+                    AttributeOption newOpt1 = getAttrAfterMove(story.getStoryAttr1(), newArea.getStoryAttr1().getOptions(), session);
+                    AttributeOption newOpt2 = getAttrAfterMove(story.getStoryAttr2(), newArea.getStoryAttr2().getOptions(), session);
+                    AttributeOption newOpt3 = getAttrAfterMove(story.getStoryAttr3(), newArea.getStoryAttr3().getOptions(), session);
+                    story.setStoryAttr1(newOpt1);
+                    story.setStoryAttr2(newOpt2);
+                    story.setStoryAttr3(newOpt3);
+
+                    //Change all task attribute options
+                    for (Task task : story.getChildren()) {
+                        AttributeOption taskOpt1 = getAttrAfterMove(task.getTaskAttr1(), newArea.getTaskAttr1().getOptions(), session);
+                        task.setTaskAttr1(taskOpt1);
+                    }
+
+                    //Handle move of theme and epic
+                    if (story.getEpic() != null && story.getTheme() != null) {
+                        //Both theme and epic exists.
+                        //Firstly, look for a matching theme
+                        Theme newTheme = getThemeAfterMove(story, newArea, session);
+                        story.setTheme(newTheme);
+
+                        //Look for a matching epic
+                        Epic newEpic = null;
+                        boolean foundMatch = false;
+                        for (Epic epic : newTheme.getChildren()) {
+                            if (epic.getTitle().equals(story.getEpic().getTitle())) {
+                                newEpic = epic;
+                                foundMatch = true;
+                                break;
+                            } 
+                        }
+                        if (!foundMatch) {
+                            //Create new epic in the theme.
+                            newEpic = story.getEpic().copy(false);
+                            int prio = -1;
+                            if (!newEpic.isArchived()) {
+                                prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);                                
+                            }
+                            newEpic.setPrio(prio);
+                            
+                            newEpic.setArea(newArea);
+
+                            //Set correct prioInTheme
+                            int prioInTheme = newTheme.getChildren().size() + 1;
+                            newEpic.setPrioInTheme(prioInTheme);
+
+                            session.save(newEpic);
+                        }
+                        story.getEpic().getChildren().remove(story);
+                        story.setEpic(newEpic);
+                        newEpic.getChildren().add(story);
+                        newEpic.setTheme(newTheme);
+
+                    } else if (story.getTheme() != null) {
+                        Theme newTheme = getThemeAfterMove(story, newArea, session);
+                        story.setTheme(newTheme);
+                    } else if (story.getEpic() != null) {
+                        Query epicQuery1 = session.createQuery("from Epic where area like ? and title like ?");
+                        epicQuery1.setParameter(0, newArea);
+                        epicQuery1.setParameter(1, story.getEpic().getTitle());
+                        Epic newEpic = (Epic) epicQuery1.uniqueResult();
+                        if (newEpic == null) {
+                            //Create new epic
+                            newEpic = story.getEpic().copy(false);
+                            
+                            //Set correct prio
+                            int prio = -1;
+                            if (!newEpic.isArchived()) {
+                                prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);                                
+                            }
+                            newEpic.setPrio(prio);
+                            newEpic.setArea(newArea);
+                            session.save(newEpic);
+                        }
+                        //Set correct prioInEpic
+                        int prioInEpic = newEpic.getChildren().size() + 1;
+                        story.setPrioInEpic(prioInEpic);
+                        
+                        story.getEpic().getChildren().remove(story);
+                        story.getEpic().rebuildChildrenOrder();
+                        
+                        story.setEpic(newEpic);
+                        newEpic.getChildren().add(story);
+                        story.setTheme(newEpic.getTheme());
+                    }
+                }
+                Util.rebuildRanks(BacklogType.STORY, oldArea, session);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+        return true;
+    }
+
+    /**
+     * Helper for moveToArea. Finds a matching attribute after moving a story to a new area.
+     * Creates a new attribute if no match was found.
+     * @param currentOption the selected option in the old area
+     * @param targetOptions the available options in the new area
+     * @param session hibernate session
+     * @return matched attribute (or new attribute if no match)
+     */
+    private AttributeOption getAttrAfterMove(AttributeOption currentOption,
+            Set<AttributeOption> targetOptions, Session session) {
+        if (currentOption != null) {
+            for (AttributeOption newOption : targetOptions) {
+                if (newOption.getName().equals(currentOption.getName())) {
+                    return newOption;
+                }
+            }
+            //No matching attribute found; copy the attribute.
+            AttributeOption newOption = currentOption.copy();
+            Set<AttributeOption> attributeOptions = targetOptions;
+            newOption.setCompareValue(attributeOptions.size() + 1);
+            session.save(newOption);
+            attributeOptions.add(newOption);
+            return newOption;
+        }
+        return null;
+    }
+
+    /**
+     * Helper for moveToArea. Finds a matching theme after moving a story to a new area.
+     * Creates a new theme if no match was found.
+     * @param storyToMove the story thatäs being moved
+     * @param newArea target area
+     * @param session hibernate session
+     * @return matched theme (or new attribute if no match)
+     */
+    private Theme getThemeAfterMove(Story storyToMove, Area newArea, Session session) {
+        Query themeQuery = session.createQuery("from Theme where area like ? and title like ?");
+        themeQuery.setParameter(0, newArea);
+        themeQuery.setParameter(1, storyToMove.getTitle());
+        Theme newTheme = (Theme) themeQuery.uniqueResult();
+        if (newTheme == null) {
+            //Create new theme
+            newTheme = storyToMove.getTheme().copy(false);
+
+            //Set prio for theme
+            int prio = -1;
+            if (!newTheme.isArchived()) {
+                prio = Util.getNextPrio(BacklogType.THEME, newArea, session);
+            }
+            newTheme.setPrio(prio);
+
+            newTheme.setArea(newArea);
+            session.save(newTheme);
+        }
+        return newTheme;
+    } 
 
     /**
      * Used when creating an area

@@ -62,6 +62,15 @@ public class AttributeOption {
         this.compareValue = compareValue;
     }
 
+    public AttributeOption copy() {
+        AttributeOption copy = new AttributeOption();
+        copy.name = name;
+        copy.icon = icon;
+        copy.color = color;
+        copy.iconEnabled = iconEnabled;
+        return copy;
+    } 
+
     public String getName() {
         return StringEscapeUtils.escapeHtml(name);
     }

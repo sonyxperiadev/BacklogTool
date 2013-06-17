@@ -288,9 +288,43 @@ public class HomeController {
     public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName) {
         Area area = getArea(areaName);
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        List<String> adminAreas = null;
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            User currentUser = (User) session.get(User.class, username);
+
+            Query allAreasQuery = session.createQuery("from Area order by name");
+            List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
+
+            adminAreas = new ArrayList<String>();
+            for (Area currentArea : allAreas) {
+                if (!areaName.equals(currentArea.getName()) &&
+                        ((currentUser != null && currentUser.isMasterAdmin()) 
+                                || currentArea.isAdmin(username))) {
+                    adminAreas.add(currentArea.getName());
+                }
+            }
+            tx.commit();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+
         ModelAndView view = new ModelAndView();
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("area", area);
+        view.addObject("adminAreas", adminAreas); 
         view.addObject("disableEdits", isDisableEdits(areaName));
         view.addObject("view", "story-task");
         view.addObject("version", version.getVersion());
