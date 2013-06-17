@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %> 
 <h1>
     <a href="${pageContext.request.contextPath}/${area.name}">
         <p id="topic" class="textstyle inline">Backlog tool</p>
@@ -31,17 +32,41 @@ THE SOFTWARE.
 <br style="clear: both" />
 <button id="settings" data-dropdown="#settings-div" class="fff" title="More options">#</button>
 <div id="settings-div" class="dropdown dropdown-tip dropdown-relative">
-        <ul class="dropdown-menu">
+    <ul class="dropdown-menu">
         <li>
             <a id="login-out" class="" href="../auth/logout">
                 <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
                 <c:if test="${isLoggedIn == false}">LOG IN</c:if>
             </a>
         </li>
-        <li><a id="expand-all" href="#" class="">EXPAND ALL</a></li>
-        <li><a id="collapse-all" class="" >COLLAPSE ALL</a></li>
-        <li><a id="print-stories" class="" title="Print selected stories">PRINT SELECTED</a></li>
-        </ul>
+        <li>
+            <hr class="menu-divider">
+            <a id="expand-all" href="#" class="">EXPAND ALL</a>
+        </li>
+        <li>
+            <a id="collapse-all" class="">COLLAPSE ALL</a>
+        </li>
+        <li id="print-stories-li">
+            <hr class="menu-divider">
+            <a id="print-stories" title="Print selected stories">PRINT SELECTED</a>
+        </li>
+        
+        <c:if test="${isLoggedIn == true && adminAreas.size() > 0}">
+            <li id ="move-li">
+                <hr class="menu-divider">
+                <div id="move-div">
+                <p>Move selected to area...</p>
+                <select id="toArea" autocomplete="off" class="text ui-widget-content ui-corner-all">
+                    <option value=""></option>
+                    <c:forEach var="currentArea" items="${adminAreas}">
+                        <option value="${currentArea}">${currentArea}</option>
+                    </c:forEach>
+                </select>
+                </div>
+            </li>
+        </c:if>
+        
+    </ul>
 </div>
 <button title="Save all changes" id="save-all" class="save-button fff" disabled>#</button>
 <button title="Create a new story" id="create-parent" class="fff"></button>
