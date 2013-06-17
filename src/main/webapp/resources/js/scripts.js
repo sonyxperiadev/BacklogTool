@@ -1623,6 +1623,7 @@ $(document).ready(function () {
                             contentType: "application/json; charset=utf-8",
                             success: function (data) {
                                 reload();
+                                selectedItems = new Array();
                             },
                             error: function (request, status, error) {
                                 alert(error);

@@ -33,13 +33,19 @@ THE SOFTWARE.
 <button id="settings" data-dropdown="#settings-div" class="fff" title="More options">#</button>
 <div id="settings-div" class="dropdown dropdown-tip dropdown-relative">
     <ul class="dropdown-menu">
-        <li><a id="login-out" class="" href="../auth/logout"> <c:if
-                    test="${isLoggedIn == true}">LOG OUT</c:if> <c:if
-                    test="${isLoggedIn == false}">LOG IN</c:if>
-        </a></li>
-        <li><hr class="menu-divider">
-        <a id="expand-all" href="#" class="">EXPAND ALL</a></li>
-        <li><a id="collapse-all" class="">COLLAPSE ALL</a></li>
+        <li>
+            <a id="login-out" class="" href="../auth/logout">
+                <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
+                <c:if test="${isLoggedIn == false}">LOG IN</c:if>
+            </a>
+        </li>
+        <li>
+            <hr class="menu-divider">
+            <a id="expand-all" href="#" class="">EXPAND ALL</a>
+        </li>
+        <li>
+            <a id="collapse-all" class="">COLLAPSE ALL</a>
+        </li>
         <li id="print-stories-li">
             <hr class="menu-divider">
             <a id="print-stories" title="Print selected stories">PRINT SELECTED</a>

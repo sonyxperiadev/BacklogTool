@@ -1469,31 +1469,38 @@ public class JSONController {
         try {
             tx = session.beginTransaction();
 
+            Area oldArea = (Area) session.get(Area.class, areaName);
             Area newArea = (Area) session.get(Area.class, newAreaName);
             User user = (User) session.get(User.class, username);
 
             //Check that the user has rights for the new area as well
             if ((newArea != null && (newArea.isAdmin(username) || newArea.isEditor(username)))
                     || (user != null && user.isMasterAdmin())) {
-                List<Story> stories = new ArrayList<Story>(); 
+                List<Story> storiesToMove = new ArrayList<Story>(); 
 
                 //Get all the stories to move
                 for (int id : storyIds) {
-                    Query storyQuery = session.createQuery("from Story where area.name like ? and id=?");
-                    storyQuery.setParameter(0, areaName);
+                    Query storyQuery = session.createQuery("from Story where area like ? and id=?");
+                    storyQuery.setParameter(0, oldArea);
                     storyQuery.setParameter(1, id);
                     Story story = (Story) storyQuery.uniqueResult();
-                    stories.add(story);
+                    storiesToMove.add(story);
                 }
 
-                Collections.sort(stories, new Comparator<Story>() {
+                Collections.sort(storiesToMove, new Comparator<Story>() {
                     @Override
                     public int compare(Story o1, Story o2) {
                         return o1.getPrio() - o2.getPrio();
                     }
                 });
 
-                for (Story story : stories) {
+                for (Story story : storiesToMove) {
+                    //Set new rank
+                    int newPrio = -1;
+                    if (!story.isArchived()) {
+                        newPrio = Util.getNextPrio(BacklogType.STORY, newArea, session);
+                    }
+                    story.setPrio(newPrio);
                     story.setArea(newArea);
 
                     //Change all story attribute options
@@ -1509,10 +1516,6 @@ public class JSONController {
                         AttributeOption taskOpt1 = getAttrAfterMove(task.getTaskAttr1(), newArea.getTaskAttr1().getOptions(), session);
                         task.setTaskAttr1(taskOpt1);
                     }
-
-                    //Set new rank
-                    int newPrio = Util.getNextPrio(BacklogType.STORY, newArea, session);
-                    story.setPrio(newPrio);
 
                     //Handle move of theme and epic
                     if (story.getEpic() != null && story.getTheme() != null) {
@@ -1534,14 +1537,18 @@ public class JSONController {
                         if (!foundMatch) {
                             //Create new epic in the theme.
                             newEpic = story.getEpic().copy(false);
+                            int prio = -1;
+                            if (!newEpic.isArchived()) {
+                                prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);                                
+                            }
+                            newEpic.setPrio(prio);
+                            
                             newEpic.setArea(newArea);
 
-                            //Set correct prioInTheme and prio
+                            //Set correct prioInTheme
                             int prioInTheme = newTheme.getChildren().size() + 1;
                             newEpic.setPrioInTheme(prioInTheme);
 
-                            int prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);
-                            newEpic.setPrio(prio);
                             session.save(newEpic);
                         }
                         story.getEpic().getChildren().remove(story);
@@ -1560,19 +1567,29 @@ public class JSONController {
                         if (newEpic == null) {
                             //Create new epic
                             newEpic = story.getEpic().copy(false);
-                            newEpic.setArea(newArea);
-
+                            
                             //Set correct prio
-                            int prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);
+                            int prio = -1;
+                            if (!newEpic.isArchived()) {
+                                prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);                                
+                            }
                             newEpic.setPrio(prio);
+                            newEpic.setArea(newArea);
                             session.save(newEpic);
                         }
+                        //Set correct prioInEpic
+                        int prioInEpic = newEpic.getChildren().size() + 1;
+                        story.setPrioInEpic(prioInEpic);
+                        
                         story.getEpic().getChildren().remove(story);
+                        story.getEpic().rebuildChildrenOrder();
+                        
                         story.setEpic(newEpic);
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
                     }
                 }
+                Util.rebuildRanks(BacklogType.STORY, oldArea, session);
             }
             tx.commit();
         } catch (Exception e) {
@@ -1629,11 +1646,15 @@ public class JSONController {
         if (newTheme == null) {
             //Create new theme
             newTheme = storyToMove.getTheme().copy(false);
-            newTheme.setArea(newArea);
 
             //Set prio for theme
-            int prio = Util.getNextPrio(BacklogType.THEME, newArea, session);
+            int prio = -1;
+            if (!newTheme.isArchived()) {
+                prio = Util.getNextPrio(BacklogType.THEME, newArea, session);
+            }
             newTheme.setPrio(prio);
+
+            newTheme.setArea(newArea);
             session.save(newTheme);
         }
         return newTheme;

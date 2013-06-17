@@ -72,5 +72,44 @@ public final class Util {
         }
         q.setParameter(0, area);
         return q.list().size() + 1;
-    } 
+    }
+    
+    /**
+     * Rebuilds the rank ordering for a given backlog type
+     * (in case there are missing numbers).
+     * @param type backlog type to check rank on
+     * @param area the area to look in
+     * @param session hibernate session
+     * @throws RuntimeException if invalid type was specified
+     */
+    public static void rebuildRanks(BacklogType type, Area area, Session session) throws RuntimeException {
+        Query q = null;
+        int counter = 1;
+        switch (type) {
+        case STORY:
+            q=session.createQuery("from Story where area like ? and archived=false order by prio");
+            q.setParameter(0, area);
+            for (Story story : Util.castList(Story.class, q.list())) {
+                story.setPrio(counter++);
+            }
+            break;
+        case EPIC:
+            q=session.createQuery("from Epic where area like ? and archived=false order by prio");
+            q.setParameter(0, area);
+            for (Epic epic : Util.castList(Epic.class, q.list())) {
+                epic.setPrio(counter++);
+            }
+            break;
+        case THEME: 
+            q=session.createQuery("from Theme where area like ? and archived=false order by prio");
+            q.setParameter(0, area);
+            for (Theme theme : Util.castList(Theme.class, q.list())) {
+                theme.setPrio(counter++);
+            }
+            break;
+        default:
+            throw new RuntimeException("Invalid type specified");
+        }
+        
+    }
 }
