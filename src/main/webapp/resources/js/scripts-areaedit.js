@@ -156,6 +156,7 @@ $(document).ready(function() {
         var attribute = new Object();
         attribute.id = id;
         attribute.name = $("input#" + id).val();
+        var valid = true;
 
         var options = new Array();
         var compareValue = 1;
@@ -165,7 +166,7 @@ $(document).ready(function() {
 
             var isSeries = $(this).hasClass("series");
             var id = $(this).attr("id");
-            
+
             if (id.indexOf("NewOption") == -1) {
                 option.id = id;
             } else {
@@ -177,54 +178,73 @@ $(document).ready(function() {
             option.name = $(this).children("input#name"+id).val();
             option.iconEnabled = $("#iconEnabled"+id).is(':checked');
             option.icon = $("#icon"+id).attr("icon");
-            
+
             if (isSeries) {
                 var seriesStart = parseInt($(this).children("input#seriesStart"+id).val());
                 var seriesEnd = parseInt($(this).children("input#seriesEnd"+id).val());
-                var seriesIncrement = parseInt($(this).children("input#seriesIncrement"+id).val());
+                var seriesIncrement = parseFloat($(this).children("input#seriesIncrement"+id).val());
                 var name = option.name;
                 var iconEnabled = option.iconEnabled;
                 var icon = option.icon;
-                
-                //Check for no infinite loop.
-                
+
+                var count = 0;                
                 for (var number = seriesStart; number <= seriesEnd; number+=seriesIncrement) {
-                    var option = new Object();
-                    option.iconEnabled = iconEnabled;
-                    option.icon = icon;
-                    option.seriesIncrement = seriesIncrement;
-                    option.name = name + " " + number;
-                    option.compareValue = compareValue++;
-                    var series = seriesIds[id];
-                    if (series != null) {
-                        option.id = seriesIds[id][number];
+                    if (count++ > 1500) {
+                        var invalidDialog = $(document.createElement('div'));
+                        $(invalidDialog).attr('title', 'Invalid options');
+                        $(invalidDialog).html('<p>Too many or invalid attribute options! Must be integers and max limit is 1500 options!</p>');
+                        invalidDialog.dialog({
+                            modal: true,
+                            width: 325,
+                            buttons: {
+                                Ok: function() {
+                                    location.reload();
+                                    $( this ).dialog( "close" );
+                                }
+                            }
+                        });
+                        valid = false;
+                        return false; //Breaks li.each function
+                    } else {
+                        var option = new Object();
+                        option.iconEnabled = iconEnabled;
+                        option.icon = icon;
+                        option.seriesIncrement = seriesIncrement;
+                        option.name = name + " " + number;
+                        option.compareValue = compareValue++;
+                        var series = seriesIds[id];
+                        if (series != null) {
+                            option.id = seriesIds[id][number];
+                        }
+                        if (option.id == null) {
+                            option.id = -compareValue;
+                        }
+                        options.push(option);
                     }
-                    if (option.id == null) {
-                        option.id = -compareValue;
-                    }
-                    options.push(option);
                 };
-                
             } else {
                 option.compareValue = compareValue++;
                 options.push(option);
             };
         });
-        attribute.options = options;
 
-        $.ajax({
-            url : "../json/updateAttribute/" + areaName,
-            type : 'POST',
-            async: false,
-            dataType : 'json',
-            async : false,
-            data : JSON.stringify(attribute),
-            contentType : "application/json; charset=utf-8",
-            error : function(request, status, error) {
-                alert(error);
-            }
-        });
-
+        if (valid) {
+            attribute.options = options;
+            $.ajax({
+                url : "../json/updateAttribute/" + areaName,
+                type : 'POST',
+                async: false,
+                dataType : 'json',
+                async : false,
+                data : JSON.stringify(attribute),
+                contentType : "application/json; charset=utf-8",
+                error : function(request, status, error) {
+                    alert(error);
+                }
+            });
+            return true;
+        }
+        return false;
     };
 
     $('.checkbox').change(function() {
@@ -233,11 +253,12 @@ $(document).ready(function() {
     });
 
     $("#save").button().click(function() {
-        updateAttribute(storyAttr1Id);
-        updateAttribute(storyAttr2Id);
-        updateAttribute(storyAttr3Id);
-        updateAttribute(taskAttr1Id);
-        location.reload();
+        if (updateAttribute(storyAttr1Id)
+                & updateAttribute(storyAttr2Id)
+                & updateAttribute(storyAttr3Id)
+                & updateAttribute(taskAttr1Id)) {
+            location.reload();
+        }
     });
     $(".deleteAdminButton").click(deleteAdmin);
     $(".deleteEditorButton").click(deleteEditor);
@@ -288,9 +309,9 @@ $(document).ready(function() {
                 + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
                 + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
                 + 'src="../resources/image/new.png" icon="new.png" /> '
-                + '</div> <input id="name' + id + '" maxlength="15"'
+                + '</div> <input id="name' + id + '" maxlength="15" title="Optional name"'
                 + 'class="inline-block attrOptionTitle ui-corner-all">'
-                + '<input id="seriesStart' + id + '" maxlength="3" title="Series start" value="1"'
+                + '<input id="seriesStart' + id + '" maxlength="3" title="Series start" value="0"'
                 + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all"> - '
                 + '<input id="seriesEnd' + id + '" maxlength="3" title="Series end" value="10"'
                 + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'

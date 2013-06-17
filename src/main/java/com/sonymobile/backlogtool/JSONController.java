@@ -2118,6 +2118,7 @@ public class JSONController {
                     dbOption.setIcon(updatedOption.getIcon());
                     dbOption.setName(updatedOption.getName());
                     dbOption.setCompareValue(updatedOption.getCompareValue());
+                    dbOption.setSeriesIncrement(updatedOption.getSeriesIncrement());
                 }
             }
 

@@ -52,7 +52,7 @@ public class AttributeOption {
     private String color;
     private int compareValue;
     private boolean iconEnabled = true;
-    private Integer seriesIncrement;
+    private Double seriesIncrement;
 
     public AttributeOption() {}
 
@@ -85,7 +85,8 @@ public class AttributeOption {
         String[] words = getName().split(" ");
         String lastWord = words[words.length-1];
         try {
-            return Integer.parseInt(lastWord);
+            double numberDecimal = Double.parseDouble(lastWord);
+            return (int) Math.round(numberDecimal);
         } catch (NumberFormatException e) {
             return -1;
         }
@@ -146,11 +147,11 @@ public class AttributeOption {
         this.iconEnabled = iconEnabled;
     }
 
-    public Integer getSeriesIncrement() {
+    public Double getSeriesIncrement() {
         return seriesIncrement;
     }
 
-    public void setSeriesIncrement(Integer seriesIncrement) {
+    public void setSeriesIncrement(Double seriesIncrement) {
         this.seriesIncrement = seriesIncrement;
     }
 

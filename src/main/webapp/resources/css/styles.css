@@ -669,3 +669,7 @@ input#submit {
 div#login-error {
 	clear: both;
 }
+
+table#storyAttr3 {
+	margin-top: 25px;
+}

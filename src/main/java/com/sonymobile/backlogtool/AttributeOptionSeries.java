@@ -26,16 +26,15 @@ package com.sonymobile.backlogtool;
 public class AttributeOptionSeries extends AttributeOption {
     private int seriesStart;
     private int seriesEnd;
-    private int seriesIncrement;
     
     public AttributeOptionSeries() {}
     
     public AttributeOptionSeries(int id, String name, String icon, boolean iconEnabled, int compareValue, 
-            int seriesStart, int seriesEnd, int seriesIncrement) {
+            int seriesStart, int seriesEnd, double seriesIncrement) {
         super(name, icon, compareValue);
         this.seriesStart = seriesStart;
         this.seriesEnd = seriesEnd;
-        this.seriesIncrement = seriesIncrement;
+        setSeriesIncrement(seriesIncrement);
         setId(id);
         setIconEnabled(iconEnabled);
     }
@@ -56,24 +55,12 @@ public class AttributeOptionSeries extends AttributeOption {
         this.seriesEnd = seriesEnd;
     }
 
-    public Integer getSeriesIncrement() {
-        return seriesIncrement;
-    }
-
-    public void setSeriesIncrement(Integer seriesIncrement) {
-        this.seriesIncrement = seriesIncrement;
-    }
-
     public void setSeriesStart(int seriesStart) {
         this.seriesStart = seriesStart;
     }
 
     public void setSeriesEnd(int seriesEnd) {
         this.seriesEnd = seriesEnd;
-    }
-
-    public void setSeriesIncrement(int seriesIncrement) {
-        this.seriesIncrement = seriesIncrement;
     }
 
 }
