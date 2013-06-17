@@ -27,31 +27,23 @@ THE SOFTWARE.
 <html>
 
 <head>
-<title>Backlog tool - Edit area</title>
-<link rel="shortcut icon"
-    href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
-<title>Backlog-tool</title>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.8.21.custom.css " />"></link>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-1.7.2.min.js" />"></script>
-<script type="text/javascript"
-    src="<c:url value="/resources/js/jquery-ui-1.8.21.custom.min.js" />"></script>
-<link rel="stylesheet" type="text/css"
-    href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
+    <title>Backlog Tool - Edit area</title>
 
-<script type="text/javascript"
-    src="<c:url value="/resources/js/scripts-areaedit.js?v=1" />"></script>
-
-<script type="text/javascript">
-    var areaName = "${area.name}";
-    var storyAttr1Id = "${area.storyAttr1.id}";
-    var storyAttr2Id = "${area.storyAttr2.id}";
-    var storyAttr3Id = "${area.storyAttr3.id}";
-    var taskAttr1Id = "${area.taskAttr1.id}";
+    <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/scripts-areaedit.js?v=1" />"></script>
+    
+    <script type="text/javascript">
+        var areaName = "${area.name}";
+        var storyAttr1Id = "${area.storyAttr1.id}";
+        var storyAttr2Id = "${area.storyAttr2.id}";
+        var storyAttr3Id = "${area.storyAttr3.id}";
+        var taskAttr1Id = "${area.taskAttr1.id}";
     var seriesIds = jQuery.parseJSON('${seriesIds}');
-</script>
-
+    </script>
 </head>
 <body>
     <div id="wrap">
@@ -65,13 +57,14 @@ THE SOFTWARE.
                 <p id="topic-area" class="textstyle inline">Edit
                     area ${area.name}</p>
             </h1>
-            <br style="clear: both" /> <a title="Log out"
-                id="login-out" href="../auth/logout"> <c:if
-                    test="${isLoggedIn}">
-	            LOG OUT
-	            </c:if> <c:if test="${!isLoggedIn}">
-	            LOG IN
-	            </c:if>
+            <br style="clear: both" /> 
+            <a title="Log out" class="login-out-margin" id="login-out" href="../auth/logout"> 
+                <c:if test="${isLoggedIn}">
+    	            LOG OUT
+    	        </c:if> 
+                <c:if test="${!isLoggedIn}">
+    	            LOG IN
+    	        </c:if>
             </a>
         </div>
         <div id="main">

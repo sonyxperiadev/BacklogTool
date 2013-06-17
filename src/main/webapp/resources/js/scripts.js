@@ -211,8 +211,9 @@ $(document).ready(function () {
 
     $('#archived-checkbox').change(function () {
         $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
-        if ($("#archived-checkbox").attr("checked")) {
-            $("#archived-list-container").empty().append(generateList(true));
+        if ($("#archived-checkbox").prop("checked")) {
+            $("#archived-list-container").empty();
+            buildVisibleList(true);
 
             //Unbind all items and bind them again including archived.
             $(".editTheme").unbind("dblclick");
@@ -249,10 +250,10 @@ $(document).ready(function () {
     };
 
     var scrollTo = function(id) {
-        var offset = $("#"+id).offset().top - $(window).scrollTop();
+        var offset = $('#'+id).offset().top - $(window).scrollTop();
         if (offset > window.innerHeight) {
             $('html, body').animate({
-                scrollTop: $("#" + id).offset().top
+                scrollTop: $('#' + id).offset().top
             }, 2000);
         }
     };
@@ -350,12 +351,12 @@ $(document).ready(function () {
     //Load sorting from cookie if it exists
     var sorting = readCookie("backlogtool-orderby");
     if (sorting != null) {
-        $("#orderBy").val(sorting);
+        $("#order-by").val(sorting);
     }
 
     var readData = function readData() {
         $.ajax({
-            url: "../json/read" + view + "/" + areaName + "?order=" + $("#orderBy").val(),
+            url: "../json/read" + view + "/" + areaName + "?order=" + $("#order-by").val(),
             dataType: 'json',
             async: false,
             success: function (data) {
@@ -498,10 +499,10 @@ $(document).ready(function () {
         $("#"+id).select();
     };
 
-    $('#orderBy').bind('change', function() {
+    $('#order-by').bind('change', function() {
         displayUpdateMsg();
         reload();
-        var orderBy = $("#orderBy").val();
+        var orderBy = $("#order-by").val();
         if (orderBy == "prio") {
             $("#list-container").sortable("option", "disabled", false);
         } else {
@@ -984,6 +985,18 @@ $(document).ready(function () {
         var id = event.data.id;
         editingItems.remove({id:id});
         $("."+id).toggleClass('hidden-edit');
+
+        //Re-activate double click
+        var li = $("li#"+id);
+        if (li.hasClass("task")) {
+            li.dblclick(editTask);
+        } else if (li.hasClass("story")) {
+            li.dblclick(editStory);
+        } else if (li.hasClass("epic")) {
+            li.dblclick(editEpic);
+        } else if (li.hasClass("theme")) {
+            li.dblclick(editTheme);
+        }       
         updateWhenItemsClosed();
     };
 
@@ -991,11 +1004,7 @@ $(document).ready(function () {
      * Cancel current editing of parents/children.
      */
     var bulkCancel = function() {            
-        for(var j = 0; j < editingItems.length; j++) {
-            var id = editingItems[j].id;
-            $("."+id).toggleClass('hidden-edit');
-            editingItems.remove({id:id});
-        }
+        editingItems = new Array();
         updateWhenItemsClosed();
     };
 
@@ -1054,14 +1063,18 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
+            $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
             removeGroupMember();
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
+            //$('.save-button.'+storyId).button( "option", "disabled", true );
+
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
-            $('.saveButton.'+storyId).click( function() {
+            $('.save-button.'+storyId).click( function() {
                 saveStory(parseInt(storyId), true);
             });
+
             //Sets values for all edit fields
             $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
             $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
@@ -1099,7 +1112,7 @@ $(document).ready(function () {
                     $("textarea#epic"+storyId).attr("value", "");
                 },
                 select: function (event, data) {
-                    $('.saveButton').button( "option", "disabled", false );
+                    //$('.save-button').button( "option", "disabled", false );
                     $("textarea#epic"+storyId).attr("value", "");
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
@@ -1113,7 +1126,7 @@ $(document).ready(function () {
                     $("textarea#epic"+storyId).autocomplete({source: "../json/autocompleteepics/" + areaName + "?theme=" + themeName});
                 },
                 select: function (event, data) {
-                    $('.saveButton').button( "option", "disabled", false );
+                    //$('.save-button').button( "option", "disabled", false );
                     $("textarea#epic"+storyId).attr("value", "");
 
                     //Used for deselecting the input field.
@@ -1146,6 +1159,8 @@ $(document).ready(function () {
         } else {
             storyId = event.data.storyId;
         }
+        var li = $('#'+storyId);
+        
         //Creates a new story and sets all updated values
         var story = new Object();
         story.id = eval(storyId);
@@ -1199,8 +1214,6 @@ $(document).ready(function () {
             	$('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
             	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
             	$('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
-            	
-            	var li = $('#'+storyId);
 
             	if (view == "story-task") {
             	    //If Story was moved,
@@ -1237,6 +1250,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editStory);
     };
 
     /**
@@ -1256,6 +1270,7 @@ $(document).ready(function () {
         else {
             taskId = event.data.taskId;
         }
+        var li = $('#'+taskId);
 
         //Creates a new task and sets all updated values
         var task = new Object();
@@ -1296,6 +1311,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editTask);
     };
 
     var editTask = function(event) {
@@ -1308,12 +1324,13 @@ $(document).ready(function () {
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
+            $("li#"+taskId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:taskId, type:"task"});
             removeGroupMember();
             $('button.'+taskId).button();
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
-            $('.saveButton.'+taskId).click(function() {
+            $('.save-button.'+taskId).click(function() {
                 saveTask(parseInt(taskId), true);
             });
             $("."+taskId).toggleClass('hidden-edit');
@@ -1345,6 +1362,7 @@ $(document).ready(function () {
         else {
             epicId = event.data.epicId;
         }
+        var li = $('#'+epicId);
 
         //Creates a new epic and sets all updated values
         var epic = new Object();
@@ -1375,8 +1393,6 @@ $(document).ready(function () {
                 if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
                     $('a.truncate'+epicId, descriptionParagraph.parent()).click();
                 }
-
-            	var li = $('#'+epicId);
 
             	if (view == "epic-story") {
             	    //If epic was moved,
@@ -1413,6 +1429,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editEpic);
     };
 
     var editEpic = function(event) {
@@ -1430,13 +1447,14 @@ $(document).ready(function () {
         }
 
         if (isGoingIntoEdit(epicId)) {
+            $("li#"+epicId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:epicId, type:"epic"});
             removeGroupMember();
 
             $('button.'+epicId).button();
             $('button.'+epicId).unbind();
             $('.cancelButton.'+epicId).click({id: epicId},cancel);
-            $('.saveButton.'+epicId).click(function() {
+            $('.save-button.'+epicId).click(function() {
                 saveEpic(parseInt(epicId), true);
             });
             $("."+epicId).toggleClass('hidden-edit');
@@ -1445,7 +1463,7 @@ $(document).ready(function () {
                 minLength: 0,
                 source: "../json/autocompletethemes/" + areaName,
                 select: function (event, data) {
-                    $('.saveButton').button( "option", "disabled", false );
+                    //$('.save-button').button( "option", "disabled", false );
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
@@ -1473,6 +1491,7 @@ $(document).ready(function () {
         else {
             themeId = event.data.themeId;
         }
+        var li = $('#'+themeId);
 
         //Creates a new epic and sets all updated values
         var theme = new Object();
@@ -1502,8 +1521,6 @@ $(document).ready(function () {
                     $('a.truncate'+themeId, descriptionParagraph.parent()).click();
                 }
 
-            	var li = $('#'+themeId);
-
             	//if Story was moved from or to archive
             	if (getParent(themeId).archived != updatedTheme.archived) {
             		//Checks if this story is in list-container or in archived.list-container and moves it.
@@ -1529,6 +1546,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editTheme);
     };
 
     var editTheme = function(event) {
@@ -1544,14 +1562,14 @@ $(document).ready(function () {
             theme = getChild(themeId);
         }
         if (isGoingIntoEdit(themeId)) {
-
+            $("li#"+themeId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:themeId, type:"theme"});
             removeGroupMember();
 
             $('button.'+themeId).button();
             $('button.'+themeId).unbind();
             $('.cancelButton.'+themeId).click({id: themeId},cancel);
-            $('.saveButton.'+themeId).click(function() {
+            $('.save-button.'+themeId).click(function() {
                 saveTheme(parseInt(themeId), true);
             });
             $("."+themeId).toggleClass('hidden-edit');
@@ -1572,7 +1590,7 @@ $(document).ready(function () {
         if (editingItems.length == 0) {
             displayUpdateMsg();
             $("#list-container").sortable( "option", "disabled", false );
-            $('.saveButton').button( "option", "disabled", true );
+            //$('.save-button').button( "option", "disabled", true );
             addGroupMember();
             reload();
         }
@@ -1726,7 +1744,7 @@ $(document).ready(function () {
 	                        + storyAttr3Options
 	                        +'</select>'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveStory' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive story</p></input>'
-	                        +'<button class="inline marginTop saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline marginTop save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
 	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
 	                        + getArchivedTopic(archived, currentParent.id)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
@@ -1770,7 +1788,7 @@ $(document).ready(function () {
 	                        +'<option value="2">2</option>'
 	                        +'</select>'
 	                        //CALCULATEDTIME END
-	                        +'<button class="saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
 	                        +'<a id=' + currentChild.id + ' title="Remove task" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />'
@@ -1805,7 +1823,7 @@ $(document).ready(function () {
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
 	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
-	                        +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
 	                        + getArchivedTopic(archived, currentParent.id)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
@@ -1912,7 +1930,7 @@ $(document).ready(function () {
 	                        + storyAttr3Options
 	                        +'</select>'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveStory' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive story</p></input>'
-	                        +'<button class="inline marginTop saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline marginTop save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
 	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
 	                        + getArchivedTopic(currentChild.archived, currentChild.id)
 	                        +'<p class="description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
@@ -1947,7 +1965,7 @@ $(document).ready(function () {
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove theme" class="icon deleteItem delete-icon"></a>'
 	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
-	                        +'<button class="saveButton hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
 	                        + getArchivedTopic(archived, currentParent.id)
 	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
@@ -1978,7 +1996,7 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        +'<a id=' + currentChild.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
 	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
-	                        +'<button class="saveButton hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
 	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
 	                        +'<br style="clear:both" />'
 	                        +'</li>';
@@ -1994,15 +2012,17 @@ $(document).ready(function () {
      * Builds the visible html list using the JSON data
      */
     buildVisibleList = function (archived) {
-    	if ($("#archived-checkbox").attr("checked")) {
+    	if ($("#archived-checkbox").prop("checked")) {
     	    $("#archived-list-container").append(generateList(true)).show();
     	}
-
-        $('#list-container').append(generateList(false));
+    	if (archived != true) {
+    	    $('#list-container').append(generateList(false));    	    
+    	}
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
         }
+        $( "#list-container" ).sortable("refresh");
 
         //Make sure all items that should be invisible are invisible
         $(".childLi").each(function () {
@@ -2029,9 +2049,6 @@ $(document).ready(function () {
                 $('a.truncate'+currentId, this).click();
             }
         });
-        
-        //Fixing bouncing <li>-bug
-        $("li").css("width", $("li").width());
 
         $('.expand-icon').click(expandClick);
         $(".parent-child-list").children("li").click(liClick);
@@ -2043,7 +2060,7 @@ $(document).ready(function () {
         $(".parent-child-list").children("li").mouseup(function () {
             $(".parent-child-list").children("li").removeClass("over");
         });
-        $('.saveButton').button( "option", "disabled", true );
+        //$('.save-button').button().attr("disabled", true);
 
         $("a.createEpic").click(createEpic);
         $("a.createStory").click(createStory);
@@ -2114,74 +2131,65 @@ $(document).ready(function () {
 
         $(".bindChange").change( function(event){
             var id = ($(event.target)).closest('li').attr('id');
-            $('.saveButton').button( "option", "disabled", false );
+            $('#save-all').button( "option", "disabled", false );
+            //$(".save-button."+id).button( "option", "disabled", false );
         });
 
         $(".bindChange").bind('input propertychange', function(event) {
             var id = ($(event.target)).closest('li').attr('id');
-            $(".saveButton").button( "option", "disabled", false );
+            $("#save-all").button( "option", "disabled", false );
+            //$(".save-button."+id).button( "option", "disabled", false );
         });
 
         if (disableEditsBoolean) {
             disableEdits();
         }
 
-        if (isFilterActive() || disableEditsBoolean || $("#orderBy").val() != "prio") {
+        if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
     };
 
     var setHeightAndMargin = function (value) {
-        $("header").css("height", value);
         $("#list-container-div").css("margin", value+"px auto");
     };
 
     $(window).resize(function() {
-        //Update the width of all <li>-elements.
-        //This has to be done in order to avoid bouncing-<li> bug.
-        $("li").css("width", "auto");
-        $("li").css("width", $("li").width());
-        if ($(window).width() < 1490) {
-            setHeightAndMargin(116);
-        } else {
-            setHeightAndMargin(85);
-        }
+        setHeightAndMargin($("#header").height());
     });
 
-    if ($(window).width() < 1490) {
-        setHeightAndMargin(116);
-    }
+    setHeightAndMargin($("#header").height());
 
     /*
      * Changing the create parent button based on what view you're on
      * Also changing the view description text and the color of the view links
      */
-    if (view == "story-task") {
-        $("#print-stories").button().click(function() {
+    if (view == "story-task") {     
+    	$("#print-stories").click(function() {
             printStories();
         });
-        $( "#create-parent" ).button().click(function() {
+
+        $("#create-parent").button({
+        	label: 'CREATE STORY'
+        }).click(function() {
             createStory();
         });
-        $( "#create-parent" ).button({ label: "CREATE STORY" });
         $(".story-task-link").css("color", "#1c94c4");
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
     } else if (view == "epic-story") {
         $("#print-stories").remove();
-        $( "#create-parent" ).button().click(function() {
+        $( "#create-parent" ).button({ label: "CREATE EPIC" }).click(function() {
             createEpic();
         });
-        $( "#create-parent" ).button({ label: "CREATE EPIC" });
         $(".epic-story-link").css("color", "#1c94c4");
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
     } else if (view == "theme-epic") {
         $("#print-stories").remove();
-        $( "#create-parent" ).button().click(function() {
+        $( "#create-parent" ).button({ label: "CREATE THEME" }).click(function() {
             createTheme();
         });
-        $( "#create-parent" ).button({ label: "CREATE THEME" });
         $(".theme-epic-link").css("color", "#1c94c4");
         $("#topic").text("BACKLOG TOOL / ");
         $("#topic-area").text(areaName);
@@ -2191,6 +2199,13 @@ $(document).ready(function () {
         $(".home-link").css("color", "#1c94c4");
         $("#topic-area").text("BACKLOG TOOL");
     }
+
+	$('#settings').button({
+	    text: false,
+	    icons: {
+	        primary: 'silk-icon-wrench'
+	    }
+	});
 
     var sendMovedItems = function () {
         var moveContainer = new Object();
@@ -2253,7 +2268,6 @@ $(document).ready(function () {
         }
     }
 
-
     $("#list-container").sortable({
         tolerance: 'pointer',
         cursor: 'pointer',
@@ -2298,17 +2312,20 @@ $(document).ready(function () {
         }
 
     });
-    buildVisibleList();
 
-    //$(".parent-child-list").not("textarea").disableSelection();
+    buildVisibleList();
 
     $('#filter-button').button().click(function() {
         $('#filter').val(selectedToString());
         $('#filter').focus();
         updateFilter();
     });
-    $('.saveButton').button().click(bulkSave);
-    $('#login-out').button();
+    $('#save-all').button({
+        text: false,
+        icons: {
+            primary: 'silk-icon-disk'
+        }
+    }).click(bulkSave);
     $("#expand-all").click(function() {
         for (var i=0; i<parents.length; ++i) {
             for (var j=0; j<parents[i].children.length; ++j) {
