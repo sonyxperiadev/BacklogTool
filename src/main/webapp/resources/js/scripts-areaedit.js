@@ -291,7 +291,7 @@ $(document).ready(function() {
                 + '</div> <input id="name' + id + '" maxlength="15"'
                 + 'class="inline-block attrOptionTitle ui-corner-all">'
                 + '<input id="seriesStart' + id + '" maxlength="3" title="Series start" value="1"'
-                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all"> -'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all"> - '
                 + '<input id="seriesEnd' + id + '" maxlength="3" title="Series end" value="10"'
                 + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
                 + '<input id="seriesIncrement' + id + '" maxlength="3" title="Series increment" value="1"'

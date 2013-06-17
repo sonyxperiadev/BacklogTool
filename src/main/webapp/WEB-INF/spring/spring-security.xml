@@ -75,11 +75,10 @@ THE SOFTWARE.
     <security:ldap-user-service id="ldapUserService" user-search-base="${ldap.user-search-base}" user-search-filter="${ldap.user-search-filter}"/>
 
     <security:authentication-manager>
-        <security:authentication-provider>
-        <security:user-service>
-                <security:user name="rod" password="koala" authorities="supervisor, teller, user" />
-            </security:user-service>
-        </security:authentication-provider>
+        <security:ldap-authentication-provider
+            user-search-filter="${ldap.user-search-filter}"
+            user-search-base="${ldap.user-search-base}">
+        </security:ldap-authentication-provider>
     </security:authentication-manager>
 
 </beans>

@@ -1845,7 +1845,7 @@ public class JSONController {
             Set<AttributeOption> dbOptions = dbAttribute.getOptions();
             Set<AttributeOption> updatedOptions = updatedAttribute.getOptions();
             
-            if (updatedOptions.size() > 100000) {
+            if (updatedOptions.size() > 1500) {
                 throw new Exception("Too many attribute options");
             }
 

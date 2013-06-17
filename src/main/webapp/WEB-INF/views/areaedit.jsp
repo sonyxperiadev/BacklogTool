@@ -195,7 +195,7 @@ THE SOFTWARE.
                                             <input id="seriesStart${option.id}" title="Series start"
                                             value="${option.seriesStart}"
                                             maxlength="3" type="number"
-                                            class="inline-block attrOptionSeriesBox ui-corner-all">-
+                                            class="inline-block attrOptionSeriesBox ui-corner-all"> - 
                                             <input id="seriesEnd${option.id}" title="Series end"
                                             value="${option.seriesEnd}"
                                             maxlength="3" type="number"

@@ -170,9 +170,7 @@ public class HomeController {
         File dir = new File(context.getRealPath("/resources/image"));
         String[] icons = dir.list();
         
-        //Kan vara gemensam för alla.
-        //För varje serieID, skapa alla underliggande positioners IDn.
-        //SerieID -> position -> specifik id
+        //Maps: SeriesID -> comparevalue -> storyId
         HashMap<Integer,HashMap<Integer,Integer>> seriesIds = new HashMap<Integer,HashMap<Integer,Integer>>();
         
         Set<AttributeOption> options = area.getStoryAttr1().getOptions();
@@ -196,6 +194,12 @@ public class HomeController {
                         && lastIcon != null && lastIcon.equals(option.getIcon())) { //If current series was same as last
                     lastSeriesEnd = option.getNumber();
                 } else { //Not same as last
+                    if (lastSeriesIncrement != null) { //If it's not the first series
+                        AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                                lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+                        newOptions.add(series);
+                    }
+                    
                     lastSeriesStart = option.getNumber();
                     lastCompareValue = option.getCompareValue();
                     lastName = option.getNameNoNumber();
@@ -204,8 +208,8 @@ public class HomeController {
                     lastSeriesId = option.getId();
                     lastIds = new HashMap<Integer, Integer>();
                 }
-                lastIds.put(option.getNumber(),option.getId());
-            } else { //Not part of series                
+                lastIds.put(option.getNumber(), option.getId());
+            } else { //Current is not part of a series                
                 if (lastSeriesIncrement != null) {//If current is not part of series, but last was
                     seriesIds.put(lastSeriesId, lastIds);
                     AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
@@ -216,7 +220,7 @@ public class HomeController {
             }
             lastSeriesIncrement = seriesIncrement;
         }
-        if (lastSeriesIncrement != null) {
+        if (lastSeriesIncrement != null) { //Last was a series
             seriesIds.put(lastSeriesId, lastIds);
             AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
                     lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
