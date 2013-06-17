@@ -1638,7 +1638,18 @@ $(document).ready(function () {
                 }
             });
         } else {
-            alert("No stories selected!");
+            var noStoriesDialog = $(document.createElement('div'));
+            $(noStoriesDialog).attr('title', 'No stories selected');
+            $(noStoriesDialog).html('<p>Please select stories to move before using this option!</p>');
+            noStoriesDialog.dialog({
+                modal: true,
+                width: 325,
+                buttons: {
+                    Ok: function() {
+                        $( this ).dialog( "close" );
+                    }
+                }
+            });
         }
     }; 
 
