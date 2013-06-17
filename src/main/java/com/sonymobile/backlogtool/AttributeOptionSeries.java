@@ -23,6 +23,12 @@
  */
 package com.sonymobile.backlogtool;
 
+/**
+ * AttributeOptionSeries extends AttributeOption with information
+ * about the start and end of the series.
+ * 
+ * @author Fredrik Persson &lt;fredrik6.persson@sonymobile.com&gt;
+ */
 public class AttributeOptionSeries extends AttributeOption {
     private int seriesStart;
     private int seriesEnd;

@@ -75,11 +75,19 @@ public class AttributeOption {
         return StringEscapeUtils.escapeHtml(name);
     }
     
+    /**
+     * Gets the name without number if this attribute is part of a number series.
+     * @return name
+     */
     @JsonIgnore
     public String getNameNoNumber() {
         return getName().replaceAll(" [^ ]+$", "");
     }
     
+    /**
+     * Gets the number if this attribute is part of a number series.
+     * @return number
+     */
     @JsonIgnore
     public int getNumber() {
         String[] words = getName().split(" ");
