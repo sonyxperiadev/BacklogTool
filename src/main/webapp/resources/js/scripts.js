@@ -212,7 +212,8 @@ $(document).ready(function () {
     $('#archived-checkbox').change(function () {
         $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
         if ($("#archived-checkbox").prop("checked")) {
-            $("#archived-list-container").empty().append(generateList(true));
+            $("#archived-list-container").empty();
+            buildVisibleList(true);
 
             //Unbind all items and bind them again including archived.
             $(".editTheme").unbind("dblclick");
@@ -992,6 +993,18 @@ $(document).ready(function () {
         var id = event.data.id;
         editingItems.remove({id:id});
         $("."+id).toggleClass('hidden-edit');
+
+        //Re-activate double click
+        var li = $("li#"+id);
+        if (li.hasClass("task")) {
+            li.dblclick(editTask);
+        } else if (li.hasClass("story")) {
+            li.dblclick(editStory);
+        } else if (li.hasClass("epic")) {
+            li.dblclick(editEpic);
+        } else if (li.hasClass("theme")) {
+            li.dblclick(editTheme);
+        }       
         updateWhenItemsClosed();
     };
 
@@ -999,11 +1012,7 @@ $(document).ready(function () {
      * Cancel current editing of parents/children.
      */
     var bulkCancel = function() {            
-        for(var j = 0; j < editingItems.length; j++) {
-            var id = editingItems[j].id;
-            $("."+id).toggleClass('hidden-edit');
-            editingItems.remove({id:id});
-        }
+        editingItems = new Array();
         updateWhenItemsClosed();
     };
 
@@ -1062,6 +1071,7 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
+            $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
             removeGroupMember();
             $('button.'+storyId).button();
@@ -1157,6 +1167,8 @@ $(document).ready(function () {
         } else {
             storyId = event.data.storyId;
         }
+        var li = $('#'+storyId);
+        
         //Creates a new story and sets all updated values
         var story = new Object();
         story.id = eval(storyId);
@@ -1210,8 +1222,6 @@ $(document).ready(function () {
             	$('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
             	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
             	$('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
-            	
-            	var li = $('#'+storyId);
 
             	if (view == "story-task") {
             	    //If Story was moved,
@@ -1248,6 +1258,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editStory);
     };
 
     /**
@@ -1267,6 +1278,7 @@ $(document).ready(function () {
         else {
             taskId = event.data.taskId;
         }
+        var li = $('#'+taskId);
 
         //Creates a new task and sets all updated values
         var task = new Object();
@@ -1307,6 +1319,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editTask);
     };
 
     var editTask = function(event) {
@@ -1319,6 +1332,7 @@ $(document).ready(function () {
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
+            $("li#"+taskId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:taskId, type:"task"});
             removeGroupMember();
             $('button.'+taskId).button();
@@ -1356,6 +1370,7 @@ $(document).ready(function () {
         else {
             epicId = event.data.epicId;
         }
+        var li = $('#'+epicId);
 
         //Creates a new epic and sets all updated values
         var epic = new Object();
@@ -1386,8 +1401,6 @@ $(document).ready(function () {
                 if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
                     $('a.truncate'+epicId, descriptionParagraph.parent()).click();
                 }
-
-            	var li = $('#'+epicId);
 
             	if (view == "epic-story") {
             	    //If epic was moved,
@@ -1424,6 +1437,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editEpic);
     };
 
     var editEpic = function(event) {
@@ -1441,6 +1455,7 @@ $(document).ready(function () {
         }
 
         if (isGoingIntoEdit(epicId)) {
+            $("li#"+epicId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:epicId, type:"epic"});
             removeGroupMember();
 
@@ -1484,6 +1499,7 @@ $(document).ready(function () {
         else {
             themeId = event.data.themeId;
         }
+        var li = $('#'+themeId);
 
         //Creates a new epic and sets all updated values
         var theme = new Object();
@@ -1513,8 +1529,6 @@ $(document).ready(function () {
                     $('a.truncate'+themeId, descriptionParagraph.parent()).click();
                 }
 
-            	var li = $('#'+themeId);
-
             	//if Story was moved from or to archive
             	if (getParent(themeId).archived != updatedTheme.archived) {
             		//Checks if this story is in list-container or in archived.list-container and moves it.
@@ -1540,6 +1554,7 @@ $(document).ready(function () {
                 alert(error);
             }
         });
+        li.dblclick(editTheme);
     };
 
     var editTheme = function(event) {
@@ -1555,7 +1570,7 @@ $(document).ready(function () {
             theme = getChild(themeId);
         }
         if (isGoingIntoEdit(themeId)) {
-
+            $("li#"+themeId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:themeId, type:"theme"});
             removeGroupMember();
 
@@ -2058,8 +2073,9 @@ $(document).ready(function () {
     	if ($("#archived-checkbox").prop("checked")) {
     	    $("#archived-list-container").append(generateList(true)).show();
     	}
-
-        $('#list-container').append(generateList(false));
+    	if (archived != true) {
+    	    $('#list-container').append(generateList(false));    	    
+    	}
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");

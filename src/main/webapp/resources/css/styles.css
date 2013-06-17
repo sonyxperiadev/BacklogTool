@@ -650,3 +650,18 @@ hr.menu-divider {
 	margin-top: 3px;
 	margin-bottom: 3px;
 }
+
+.remember-me {
+	margin-top: 6px;
+	float: left;
+}
+
+input#submit {
+	float: left;
+	clear: both;
+	margin-top: 10px;
+}
+
+div#login-error {
+	clear: both;
+}

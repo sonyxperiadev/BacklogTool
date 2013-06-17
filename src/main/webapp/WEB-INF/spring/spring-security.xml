@@ -50,10 +50,29 @@ THE SOFTWARE.
         <security:logout invalidate-session="true"
             logout-success-url="/auth/login" logout-url="/auth/logout" />
 
+        <security:remember-me key="BacklogTool" token-validity-seconds="864000" token-repository-ref="tokenRepository" />
+
     </security:http>
 
     <security:ldap-server url="${ldap.url}"
         manager-dn="${ldap.managerdn}" manager-password="${ldap.managerpassword}" />
+        
+    <bean id="tokenRepository"
+      class="org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl">
+      <property name="createTableOnStartup" value="false" />
+      <property name="dataSource" ref="dataSource"/>
+    </bean>
+    
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close">
+        <property name="driverClassName" value="${db.driverClassName}" />
+        <property name="url"
+            value="${db.url}" />
+        <property name="username" value="${db.username}" />
+        <property name="password" value="${db.password}" />
+    </bean>
+    
+    <security:ldap-user-service id="ldapUserService" user-search-base="${ldap.user-search-base}" user-search-filter="${ldap.user-search-filter}"/>
 
     <security:authentication-manager>
         <security:ldap-authentication-provider
