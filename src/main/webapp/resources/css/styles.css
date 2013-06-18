@@ -31,7 +31,7 @@ html, body {
 }
 
 #main {
-	overflow:auto;
+	overflow:hidden;
 	padding-bottom: 20px;  /* must be same height as the footer */
 }
 

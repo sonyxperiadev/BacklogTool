@@ -2348,6 +2348,8 @@ $(document).ready(function () {
         placeholder: "ui-state-highlight",
         opacity: 0.50,
         axis: 'y',
+        scroll: true,
+        scrollSpeed: 35,
         distance: 5,
         helper: function () {
             var pressed = $(".over");
