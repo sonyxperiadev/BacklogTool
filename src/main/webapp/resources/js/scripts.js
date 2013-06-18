@@ -1743,7 +1743,7 @@ $(document).ready(function () {
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
 	                        +'<p class="description story-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
-	                        +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
+	                        +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="10485760">' + currentParent.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
 	                        //TITLE FIELDS END
