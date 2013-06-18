@@ -2060,6 +2060,10 @@ public class JSONController {
 
             Set<AttributeOption> dbOptions = dbAttribute.getOptions();
             Set<AttributeOption> updatedOptions = updatedAttribute.getOptions();
+            
+            if (updatedOptions.size() > 1500) {
+                throw new Exception("Too many attribute options");
+            }
 
             //Build Hashmap to update..
             Map<Integer,AttributeOption> dbOptionsMap = new HashMap<Integer, AttributeOption>();
@@ -2114,6 +2118,7 @@ public class JSONController {
                     dbOption.setIcon(updatedOption.getIcon());
                     dbOption.setName(updatedOption.getName());
                     dbOption.setCompareValue(updatedOption.getCompareValue());
+                    dbOption.setSeriesIncrement(updatedOption.getSeriesIncrement());
                 }
             }
 

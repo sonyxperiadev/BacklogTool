@@ -156,6 +156,7 @@ $(document).ready(function() {
         var attribute = new Object();
         attribute.id = id;
         attribute.name = $("input#" + id).val();
+        var valid = true;
 
         var options = new Array();
         var compareValue = 1;
@@ -163,7 +164,9 @@ $(document).ready(function() {
         $("#ul" + id).children("li").each(function() {
             var option = new Object();
 
+            var isSeries = $(this).hasClass("series");
             var id = $(this).attr("id");
+
             if (id.indexOf("NewOption") == -1) {
                 option.id = id;
             } else {
@@ -175,25 +178,108 @@ $(document).ready(function() {
             option.name = $(this).children("input#name"+id).val();
             option.iconEnabled = $("#iconEnabled"+id).is(':checked');
             option.icon = $("#icon"+id).attr("icon");
-            option.compareValue = compareValue++;
 
-            options.push(option);
+            if (isSeries) {
+                var seriesStart = parseInt($(this).children("input#seriesStart"+id).val());
+                var seriesEnd = parseInt($(this).children("input#seriesEnd"+id).val());
+                var seriesIncrement = parseInt($(this).children("input#seriesIncrement"+id).val());
+                var name = option.name;
+                var iconEnabled = option.iconEnabled;
+                var icon = option.icon;
+                
+                if (isNaN(seriesStart) || isNaN(seriesEnd) || isNaN(seriesIncrement)) {
+                    var invalidDialog = $(document.createElement('div'));
+                    $(invalidDialog).attr('title', 'Invalid options');
+                    $(invalidDialog).html('<p>Invalid series! Only numbers are allowed</p>');
+                    invalidDialog.dialog({
+                        modal: true,
+                        width: 325,
+                        buttons: {
+                            Ok: function() {
+                                location.reload();
+                                $( this ).dialog( "close" );
+                            }
+                        }
+                    });
+                    valid = false;
+                    return false; //Breaks li.each function
+                }
+
+                var count = 0;                
+                for (var number = seriesStart; number <= seriesEnd; number+=seriesIncrement) {
+                    if (count++ > 1500) {
+                        var invalidDialog = $(document.createElement('div'));
+                        $(invalidDialog).attr('title', 'Invalid options');
+                        $(invalidDialog).html('<p>Too many or invalid attribute options! Must be integers and max limit is 1500 options!</p>');
+                        invalidDialog.dialog({
+                            modal: true,
+                            width: 325,
+                            buttons: {
+                                Ok: function() {
+                                    location.reload();
+                                    $( this ).dialog( "close" );
+                                }
+                            }
+                        });
+                        valid = false;
+                        return false; //Breaks li.each function
+                    } else {
+                        var option = new Object();
+                        option.iconEnabled = iconEnabled;
+                        option.icon = icon;
+                        option.seriesIncrement = seriesIncrement;
+                        option.name = name + " " + number.toFixed();
+                        option.compareValue = compareValue++;
+                        var series = seriesIds[id];
+                        if (series != null) {
+                            option.id = seriesIds[id][number];
+                        }
+                        if (option.id == null) {
+                            option.id = -compareValue;
+                        }
+                        options.push(option);
+                    }
+                };
+                if (count == 0) {
+                    var invalidDialog = $(document.createElement('div'));
+                    $(invalidDialog).attr('title', 'Invalid options');
+                    $(invalidDialog).html('<p>The series contained no elements, try again</p>');
+                    invalidDialog.dialog({
+                        modal: true,
+                        width: 325,
+                        buttons: {
+                            Ok: function() {
+                                location.reload();
+                                $( this ).dialog( "close" );
+                            }
+                        }
+                    });
+                    valid = false;
+                    return false; //Breaks li.each function
+                }
+            } else {
+                option.compareValue = compareValue++;
+                options.push(option);
+            };
         });
-        attribute.options = options;
 
-        $.ajax({
-            url : "../json/updateAttribute/" + areaName,
-            type : 'POST',
-            async: false,
-            dataType : 'json',
-            async : false,
-            data : JSON.stringify(attribute),
-            contentType : "application/json; charset=utf-8",
-            error : function(request, status, error) {
-                alert(error);
-            }
-        });
-
+        if (valid) {
+            attribute.options = options;
+            $.ajax({
+                url : "../json/updateAttribute/" + areaName,
+                type : 'POST',
+                async: false,
+                dataType : 'json',
+                async : false,
+                data : JSON.stringify(attribute),
+                contentType : "application/json; charset=utf-8",
+                error : function(request, status, error) {
+                    alert(error);
+                }
+            });
+            return true;
+        }
+        return false;
     };
 
     $('.checkbox').change(function() {
@@ -202,11 +288,12 @@ $(document).ready(function() {
     });
 
     $("#save").button().click(function() {
-        updateAttribute(storyAttr1Id);
-        updateAttribute(storyAttr2Id);
-        updateAttribute(storyAttr3Id);
-        updateAttribute(taskAttr1Id);
-        location.reload();
+        if (updateAttribute(storyAttr1Id)
+                & updateAttribute(storyAttr2Id)
+                & updateAttribute(storyAttr3Id)
+                & updateAttribute(taskAttr1Id)) {
+            location.reload();
+        }
     });
     $(".deleteAdminButton").click(deleteAdmin);
     $(".deleteEditorButton").click(deleteEditor);
@@ -233,7 +320,7 @@ $(document).ready(function() {
                 + '<span class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>'
                 + '<div class="inline-block icon-container">'
                 + '<input id="iconEnabled' + id + '"'
-                + 'class="checkbox inline-block" type="checkbox" checked="checked" />'
+                + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
                 + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
                 + 'src="../resources/image/new.png" icon="new.png" /> '
                 + '</div> <input id="name' + id + '" maxlength="15"'
@@ -246,6 +333,34 @@ $(document).ready(function() {
             $(this).closest("li").remove();
         });
     });
+    
+    $(".addOptionSeries").click(function(event) {
+        var parentId = $(this).attr("id");
+        var id = 'NewOption' + ++newCount;
+        $("#ul" + parentId).append('<li id="' + id + '" class="series" >'
+                + '<span class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>'
+                + '<div class="inline-block icon-container">'
+                + '<input id="iconEnabled' + id + '"'
+                + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
+                + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
+                + 'src="../resources/image/new.png" icon="new.png" /> '
+                + '</div> <input id="name' + id + '" maxlength="15" title="Optional name"'
+                + 'class="inline-block attrOptionTitle ui-corner-all">'
+                + '<input id="seriesStart' + id + '" maxlength="3" title="Series start" value="0"'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all"> - '
+                + '<input id="seriesEnd' + id + '" maxlength="3" title="Series end" value="10"'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
+                + '<input id="seriesIncrement' + id + '" maxlength="3" title="Series increment" value="1"'
+                + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
+                + '<img style="margin: 0px 4px" class="removeOption" src="../resources/image/delete.png" />'
+                + '</li>');
+        event.stopPropagation();
+        $(".attrIcon").click(selectIcon);
+        $(".removeOption").click(function(event) {
+            $(this).closest("li").remove();
+        });
+    });
+    
 
     $(".removeOption").click(function(event) {
         $(this).closest("li").remove();

@@ -34,7 +34,7 @@ THE SOFTWARE.
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
-    <script type="text/javascript" src="<c:url value="/resources/js/scripts-areaedit.js?v=1" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/scripts-areaedit.js?v=${versionNoDots}" />"></script>
     
     <script type="text/javascript">
         var areaName = "${area.name}";
@@ -42,9 +42,10 @@ THE SOFTWARE.
         var storyAttr2Id = "${area.storyAttr2.id}";
         var storyAttr3Id = "${area.storyAttr3.id}";
         var taskAttr1Id = "${area.taskAttr1.id}";
+    	var seriesIds = jQuery.parseJSON('${seriesIds}');
     </script>
 </head>
-<body>
+<body style="min-width: 1420px;">
     <div id="wrap">
         <div id="header">
             <h1>
@@ -127,183 +128,49 @@ THE SOFTWARE.
                 <h5>Stories</h5>
                 <table>
                     <tr>
-                        <td style="width: 280px"><input
+                        <td style="width: 450px"><input
                             id="${area.storyAttr1.id}"
                             class="ui-corner-all attrTitle"
                             value="${area.storyAttr1.name}"
-                            maxlength="15"></td>
-                        <td style="width: 280px"><input
+                            maxlength="15">
+                        </td>
+                        <td style="width: 450px"><input
                             id="${area.storyAttr2.id}"
                             class="ui-corner-all attrTitle"
                             value="${area.storyAttr2.name}"
-                            maxlength="15"></td>
-                        <td style="width: 280px"><input
-                            id="${area.storyAttr3.id}"
+                            maxlength="15">
+                        </td>
+                        <td style="width: 450px">
+                            <input id="${area.storyAttr3.id}"
                             class="ui-corner-all attrTitle"
                             value="${area.storyAttr3.name}"
-                            maxlength="15"></td>
+                            maxlength="15">
+                        </td>
                     </tr>
                     <tr>
-                        <td VALIGN="top">
-                            <ul id="ul${area.storyAttr1.id}">
-                                <c:forEach
-                                    items="${area.storyAttr1.options}"
-                                    var="option">
-                                    <li id="${option.id}"><span
-                                        class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>
-                                        <div
-                                            class="inline-block icon-container">
-                                            <input
-                                                id="iconEnabled${option.id}"
-                                                class="checkbox inline-block"
-                                                type="checkbox"
-                                                <c:if test="${option.iconEnabled==true}">checked="checked"</c:if> />
-                                            <img
-                                                class="attrIcon <c:if test="${option.iconEnabled==false}">icon-hidden</c:if>"
-                                                id="icon${option.id}"
-                                                src="../resources/image/${option.icon}"
-                                                icon="${option.icon}" />
-                                        </div> <input id="name${option.id}"
-                                        value="${option.name}"
-                                        maxlength="15"
-                                        class="inline-block attrOptionTitle ui-corner-all">
-                                        <img class="removeOption"
-                                        src="../resources/image/delete.png" />
-                                    </li>
-                                </c:forEach>
-                            </ul>
-                            <p id="${area.storyAttr1.id}"
-                                class="addOption"
-                                style="text-indent: 35px;">
-                                <img id="${area.storyAttr1.id}"
-                                    class="addOption"
-                                    src="../resources/image/add.png" />
-                                Add new
-                            </p>
-                        </td>
-                        <td VALIGN="top">
-                            <ul id="ul${area.storyAttr2.id}">
-                                <c:forEach
-                                    items="${area.storyAttr2.options}"
-                                    var="option">
-                                    <li id="${option.id}"><span
-                                        class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>
-                                        <div
-                                            class="inline-block icon-container">
-                                            <input
-                                                id="iconEnabled${option.id}"
-                                                class="checkbox inline-block"
-                                                type="checkbox"
-                                                <c:if test="${option.iconEnabled==true}">checked="checked"</c:if> />
-                                            <img
-                                                class="attrIcon <c:if test="${option.iconEnabled==false}">icon-hidden</c:if>"
-                                                id="icon${option.id}"
-                                                src="../resources/image/${option.icon}"
-                                                icon="${option.icon}" />
-                                        </div> <input id="name${option.id}"
-                                        value="${option.name}"
-                                        maxlength="15"
-                                        class="inline-block attrOptionTitle ui-corner-all">
-                                        <img class="removeOption"
-                                        src="../resources/image/delete.png" />
-                                    </li>
-                                </c:forEach>
-                            </ul>
-                            <p id="${area.storyAttr2.id}"
-                                class="addOption"
-                                style="text-indent: 35px;">
-                                <img id="${area.storyAttr2.id}"
-                                    class="addOption"
-                                    src="../resources/image/add.png" />
-                                Add new
-                            </p>
-                        </td>
-                        <td VALIGN="top">
-                            <ul id="ul${area.storyAttr3.id}">
-                                <c:forEach
-                                    items="${area.storyAttr3.options}"
-                                    var="option">
-                                    <li id="${option.id}"><span
-                                        class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>
-                                        <div
-                                            class="inline-block icon-container">
-                                            <input
-                                                id="iconEnabled${option.id}"
-                                                class="checkbox inline-block"
-                                                type="checkbox"
-                                                <c:if test="${option.iconEnabled==true}">checked="checked"</c:if> />
-                                            <img
-                                                class="attrIcon <c:if test="${option.iconEnabled==false}">icon-hidden</c:if>"
-                                                id="icon${option.id}"
-                                                src="../resources/image/${option.icon}"
-                                                icon="${option.icon}" />
-                                        </div> <input id="name${option.id}"
-                                        value="${option.name}"
-                                        maxlength="15"
-                                        class="inline-block attrOptionTitle ui-corner-all">
-                                        <img class="removeOption"
-                                        src="../resources/image/delete.png" />
-                                    </li>
-                                </c:forEach>
-                            </ul>
-                            <p id="${area.storyAttr3.id}"
-                                class="addOption"
-                                style="text-indent: 35px;">
-                                <img id="${area.storyAttr3.id}"
-                                    class="addOption"
-                                    src="../resources/image/add.png" />
-                                Add new
-                            </p>
-                        </td>
+                        <c:set var="attribute" value="${area.storyAttr1}" />
+                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
+                        
+                        <c:set var="attribute" value="${area.storyAttr2}" />
+                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
+
+                        <c:set var="attribute" value="${area.storyAttr3}" />
+                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
                     </tr>
                 </table>
                 <h5>Tasks</h5>
                 <table>
                     <tr>
-                        <td style="width: 280px"><input
-                            id="${area.taskAttr1.id}"
-                            class="attrTitle ui-corner-all"
-                            maxlength="15"
-                            value="${area.taskAttr1.name}"></td>
+                        <td style="width: 450px">
+                            <input id="${area.taskAttr1.id}"
+                            class="ui-corner-all attrTitle"
+                            value="${area.taskAttr1.name}"
+                            maxlength="15">
+                        </td>
                     </tr>
                     <tr>
-                        <td VALIGN="top">
-                            <ul id="ul${area.taskAttr1.id}">
-                                <c:forEach
-                                    items="${area.taskAttr1.options}"
-                                    var="option">
-                                    <li id="${option.id}"><span
-                                        class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>
-                                        <div
-                                            class="inline-block icon-container">
-                                            <input
-                                                id="iconEnabled${option.id}"
-                                                class="checkbox inline-block"
-                                                type="checkbox"
-                                                <c:if test="${option.iconEnabled==true}">checked="checked"</c:if> />
-                                            <img
-                                                class="attrIcon <c:if test="${option.iconEnabled==false}">icon-hidden</c:if>"
-                                                id="icon${option.id}"
-                                                src="../resources/image/${option.icon}"
-                                                icon="${option.icon}" />
-                                        </div> <input id="name${option.id}"
-                                        value="${option.name}"
-                                        maxlength="15"
-                                        class="inline-block attrOptionTitle ui-corner-all">
-                                        <img class="removeOption"
-                                        src="../resources/image/delete.png" />
-                                    </li>
-                                </c:forEach>
-                            </ul>
-                            <p id="${area.taskAttr1.id}"
-                                class="addOption"
-                                style="text-indent: 35px;">
-                                <img id="${area.taskAttr1.id}"
-                                    class="addOption"
-                                    src="../resources/image/add.png" />
-                                Add new
-                            </p>
-                        </td>
+                        <c:set var="attribute" value="${area.taskAttr1}" />
+                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
                     </tr>
                 </table>
 
