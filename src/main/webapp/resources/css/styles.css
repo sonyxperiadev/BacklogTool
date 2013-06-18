@@ -670,6 +670,6 @@ div#login-error {
 	clear: both;
 }
 
-table#storyAttr3 {
-	margin-top: 25px;
+p.addOptionSeries, p.addOption {
+	margin-left: 40px;
 }

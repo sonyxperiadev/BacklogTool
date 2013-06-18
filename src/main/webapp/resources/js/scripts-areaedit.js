@@ -182,10 +182,28 @@ $(document).ready(function() {
             if (isSeries) {
                 var seriesStart = parseInt($(this).children("input#seriesStart"+id).val());
                 var seriesEnd = parseInt($(this).children("input#seriesEnd"+id).val());
-                var seriesIncrement = parseFloat($(this).children("input#seriesIncrement"+id).val());
+                var seriesIncrement = parseInt($(this).children("input#seriesIncrement"+id).val());
                 var name = option.name;
                 var iconEnabled = option.iconEnabled;
                 var icon = option.icon;
+                
+                if (isNaN(seriesStart) || isNaN(seriesEnd) || isNaN(seriesIncrement)) {
+                    var invalidDialog = $(document.createElement('div'));
+                    $(invalidDialog).attr('title', 'Invalid options');
+                    $(invalidDialog).html('<p>Invalid series! Only numbers are allowed</p>');
+                    invalidDialog.dialog({
+                        modal: true,
+                        width: 325,
+                        buttons: {
+                            Ok: function() {
+                                location.reload();
+                                $( this ).dialog( "close" );
+                            }
+                        }
+                    });
+                    valid = false;
+                    return false; //Breaks li.each function
+                }
 
                 var count = 0;                
                 for (var number = seriesStart; number <= seriesEnd; number+=seriesIncrement) {
@@ -210,7 +228,7 @@ $(document).ready(function() {
                         option.iconEnabled = iconEnabled;
                         option.icon = icon;
                         option.seriesIncrement = seriesIncrement;
-                        option.name = name + " " + number;
+                        option.name = name + " " + number.toFixed();
                         option.compareValue = compareValue++;
                         var series = seriesIds[id];
                         if (series != null) {
@@ -222,6 +240,23 @@ $(document).ready(function() {
                         options.push(option);
                     }
                 };
+                if (count == 0) {
+                    var invalidDialog = $(document.createElement('div'));
+                    $(invalidDialog).attr('title', 'Invalid options');
+                    $(invalidDialog).html('<p>The series contained no elements, try again</p>');
+                    invalidDialog.dialog({
+                        modal: true,
+                        width: 325,
+                        buttons: {
+                            Ok: function() {
+                                location.reload();
+                                $( this ).dialog( "close" );
+                            }
+                        }
+                    });
+                    valid = false;
+                    return false; //Breaks li.each function
+                }
             } else {
                 option.compareValue = compareValue++;
                 options.push(option);

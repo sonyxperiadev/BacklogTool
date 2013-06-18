@@ -52,7 +52,7 @@ public class AttributeOption {
     private String color;
     private int compareValue;
     private boolean iconEnabled = true;
-    private Double seriesIncrement;
+    private Integer seriesIncrement;
 
     public AttributeOption() {}
 
@@ -155,11 +155,11 @@ public class AttributeOption {
         this.iconEnabled = iconEnabled;
     }
 
-    public Double getSeriesIncrement() {
+    public Integer getSeriesIncrement() {
         return seriesIncrement;
     }
 
-    public void setSeriesIncrement(Double seriesIncrement) {
+    public void setSeriesIncrement(Integer seriesIncrement) {
         this.seriesIncrement = seriesIncrement;
     }
 

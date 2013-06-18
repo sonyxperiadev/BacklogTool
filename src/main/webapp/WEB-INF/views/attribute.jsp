@@ -57,14 +57,16 @@
             </c:if>
         </c:forEach>
     </ul>
-    <p id="${attribute.id}" class="addOption"
-        style="text-indent: 35px;">
-        <img id="${attribute.id}" class="addOption"
-            src="../resources/image/add.png" /> Add single element
+    <p id="${attribute.id}" class="addOption">
+        <a>
+            <img id="${attribute.id}" class="addOption"
+                src="../resources/image/add.png" /> Add single element
+        </a>
     </p>
-    <p id="${attribute.id}" class="addOptionSeries"
-        style="text-indent: 35px;">
-        <img id="${attribute.id}" class="addOptionSeries"
-            src="../resources/image/add.png" /> Add series
+    <p id="${attribute.id}" class="addOptionSeries">
+        <a>
+            <img id="${attribute.id}" class="addOptionSeries"
+                src="../resources/image/add.png" /> Add series
+        </a>
     </p>
 </td>

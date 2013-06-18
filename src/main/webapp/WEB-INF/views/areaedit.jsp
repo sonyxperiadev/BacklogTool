@@ -45,7 +45,7 @@ THE SOFTWARE.
     	var seriesIds = jQuery.parseJSON('${seriesIds}');
     </script>
 </head>
-<body>
+<body style="min-width: 1420px;">
     <div id="wrap">
         <div id="header">
             <h1>
@@ -132,23 +132,14 @@ THE SOFTWARE.
                             id="${area.storyAttr1.id}"
                             class="ui-corner-all attrTitle"
                             value="${area.storyAttr1.name}"
-                            maxlength="15"></td>
+                            maxlength="15">
+                        </td>
                         <td style="width: 450px"><input
                             id="${area.storyAttr2.id}"
                             class="ui-corner-all attrTitle"
                             value="${area.storyAttr2.name}"
-                            maxlength="15"></td>
-                    </tr>
-                    <tr>
-                        <c:set var="attribute" value="${area.storyAttr1}" />
-                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
-                        
-                        <c:set var="attribute" value="${area.storyAttr2}" />
-                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
-                    </tr>
-                </table>
-                <table id="storyAttr3">
-                    <tr>
+                            maxlength="15">
+                        </td>
                         <td style="width: 450px">
                             <input id="${area.storyAttr3.id}"
                             class="ui-corner-all attrTitle"
@@ -157,6 +148,12 @@ THE SOFTWARE.
                         </td>
                     </tr>
                     <tr>
+                        <c:set var="attribute" value="${area.storyAttr1}" />
+                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
+                        
+                        <c:set var="attribute" value="${area.storyAttr2}" />
+                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
+
                         <c:set var="attribute" value="${area.storyAttr3}" />
                         <%@ include file="/WEB-INF/views/attribute.jsp" %>
                     </tr>

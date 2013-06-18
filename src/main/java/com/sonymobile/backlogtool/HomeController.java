@@ -170,7 +170,7 @@ public class HomeController {
         File dir = new File(context.getRealPath("/resources/image"));
         String[] icons = dir.list();
         
-        //Maps: SeriesID -> comparevalue -> storyId
+        //Maps: SeriesID -> comparevalue -> attributeID
         HashMap<Integer,HashMap<Integer,Integer>> seriesIds = new HashMap<Integer,HashMap<Integer,Integer>>();
 
         ArrayList<Attribute> allAttributes = new ArrayList<Attribute>();
@@ -181,59 +181,7 @@ public class HomeController {
         
         for (Attribute currentAttr : allAttributes) {
             Set<AttributeOption> options = currentAttr.getOptions();
-            Set<AttributeOption> newOptions = new LinkedHashSet<AttributeOption>();
-            
-            String lastName = null;
-            String lastIcon = null;
-            boolean lastIconEnabled = false;
-            int lastCompareValue = -1;
-            int lastSeriesStart = -1;
-            int lastSeriesEnd = -1;
-            int lastSeriesId = -1;
-            Double lastSeriesIncrement = null;
-            HashMap<Integer,Integer> lastIds = new HashMap<Integer, Integer>();
-            for (AttributeOption option : options) {
-                Double seriesIncrement = option.getSeriesIncrement();
-                if (seriesIncrement != null) { //If current is part of series.
-                    if (lastSeriesIncrement!= null && seriesIncrement != null
-                            && Double.compare(lastSeriesIncrement, seriesIncrement) == 0
-                            && lastName != null && lastName.equals(option.getNameNoNumber())
-                            && lastIcon != null && lastIcon.equals(option.getIcon())) { //If current series was same as last
-                        lastSeriesEnd = option.getNumber();
-                    } else { //Not same as last
-                        if (lastSeriesIncrement != null) { //If it's not the first series
-                            AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
-                                    lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
-                            newOptions.add(series);
-                        }
-                        
-                        lastSeriesStart = option.getNumber();
-                        lastSeriesEnd = option.getNumber();
-                        lastCompareValue = option.getCompareValue();
-                        lastName = option.getNameNoNumber();
-                        lastIcon = option.getIcon();
-                        lastIconEnabled = option.isIconEnabled();
-                        lastSeriesId = option.getId();
-                        lastIds = new HashMap<Integer, Integer>();
-                    }
-                    lastIds.put(option.getNumber(), option.getId());
-                } else { //Current is not part of a series                
-                    if (lastSeriesIncrement != null) {//If current is not part of series, but last was
-                        seriesIds.put(lastSeriesId, lastIds);
-                        AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
-                                lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
-                        newOptions.add(series);
-                    } 
-                    newOptions.add(option);
-                }
-                lastSeriesIncrement = seriesIncrement;
-            }
-            if (lastSeriesIncrement != null) { //Last was a series
-                seriesIds.put(lastSeriesId, lastIds);
-                AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
-                        lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
-                newOptions.add(series);
-            }
+            Set<AttributeOption> newOptions = groupSeries(options, seriesIds);
             currentAttr.setOptions(newOptions);
         }
 
@@ -247,6 +195,71 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         return view;
+    }
+
+    /**
+     * Helper for areaedit. Groups attribute options in series.
+     * @param options the options to group
+     * @param seriesIds map where the series ids are mapped to another map where
+     *                  compare values are mapped to attribute ids.
+     * @return Set of grouped attribute options
+     */
+    private static Set<AttributeOption> groupSeries(Set<AttributeOption> options,
+            HashMap<Integer,HashMap<Integer,Integer>> seriesIds) {
+        Set<AttributeOption> newOptions = new LinkedHashSet<AttributeOption>();
+        String lastName = null;
+        String lastIcon = null;
+        boolean lastIconEnabled = false;
+        int lastCompareValue = -1;
+        int lastSeriesStart = -1;
+        int lastSeriesEnd = -1;
+        int lastSeriesId = -1;
+        Integer lastSeriesIncrement = null;
+        HashMap<Integer,Integer> lastIds = new HashMap<Integer, Integer>();
+        for (AttributeOption option : options) {
+            Integer seriesIncrement = option.getSeriesIncrement();
+            if (seriesIncrement != null) { //If current is part of series.
+                if (lastSeriesIncrement!= null && seriesIncrement != null
+                        && Double.compare(lastSeriesIncrement, seriesIncrement) == 0
+                        && lastName != null && lastName.equals(option.getNameNoNumber())
+                        && lastIcon != null && lastIcon.equals(option.getIcon())
+                        && option.getNumber() == lastSeriesEnd+lastSeriesIncrement) { //If current series was same as last
+                    lastSeriesEnd = option.getNumber();
+                } else { //Not same as last
+                    if (lastSeriesIncrement != null) { //If it's not the first series
+                        AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                                lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+                        newOptions.add(series);
+                    }
+                    
+                    lastSeriesStart = option.getNumber();
+                    lastSeriesEnd = option.getNumber();
+                    lastCompareValue = option.getCompareValue();
+                    lastName = option.getNameNoNumber();
+                    lastIcon = option.getIcon();
+                    lastIconEnabled = option.isIconEnabled();
+                    lastSeriesId = option.getId();
+                    lastIds = new HashMap<Integer, Integer>();
+                }
+                lastIds.put(option.getNumber(), option.getId());
+            } else { //Current is not part of a series                
+                if (lastSeriesIncrement != null) {//If current is not part of series, but last was
+                    seriesIds.put(lastSeriesId, lastIds);
+                    AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                            lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+                    newOptions.add(series);
+                } 
+                newOptions.add(option);
+            }
+            lastSeriesIncrement = seriesIncrement;
+        }
+        if (lastSeriesIncrement != null) { //Last was a series
+            seriesIds.put(lastSeriesId, lastIds);
+            AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                    lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+            newOptions.add(series);
+        }
+        return newOptions;
     }
 
     /**

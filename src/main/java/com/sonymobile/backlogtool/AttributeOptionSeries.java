@@ -36,7 +36,7 @@ public class AttributeOptionSeries extends AttributeOption {
     public AttributeOptionSeries() {}
     
     public AttributeOptionSeries(int id, String name, String icon, boolean iconEnabled, int compareValue, 
-            int seriesStart, int seriesEnd, double seriesIncrement) {
+            int seriesStart, int seriesEnd, int seriesIncrement) {
         super(name, icon, compareValue);
         this.seriesStart = seriesStart;
         this.seriesEnd = seriesEnd;
