@@ -606,11 +606,15 @@ fieldset {
 }
 
 .attrTitle {
-    width: 250px;
+    width: 200px;
 }
 
 .attrOptionTitle {
-    width: 150px;
+    width: 130px;
+}
+
+.attrOptionSeriesBox {
+    width: 45px;
 }
 
 .marginTop {
@@ -664,4 +668,8 @@ input#submit {
 
 div#login-error {
 	clear: both;
+}
+
+p.addOptionSeries, p.addOption {
+	margin-left: 40px;
 }

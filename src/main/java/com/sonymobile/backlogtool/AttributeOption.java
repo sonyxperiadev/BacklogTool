@@ -30,6 +30,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * An attribute option contains information about what the attribute option is called
@@ -51,6 +52,7 @@ public class AttributeOption {
     private String color;
     private int compareValue;
     private boolean iconEnabled = true;
+    private Integer seriesIncrement;
 
     public AttributeOption() {}
 
@@ -72,6 +74,32 @@ public class AttributeOption {
     public String getName() {
         return StringEscapeUtils.escapeHtml(name);
     }
+    
+    /**
+     * Gets the name without number if this attribute is part of a number series.
+     * @return name
+     */
+    @JsonIgnore
+    public String getNameNoNumber() {
+        return getName().replaceAll(" [^ ]+$", "");
+    }
+    
+    /**
+     * Gets the number if this attribute is part of a number series.
+     * @return number
+     */
+    @JsonIgnore
+    public int getNumber() {
+        String[] words = getName().split(" ");
+        String lastWord = words[words.length-1];
+        try {
+            double numberDecimal = Double.parseDouble(lastWord);
+            return (int) Math.round(numberDecimal);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+    
     public void setName(String name) {
         this.name = StringEscapeUtils.unescapeHtml(name);
     }
@@ -125,6 +153,14 @@ public class AttributeOption {
 
     public void setIconEnabled(boolean iconEnabled) {
         this.iconEnabled = iconEnabled;
+    }
+
+    public Integer getSeriesIncrement() {
+        return seriesIncrement;
+    }
+
+    public void setSeriesIncrement(Integer seriesIncrement) {
+        this.seriesIncrement = seriesIncrement;
     }
 
 }
