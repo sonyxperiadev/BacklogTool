@@ -68,6 +68,7 @@ public class AttributeOption {
         copy.icon = icon;
         copy.color = color;
         copy.iconEnabled = iconEnabled;
+        copy.seriesIncrement = seriesIncrement;
         return copy;
     } 
 
