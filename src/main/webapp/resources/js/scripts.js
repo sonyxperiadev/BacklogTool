@@ -332,9 +332,9 @@ $(document).ready(function () {
     var displayUpdateMsg = function () {
         $.blockUI({
             message: '<h1>Updating...</h1>',
-            fadeIn:  200,
+            fadeIn:  0,
             overlayCSS: { backgroundColor: '#808080', cursor: null},
-            fadeOut:  100});
+            fadeOut:  350});
     };
 
     var parents = null;
