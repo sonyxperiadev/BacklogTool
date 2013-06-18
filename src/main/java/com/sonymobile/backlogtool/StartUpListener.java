@@ -26,6 +26,9 @@ package com.sonymobile.backlogtool;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,6 +36,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -52,12 +56,16 @@ public class StartUpListener implements ApplicationListener<ContextRefreshedEven
     @Autowired
     SessionFactory sessionFactory;
 
-    /**
-     * Updates the master admin list when the application has been launched.
-     */
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-
+    public void onApplicationEvent(ContextRefreshedEvent event) {  
+        updateMasterAdmins();
+        updateStoryDescription();
+    }
+    
+    /**
+     * Updates the master admin list.
+     */
+    private void updateMasterAdmins() {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -91,6 +99,55 @@ public class StartUpListener implements ApplicationListener<ContextRefreshedEven
                 }
             }
             tx.commit();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+    }
+    
+    /**
+     * Update length of story description
+     * (since it was changed in version 1.1.6)
+     */
+    private void updateStoryDescription() {
+        Properties propertiesFile = new Properties();
+        try {
+            String backlogconf = System.getProperty("catalina.home") + File.separator + "conf/backlogtool.properties";
+            InputStream input = new FileInputStream(backlogconf);
+            propertiesFile.load(input);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        final String dialect = (String) propertiesFile.get("db.hibernate.dialect");
+        
+        Transaction tx = null;
+        Session session = sessionFactory.openSession();
+        try {
+            tx = session.beginTransaction();
+
+            session.doWork(new Work() {
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    String query = null;
+                    if (dialect.contains("PostgreSQL")) {
+                        query = "ALTER TABLE stories ALTER COLUMN description TYPE varchar(%d)";
+                    } else if (dialect.contains("HSQL")) {
+                        query = "ALTER TABLE stories ALTER COLUMN description varchar(%d)";
+                    }
+                    if (query != null) {
+                        query = String.format(query, Story.DESCRIPTION_LENGTH);
+                        connection.prepareStatement(query).executeUpdate();                        
+                    }
+                }
+            });
+
+            tx.commit();
+            
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
