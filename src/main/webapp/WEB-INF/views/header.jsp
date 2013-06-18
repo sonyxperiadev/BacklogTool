@@ -29,18 +29,36 @@ THE SOFTWARE.
     </a>
     <p id="topic-area" class="textstyle inline"></p>
 </h1>
+
+<div id="login-out-container">
+    <c:if test="${isLoggedIn == true}">
+        <p class="headerText textstyle inline">${loggedInUser}</p>
+        <a id="login-out" class="fff inline" href="../auth/logout">Log out</a>
+        <script>
+    		$("#login-out").button({
+    		    text: false,
+    		    icons: {
+    		        primary: 'silk-icon-door-out'
+    		    }
+    		});
+        </script>
+    </c:if>
+    <c:if test="${isLoggedIn == false}">
+        <a id="login-out" class="fff inline" href="../auth/logout">&nbsp Log in</a>
+        <script>
+    		$("#login-out").button({
+    		    icons: {
+    		        primary: 'silk-icon-door-in'
+    		    }
+    		});
+        </script>
+    </c:if>
+</div>
 <br style="clear: both" />
 <button id="settings" data-dropdown="#settings-div" class="fff" title="More options">#</button>
 <div id="settings-div" class="dropdown dropdown-tip dropdown-relative">
     <ul class="dropdown-menu">
         <li>
-            <a id="login-out" class="" href="../auth/logout">
-                <c:if test="${isLoggedIn == true}">LOG OUT</c:if>
-                <c:if test="${isLoggedIn == false}">LOG IN</c:if>
-            </a>
-        </li>
-        <li>
-            <hr class="menu-divider">
             <a id="expand-all" href="#" class="">EXPAND ALL</a>
         </li>
         <li>
@@ -65,7 +83,6 @@ THE SOFTWARE.
                 </div>
             </li>
         </c:if>
-        
     </ul>
 </div>
 <button title="Save all changes" id="save-all" class="save-button fff" disabled>#</button>
@@ -103,4 +120,3 @@ THE SOFTWARE.
     <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="../theme-epic/${area.name}">THEME EPIC /&nbsp</a> 
     <a title="AREA VIEW" class="home-link navigation-link" href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> 
 </div>
-<br style="clear: both" />

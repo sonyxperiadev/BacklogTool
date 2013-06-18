@@ -124,6 +124,7 @@ public class HomeController {
         view.addObject("view", "home");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 
@@ -166,6 +167,7 @@ public class HomeController {
         view.addObject("icons", icons);
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 
@@ -258,6 +260,7 @@ public class HomeController {
         view.addObject("view", "story-task");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -278,6 +281,7 @@ public class HomeController {
         view.addObject("view", "epic-story");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -298,6 +302,7 @@ public class HomeController {
         view.addObject("view", "theme-epic");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");

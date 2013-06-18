@@ -27,6 +27,15 @@ $(document).ready(function() {
     $("#add-editor").button();
     $("#name-button").button();
     
+
+	$("#login-out").button({
+	    text: false,
+	    icons: {
+	        primary: 'silk-icon-door-out'
+	    }
+	});
+
+    
     $("#name-button").click(function() {
         $.ajax({
             url : "../json/changeAreaName/" + areaName,
