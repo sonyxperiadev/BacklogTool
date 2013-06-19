@@ -2145,25 +2145,7 @@ public class JSONController {
     @RequestMapping(value="/readArea/{areaName}", method = RequestMethod.GET)
     @Transactional
     public @ResponseBody Area readArea(@PathVariable String areaName) {
-        Area area = null;
-
-        Session session = sessionFactory.openSession();
-        Transaction tx = null;
-        try {
-            tx = session.beginTransaction();
-
-            area = (Area) session.get(Area.class, areaName);
-
-            tx.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (tx != null) {
-                tx.rollback();
-            }
-        } finally {
-            session.close();
-        }
-        return area;
+       return Util.getArea(areaName, sessionFactory);
     }
 
     private boolean isLoggedIn() {

@@ -36,6 +36,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * An attribute contains information about what the attribute is called
@@ -84,7 +85,7 @@ public class Attribute {
     public void addOption(AttributeOption option) {
         options.add(option);
     }
-
+    
     public int getId() {
         return id;
     }

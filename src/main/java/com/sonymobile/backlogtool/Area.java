@@ -65,16 +65,16 @@ public class Area {
     @ElementCollection
     private Set<String> adminLDAPGroups = new HashSet<String>();
 
-    @OneToOne(fetch=FetchType.EAGER)
+    @OneToOne(fetch=FetchType.LAZY)
     private Attribute storyAttr1;
 
-    @OneToOne(fetch=FetchType.EAGER)
+    @OneToOne(fetch=FetchType.LAZY)
     private Attribute storyAttr2;
 
-    @OneToOne(fetch=FetchType.EAGER)
+    @OneToOne(fetch=FetchType.LAZY)
     private Attribute storyAttr3;
 
-    @OneToOne(fetch=FetchType.EAGER)
+    @OneToOne(fetch=FetchType.LAZY)
     private Attribute taskAttr1;
 
     public Area() {}
@@ -142,7 +142,6 @@ public class Area {
         taskAttr1.addOption(attributeValue10);
         taskAttr1.addOption(attributeValue11);
         taskAttr1.addOption(attributeValue12);
-
     }
 
     public String getName() {
