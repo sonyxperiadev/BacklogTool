@@ -68,6 +68,11 @@ h1 {
     display: none;
 }
 
+#login-out-container {
+    float:right;
+    margin: 10px 0 0 0;
+}
+
 
 .story p {
     min-height: 15px;
@@ -120,10 +125,6 @@ p {
     display: inline-block;
     vertical-align: top;
     margin: 0;
-}
-
-.login-out-margin {
-    margin-bottom: 10px !important;
 }
 
 .headerText {
@@ -481,7 +482,7 @@ div.navigation-links {
     float: right;
 }
 div.navigation-links a {
-    margin-top: 8px;
+    margin: 8px 0 10px 0;
     float: right;
     -o-transition: .3s;
     -ms-transition: .3s;

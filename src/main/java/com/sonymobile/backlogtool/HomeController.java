@@ -78,9 +78,8 @@ public class HomeController {
     @Autowired
     ApplicationVersion version;
 
-    @RequestMapping(value = "/{lastArea}", method = RequestMethod.GET)
-    public ModelAndView home(Locale locale, Model model, @PathVariable String lastArea,
-            HttpServletResponse response) {
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public ModelAndView home(Locale locale, Model model, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
@@ -126,17 +125,11 @@ public class HomeController {
         view.addObject("nonAdminAreas", nonAdminAreas);
         view.addObject("adminAreas", adminAreas);
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("lastArea", lastArea);
         view.addObject("view", "home");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
-    }
-
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public ModelAndView homeNoArea(Locale locale, Model model,
-            HttpServletResponse response) {
-        return home(locale, model, null, response);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
@@ -172,6 +165,7 @@ public class HomeController {
         view.addObject("icons", icons);
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 
@@ -329,6 +323,7 @@ public class HomeController {
         view.addObject("view", "story-task");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -349,6 +344,7 @@ public class HomeController {
         view.addObject("view", "epic-story");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -369,6 +365,7 @@ public class HomeController {
         view.addObject("view", "theme-epic");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
