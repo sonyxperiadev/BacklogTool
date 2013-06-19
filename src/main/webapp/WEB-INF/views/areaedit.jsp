@@ -49,14 +49,14 @@ THE SOFTWARE.
     <div id="wrap">
         <div id="header">
             <h1>
-                <a href="${pageContext.request.contextPath}/${area.name}">
+                <a href="../">
                     <p id="topic" class="textstyle inline">Backlogtool /&nbsp</p>
                 </a>
                 <p id="topic-area" class="textstyle inline">Edit area ${area.name}</p>
             </h1>
             <div id="login-out-container">
-                    <p class="headerText textstyle inline">${loggedInUser}</p>
-                    <a id="login-out" class="fff inline" href="../auth/logout">Log out</a>
+                <p class="headerText textstyle inline">${loggedInUser}</p>
+                <a id="login-out" class="fff inline" href="../auth/logout">Log out</a>
             </div>
             <br style="clear: both" />
         </div>

@@ -24,7 +24,7 @@ THE SOFTWARE.
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %> 
 <h1>
-    <a href="${pageContext.request.contextPath}/${area.name}">
+    <a href="../">
         <p id="topic" class="textstyle inline">Backlog tool</p>
     </a>
     <p id="topic-area" class="textstyle inline"></p>
@@ -118,5 +118,5 @@ THE SOFTWARE.
     <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="../story-task/${area.name}">STORY TASK </a> 
     <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="../epic-story/${area.name}">EPIC STORY /&nbsp</a> 
     <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="../theme-epic/${area.name}">THEME EPIC /&nbsp</a> 
-    <a title="AREA VIEW" class="home-link navigation-link" href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> 
+    <a title="AREA VIEW" class="home-link navigation-link" href="../">AREA /&nbsp</a> 
 </div>
