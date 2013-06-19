@@ -27,8 +27,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hibernate.FetchMode;
 import org.hibernate.Query;
 import org.hibernate.Session; 
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 
 
 /**
@@ -111,5 +115,41 @@ public final class Util {
             throw new RuntimeException("Invalid type specified");
         }
         
+    }
+    
+    /**
+     * Returns the area with argument name if it exists.
+     * @param areaName Area name to search for
+     * @param sessionFactory hibernate session factory
+     * @return area
+     */
+    public static Area getArea(String areaName, SessionFactory sessionFactory) {
+        Area area = null;
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            
+            area = (Area) session.createCriteria(Area.class)
+                    .add( Restrictions.like("name", areaName) )
+                    .setFetchMode("storyAttr1", FetchMode.JOIN)
+                    .setFetchMode("storyAttr2", FetchMode.JOIN)
+                    .setFetchMode("storyAttr3", FetchMode.JOIN)
+                    .setFetchMode("taskAttr1", FetchMode.JOIN)
+                    .setFetchMode("editors", FetchMode.JOIN)
+                    .setFetchMode("admins", FetchMode.JOIN)
+                    .uniqueResult();
+
+            tx.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+        return area;
     }
 }
