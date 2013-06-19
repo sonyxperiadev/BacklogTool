@@ -93,7 +93,7 @@ public class HomeController {
             tx = session.beginTransaction();
 
             User currentUser = (User) session.get(User.class, username);
-            
+
             Query allAreasQuery = session.createQuery("from Area order by name");
             List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
 
@@ -320,7 +320,6 @@ public class HomeController {
         } finally {
             session.close();
         }
-        
 
         ModelAndView view = new ModelAndView();
         view.addObject("isLoggedIn", isLoggedIn());

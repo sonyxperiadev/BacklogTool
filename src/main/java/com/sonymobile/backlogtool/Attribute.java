@@ -85,7 +85,7 @@ public class Attribute {
     public void addOption(AttributeOption option) {
         options.add(option);
     }
-    
+
     public int getId() {
         return id;
     }
