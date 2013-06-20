@@ -34,15 +34,14 @@ THE SOFTWARE.
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
     
     <script type="text/javascript">
-        var lastArea = "${lastArea}";
         var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
     
         $(document).ready(function() {
             $(".home-link").css("color", "#1c94c4");
-            $('#login-out').button();
-    
+
             $("#create-area").button().click(function() {
                 $.ajax({
                     url : "json/createArea",
@@ -110,30 +109,38 @@ THE SOFTWARE.
                     <p id="topic" class="textstyle inline">Backlog tool</p>
                 </a>
             </h1>
+            <div id="login-out-container">
+                <c:if test="${isLoggedIn == true}">
+                    <p class="headerText textstyle inline">${loggedInUser}</p>
+                    <a id="login-out" class="fff inline" href="auth/logout">Log out</a>
+                    <script>
+                        $("#login-out").button({
+                            text: false,
+                            icons: {
+                                primary: 'silk-icon-door-out'
+                            }
+                        });
+                    </script>
+                </c:if>
+                <c:if test="${isLoggedIn == false}">
+                    <a id="login-out" class="fff inline" href="auth/logout">&nbsp Log in</a>
+                    <script>
+                        $("#login-out").button({
+                            icons: {
+                                primary: 'silk-icon-door-in'
+                            }
+                        });
+                    </script>
+                </c:if>
+            </div>
             <br style="clear: both" /> 
-            <a id="login-out" class="login-out-margin" href="auth/logout">
-                <c:if test="${isLoggedIn == true}">LOG OUT</c:if> 
-                <c:if test="${isLoggedIn == false}">LOG IN</c:if>
-            </a>
-            <c:if test="${lastArea != null}">
-                <div class="navigation-links">
-                    <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="story-task/${lastArea}">STORY TASK </a> 
-                    <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="epic-story/${lastArea}">EPIC STORY /&nbsp</a> 
-                    <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="theme-epic/${lastArea}">THEME EPIC /&nbsp</a> 
-                    <a title="AREA VIEW" class="home-link navigation-link" href="${pageContext.request.contextPath}/${area.name}">AREA /&nbsp</a> 
-                </div>
-            </c:if>
         </div>
         <div id="main">
             <div id="list-container-div">
                 <div id="area-container-div" class="inline">
                     <p style="margin-top: 15px;">Areas:</p>
                     <c:forEach var="area" items="${adminAreas}">
-                        <c:set var="style" value="" />
-                        <c:if test="${area == lastArea}">
-                            <c:set var="style" value='style="color: #1C94C4;"' />
-                        </c:if>
-                        <a class="area-links" href="story-task/${area}" ${style}>
+                        <a class="area-links" href="story-task/${area}">
                             ${area} </a>
                         <a><img
                             src="resources/css/ui-lightness/images/delete.png"
@@ -146,11 +153,7 @@ THE SOFTWARE.
                     </c:forEach>
                     <br>
                     <c:forEach var="area" items="${nonAdminAreas}">
-                        <c:set var="style" value="" />
-                        <c:if test="${area == lastArea}">
-                            <c:set var="style" value='style="color: #1C94C4;"' />
-                        </c:if>
-                        <a class="area-links" href="story-task/${area}" ${style}>
+                        <a class="area-links" href="story-task/${area}">
                             ${area} </a>
                         <br />
                     </c:forEach>
