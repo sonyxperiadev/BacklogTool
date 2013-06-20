@@ -1072,6 +1072,7 @@ $(document).ready(function () {
         }
         if (isGoingIntoEdit(storyId)) {
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
+
             editingItems.push({id:storyId, type:"story"});
             removeGroupMember();
             $('button.'+storyId).button();
@@ -1671,7 +1672,7 @@ $(document).ready(function () {
      */
     var getArchivedTopic = function(archived, id) {
         if (archived) {
-        	return '<p class="title ' + id + '">Archived</p>';
+        	return '<p class="archived-date title ' + id + '">Archived</p>';
         } else return '';
     };
 
@@ -1751,7 +1752,7 @@ $(document).ready(function () {
 	                        +'<div class="stakeholders">'
 	                        //CUSTOMER FIELD START
 	                        +'<p class="title">Customer </p>'
-	                        +'<p class="customerSite ' + currentParent.id + '">'+getSiteImage(currentParent.customerSite)+'</p>'
+	                        +'<p class="customerSite inline ' + currentParent.id + '">'+getSiteImage(currentParent.customerSite)+'</p>'
 	                        +'<p class="' + currentParent.id + ' customer description">' + currentParent.customer + '</p>'
 	                        +'<select id="customerSite'+currentParent.id+'" class="bindChange customerSite hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1763,7 +1764,7 @@ $(document).ready(function () {
 	                        //CUSTOMER FIELD END
 	                        //CONTRIBUTOR FIELD START
 	                        +'<p class="title">Contributor </p>'
-	                        +'<p id="'+currentParent.id+'" class="contributorSite ' + currentParent.id + '">'+getSiteImage(currentParent.contributorSite)+'</p>'
+	                        +'<p id="'+currentParent.id+'" class="contributorSite inline ' + currentParent.id + '">'+getSiteImage(currentParent.contributorSite)+'</p>'
 	                        +'<p class="' + currentParent.id + ' contributor description">' + currentParent.contributor + '</p>'
 	                        +'<select id="contributorSite'+currentParent.id+'" class="bindChange contributorSite hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1813,11 +1814,15 @@ $(document).ready(function () {
 	                        +'<option value=""></option>'
 	                        + storyAttr3Options
 	                        +'</select>'
+	                        +'<div class="archive-div">'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveStory' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive story</p></input>'
-	                        +'<button class="inline marginTop save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
-	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(archived, currentParent.id)
-	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
+	                        +'<p class="description archived-date ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        //ATTR3 FIELD END
 	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
@@ -1858,8 +1863,10 @@ $(document).ready(function () {
 	                        +'<option value="2">2</option>'
 	                        +'</select>'
 	                        //CALCULATEDTIME END
-	                        +'<button class="save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        +'<a id=' + currentChild.id + ' title="Remove task" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />'
 	                        +'</li>';
@@ -1892,11 +1899,15 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
-	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
-	                        +'<button class="save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'<div class="archive-div">'
+	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(archived, currentParent.id)
-	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
+	                        +'<p class="description archived-date ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
 	
@@ -1937,7 +1948,7 @@ $(document).ready(function () {
 	                        +'<div class="stakeholders">'
 	                        //CUSTOMER FIELD START
 	                        +'<p class="title">Customer </p>'
-	                        +'<p class="customerSite ' + currentChild.id + '">'+getSiteImage(currentChild.customerSite)+'</p>'
+	                        +'<p class="customerSite inline ' + currentChild.id + '">'+getSiteImage(currentChild.customerSite)+'</p>'
 	                        +'<p class="' + currentChild.id + ' customer description">' + currentChild.customer + '</p>'
 	                        +'<select id="customerSite'+currentChild.id+'" class="bindChange customerSite hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1949,7 +1960,7 @@ $(document).ready(function () {
 	                        //CUSTOMER FIELD END
 	                        //CONTRIBUTOR FIELD START
 	                        +'<p class="title">Contributor </p>'
-	                        +'<p id="'+currentChild.id+'" class="contributorSite ' + currentChild.id + '">'+getSiteImage(currentChild.contributorSite)+'</p>'
+	                        +'<p id="'+currentChild.id+'" class="inline contributorSite ' + currentChild.id + '">'+getSiteImage(currentChild.contributorSite)+'</p>'
 	                        +'<p class="' + currentChild.id + ' contributor description">' + currentChild.contributor + '</p>'
 	                        +'<select id="contributorSite'+currentChild.id+'" class="bindChange contributorSite hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1999,11 +2010,15 @@ $(document).ready(function () {
 	                        +'<option value=""></option>'
 	                        + storyAttr3Options
 	                        +'</select>'
+	                        +'<div class="archive-div">'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveStory' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive story</p></input>'
-	                        +'<button class="inline marginTop save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
-	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(currentChild.archived, currentChild.id)
-	                        +'<p class="description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
+	                        +'<p class="archived-date archived-date description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
 	                        +'</div>'
 	                        //ATTR3 DIV END
 	                        +'<a id=' + currentChild.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
@@ -2034,11 +2049,15 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove theme" class="icon deleteItem delete-icon"></a>'
-	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
-	                        +'<button class="save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'<div class="archive-div">'
+	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(archived, currentParent.id)
-	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
+	                        +'<p class="description archived-date ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
 	
@@ -2064,10 +2083,14 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
+	                        +'<div class="archive-div">'
 	                        +'<a id=' + currentChild.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
-	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
-	                        +'<button class="save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        +'<br style="clear:both" />'
 	                        +'</li>';
 	                    }

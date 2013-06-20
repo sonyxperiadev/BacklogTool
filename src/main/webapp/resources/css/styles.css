@@ -26,6 +26,66 @@ html, body {
 	height: 100%;
 }
 
+@media screen and (max-width: 1024px) {
+    select.story-attr3 {
+        float:left;
+    }
+    .story-attr3 {
+        width: 40%;
+    }
+    div.titles {
+        width: 45%;
+    }
+    
+    div.titles-epic-story {
+        width: 40%;
+    }
+    
+    div.titles-theme-epic {
+        width: 75%;
+    }
+}
+
+@media screen and (min-width: 1024px) {
+    div.titles {
+        width: 60%; 
+    }
+    div.titles-epic-story {
+        width: 55%;
+    }
+    div.titles-theme-epic {
+        width: 81%;
+    }
+}
+
+p.archived-date.title {
+    position: absolute;
+    bottom: 12px;
+    right: 25px;
+}
+
+p.archived-date.description {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+}
+
+.button-div, .archive-div {
+    vertical-align: bottom;
+    display:inline-block;
+}
+
+.theme > .archive-div, .epic > .archive-div {
+    margin-top: 20px;
+}
+
+div.titles, div.titles-epic-story,div.titles-theme-epic, div.times, div.story-attr1-2, div.story-attr3, div.stakeholders {
+    display: inline-block;
+    float: left;
+    word-wrap: break-word;
+    margin-right: 10px;
+}
+
 #wrap {
 	min-height: 100%;
 }
@@ -196,8 +256,8 @@ textarea {
     width: 99%;
 }
 
-textarea:focus {
-    border-color: #f00;
+textarea.description {
+    min-height: 80px;
 }
 
 .padding-left {
@@ -205,7 +265,7 @@ textarea:focus {
 }
 
 .inline {
-    display: inline-block;
+    display: inline;
 }
 
 .icon-container {
@@ -258,9 +318,8 @@ div#icons {
     position: relative;
 }
 
-p.description,p.titleText {
-    max-width: 95%;
-    word-wrap: break-word;
+.parentLi, .childLi {
+    position: relative;
 }
 
 p.description {
@@ -270,8 +329,16 @@ p.description {
 }
 
 .title {
+    padding-left: 2px;
+    display: table-cell;
+    vertical-align: bottom;
     height: 19px;
     color: #494949;
+}
+
+.archive-div * {
+    float: left;
+    padding-top: 2px;
 }
 
 p.theme,p.epic,p.typeMark {
@@ -301,52 +368,19 @@ p.typeMark {
     border: 1px solid #dddddd;
 }
 
-.createStory-column {
-    width: 45%;
-    display: inline-block;
-    float: left;
-    word-wrap: break-word;
-}
-
-div.story-attr3 {
-    display: inline-block;
-    width: 18%;
-    float: left;
-    word-wrap: break-word;
-}
-
-div.story-attr1-2 {
-    display: inline-block;
-    width: 10%;
-    float: left;
-    word-wrap: break-word;
-}
-div.times{
-    display: inline-block;
-    width: 7%;
-    float: left;
-    word-wrap: break-word;
-}
-
-div.stakeholders {
-    display: inline-block;
-    width: 15%;
-    float: left;
-}
-
 select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
     height: 26px;
 }
 
-input.added,input.deadline,input.customer,input.contributor {
+input.added, input.deadline, input.customer, input.contributor {
     height: 22px;
 }
 
-input.added,input.deadline {
+input.added, input.deadline {
     width: 70px !important;
 }
 
-input.customer,input.contributor {
+input.customer, input.contributor {
     width: 55%;
 }
 
@@ -356,7 +390,9 @@ input.customer,input.contributor {
 
 .delete-icon {
     background-image: url(../css/ui-lightness/images/delete.png);
-    float: right;
+    position: absolute;
+    right: 2px;
+    top: 2px;
 }
 
 .titles, .titles-epic-story, .titles-theme-epic {
@@ -366,18 +402,6 @@ input.customer,input.contributor {
     word-wrap: break-word;
 }
 
-.titles {
-    width: 43%;
-}
-
-div.titles-epic-story {
-    width: 38%;
-}
-
-div.titles-theme-epic {
-    width: 80%;
-}
-
 .titleText {
     font-size: 1.3em;
     font-weight: bold;
@@ -385,72 +409,40 @@ div.titles-theme-epic {
 }
 
 .taskHeading {
-    display: inline;
     font-size: 0.7em;
 }
 
 .taskInfo {
     font-size: 0.85em;
-    display: inline;
     font-weight: bold;
     margin: 0em 0em 0em 0.2em;
-    vertical-align: middle;
-}
-
-.calculatedTime {
-    display: inline-block;
-    width: 5%;
-    margin-left: 1%;
-    margin-right: 1%;
-    word-wrap: break-word;
-}
-
-.taskOwner, .calulatedTime, .taskStatus {
-}
-.task > * {
-    display:inline-block;
-    vertical-align:middle
 }
 
 .taskTitle {
-    display: inline-block;
-    width: 38%;
-    float: left;
-    vertical-align: top;
-    word-wrap: break-word;
+    width: 35%;
 }
-
 .taskOwner {
+    width: 20%;
+}
+
+.taskOwner, .taskTitle, .taskStatus, .calculatedTime {
+    margin-right: 10px;
+}
+
+.task {
+    position: relative;
+}
+
+.task > * {
     display: inline-block;
-    width: 14%;
-    margin-left: 1%;
+    vertical-align: middle;
     word-wrap: break-word;
-    display: inline-block;
 }
 
-.taskStatus {
-    display: inline-block;
-    width: 15%;
-    margin-left: 1%;
-    display: inline-block;
-}
-
-#customer,#contributor {
+.task > * > * {
     display: inline;
-    width: 56%;
-}
-
-#customerSite,#contributorSite {
-    display: inline;
-    width: 38%;
-}
-
-.deadline, .added, .story-attr1, .story-attr2, .story-attr3 {
-    width: 95%;
-}
-
-.customerSite,.contributorSite {
-    display: inline;
+    vertical-align: middle;
+    word-wrap: break-word;
 }
 
 .customer,.contributor {
@@ -563,11 +555,11 @@ ul {
 }
 
 textarea.epic,textarea.theme {
-    width: 42%;;
+    width: 45%;
 }
 
 p.added,p.deadline {
-    height: 1.2em;
+    height: 18px;
 }
 
 div.ui-datepicker {
@@ -612,14 +604,6 @@ fieldset {
 
 .attrOptionTitle {
     width: 150px;
-}
-
-.marginTop {
-    margin-top: 18px;
-}
-
-.marginTopBig {
-    margin-top: 40px
 }
 
 .ui-selected {
