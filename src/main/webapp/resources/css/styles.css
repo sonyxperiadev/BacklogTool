@@ -26,7 +26,7 @@ html, body {
 	height: 100%;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1280px) {
     select.story-attr3 {
         float:left;
     }
@@ -46,7 +46,7 @@ html, body {
     }
 }
 
-@media screen and (min-width: 1024px) {
+@media screen and (min-width: 1280px) {
     div.titles {
         width: 60%; 
     }
@@ -368,8 +368,9 @@ p.typeMark {
     border: 1px solid #dddddd;
 }
 
-select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
+.parent-child-list select, .archive-parent-child-list select {
     height: 26px;
+    min-width: 70px;
 }
 
 input.added, input.deadline, input.customer, input.contributor {
