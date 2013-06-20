@@ -23,9 +23,12 @@
  */
 package com.sonymobile.backlogtool;
 
+import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE;
+
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -37,6 +40,7 @@ import javax.persistence.Table;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Cache;
 
 /**
  * An attribute contains information about what the attribute is called
@@ -46,6 +50,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
+@Cacheable
+@Cache(usage=READ_WRITE)
 @Entity
 @Table(name = "Attributes")
 public class Attribute {
