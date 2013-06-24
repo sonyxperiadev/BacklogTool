@@ -58,7 +58,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 @Table(name="Stories")
 public class Story {
     
-    public static final int DESCRIPTION_LENGTH = 10485760;
+    public static final int DESCRIPTION_LENGTH = 100000;
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)

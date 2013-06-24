@@ -35,7 +35,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.jdbc.Work;
 
+import com.sonymobile.backlogtool.Epic;
 import com.sonymobile.backlogtool.Story;
+import com.sonymobile.backlogtool.Theme;
 
 /**
  * Updates length of story description.
@@ -73,17 +75,28 @@ public class UpdateVersion1_2 extends DbUpdater {
             session.doWork(new Work() {
                 @Override
                 public void execute(Connection connection) throws SQLException {
-                    String query = null;
+                    String storyQuery = null;
+                    String epicQuery = null;
+                    String themeQuery = null;
                     if (dialect.contains("PostgreSQL")) {
-                        query = "ALTER TABLE stories ALTER COLUMN description TYPE varchar(%d)";
+                        storyQuery = "ALTER TABLE stories ALTER COLUMN description TYPE varchar(%d)";
+                        epicQuery = "ALTER TABLE epics ALTER COLUMN description TYPE varchar(%d)";
+                        themeQuery = "ALTER TABLE themes ALTER COLUMN description TYPE varchar(%d)";
                     } else if (dialect.contains("HSQL")) {
-                        query = "ALTER TABLE stories ALTER COLUMN description varchar(%d)";
+                        storyQuery = "ALTER TABLE stories ALTER COLUMN description varchar(%d)";
+                        epicQuery = "ALTER TABLE epics ALTER COLUMN description varchar(%d)";
+                        themeQuery = "ALTER TABLE themes ALTER COLUMN description varchar(%d)";
                     }
-                    if (query == null) {
+                    if (storyQuery == null) {
                         throw new SQLException("Unable to find a matching query for the specified database type");
                     } else {
-                        query = String.format(query, Story.DESCRIPTION_LENGTH);
-                        connection.prepareStatement(query).executeUpdate();
+                        storyQuery = String.format(storyQuery, Story.DESCRIPTION_LENGTH);
+                        epicQuery = String.format(epicQuery, Epic.DESCRIPTION_LENGTH);
+                        themeQuery = String.format(themeQuery, Theme.DESCRIPTION_LENGTH);
+                        
+                        connection.prepareStatement(storyQuery).executeUpdate();
+                        connection.prepareStatement(epicQuery).executeUpdate();
+                        connection.prepareStatement(themeQuery).executeUpdate();
                     }
                 }
             });
