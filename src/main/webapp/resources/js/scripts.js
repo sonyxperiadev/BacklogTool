@@ -1197,12 +1197,12 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedStory) {
             	//Set updated values, we prefer to not reload the whole page.
-            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
-            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
-            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+            	$('.titles, .titles-padding-left').find('p.titleText.'+storyId).html(updatedStory.title);
+            	$('.titles, .titles-padding-left').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
+            	$('.titles, .titles-padding-left').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
             	
                 //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+                var descriptionParagraph = $('.titles, .titles-padding-left').find('p.description.'+storyId);
                 descriptionParagraph = untruncate(descriptionParagraph, updatedStory.description);
                 descriptionParagraph.truncate(
                         $.extend({}, truncateOptions, {className: 'truncate'+storyId})
@@ -1390,11 +1390,11 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
 
-            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
-            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
+            	$('.titles, .titles-padding-left').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
+            	$('.titles, .titles-padding-left').find('p.titleText.'+epicId).html(updatedEpic.title);
                 
                 //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
+                var descriptionParagraph = $('.titles, .titles-padding-left').find('p.description.'+epicId);
                 descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
                 descriptionParagraph.truncate(
                         $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
@@ -1518,10 +1518,10 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTheme) {
 
-            	$('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
+            	$('.titles').find('p.titleText.'+themeId).html(updatedTheme.title);
 
                 //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
+                var descriptionParagraph = $('.titles').find('p.description.'+themeId);
                 descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
                 descriptionParagraph.truncate(
                         $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
@@ -1879,7 +1879,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentParent.id + '" title="Clone this epic excluding children" class="cloneItem epic"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div class="titles-theme-epic">'
+	                        +'<div class="titles">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Epic ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -1921,7 +1921,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentChild.id + '" title="Clone this story excluding tasks" class="cloneItem story"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div class="padding-left titles-epic-story">'
+	                        +'<div class="titles-padding-left">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Story</p>'
 	                        //TYPE MARK END
@@ -2033,7 +2033,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentParent.id + '" title="Clone this theme excluding children" class="cloneItem theme icon"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div class="titles-theme-epic">'
+	                        +'<div class="titles">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Theme ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -2069,7 +2069,7 @@ $(document).ready(function () {
 	                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
 	                        +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
 	                        //TITLE FIELDS
-	                        +'<div class="padding-left titles-theme-epic">'
+	                        +'<div class="titles-padding-left">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Epic</p>'
 	                        //TYPE MARK END

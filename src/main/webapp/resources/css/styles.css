@@ -31,12 +31,8 @@ html, body {
         width: 45%;
     }
     
-    div.titles-epic-story {
-        width: 39%;
-    }
-    
-    div.titles-theme-epic {
-        width: 66%;
+    div.titles-padding-left {
+        width: 40%;
     }
 }
 
@@ -44,11 +40,9 @@ html, body {
     div.titles {
         width: 48%; 
     }
-    div.titles-epic-story {
-        width: 42%;
-    }
-    div.titles-theme-epic {
-        width: 69%;
+    
+    div.titles-padding-left {
+        width: 43%;
     }
 }
 
@@ -56,23 +50,19 @@ html, body {
     div.titles {
         width: 55%; 
     }
-    div.titles-epic-story {
-        width: 49%;
-    }
-    div.titles-theme-epic {
-        width: 76%;
+    
+    div.titles-padding-left {
+        width: 50%;
     }
 }
 
-@media screen and (min-width: 1680px) {
+@media screen and (min-width: 1680px) and (max-width: 1900px) {
     div.titles {
         width: 65%; 
     }
-    div.titles-epic-story {
+    
+    div.titles-padding-left {
         width: 60%;
-    }
-    div.titles-theme-epic {
-        width: 86%;
     }
 }
 
@@ -80,12 +70,13 @@ html, body {
     div.titles {
         width: 70%; 
     }
-    div.titles-epic-story {
+    div.titles-padding-left {
         width: 65%;
     }
-    div.titles-theme-epic {
-        width: 91%;
-    }
+}
+
+div.titles-padding-left {
+    padding-left: 5%;
 }
 
 p.archived-date.title {
@@ -109,7 +100,7 @@ p.archived-date.description {
     margin-top: 20px;
 }
 
-div.titles, div.titles-epic-story,div.titles-theme-epic, div.times, div.story-attr1-2, div.story-attr3, div.stakeholders {
+div.titles, div.titles-padding-left, div.times, div.story-attr1-2, div.story-attr3, div.stakeholders {
     display: inline-block;
     float: left;
     word-wrap: break-word;
@@ -290,10 +281,6 @@ textarea.description {
     min-height: 80px;
 }
 
-.padding-left {
-    padding-left: 5%;
-}
-
 .inline {
     display: inline;
 }
@@ -426,7 +413,7 @@ input.customer, input.contributor {
     top: 2px;
 }
 
-.titles, .titles-epic-story, .titles-theme-epic {
+.titles, .titles-padding-left {
     display: inline-block;
     float: left;
     vertical-align: top;
@@ -586,7 +573,7 @@ ul {
 }
 
 textarea.epic,textarea.theme {
-    width: 45%;
+    width: 40%;
 }
 
 p.added,p.deadline {
