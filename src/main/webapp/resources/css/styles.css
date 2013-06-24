@@ -26,35 +26,65 @@ html, body {
 	height: 100%;
 }
 
-@media screen and (max-width: 1280px) {
-    select.story-attr3 {
-        float:left;
-    }
-    .story-attr3 {
-        width: 40%;
-    }
+@media screen and (max-width: 1024px) {
     div.titles {
         width: 45%;
     }
     
     div.titles-epic-story {
-        width: 40%;
+        width: 39%;
     }
     
     div.titles-theme-epic {
-        width: 75%;
+        width: 66%;
     }
 }
 
-@media screen and (min-width: 1280px) {
+@media screen and (min-width: 1024px) and (max-width: 1280px) {
     div.titles {
-        width: 60%; 
+        width: 48%; 
     }
     div.titles-epic-story {
-        width: 55%;
+        width: 42%;
     }
     div.titles-theme-epic {
-        width: 81%;
+        width: 69%;
+    }
+}
+
+@media screen and (min-width: 1280px) and (max-width: 1680px) {
+    div.titles {
+        width: 55%; 
+    }
+    div.titles-epic-story {
+        width: 49%;
+    }
+    div.titles-theme-epic {
+        width: 76%;
+    }
+}
+
+@media screen and (min-width: 1680px) {
+    div.titles {
+        width: 65%; 
+    }
+    div.titles-epic-story {
+        width: 60%;
+    }
+    div.titles-theme-epic {
+        width: 86%;
+    }
+}
+
+@media screen and (min-width: 1900px) {
+    div.titles {
+        width: 70%; 
+    }
+    div.titles-epic-story {
+        width: 65%;
+    }
+    div.titles-theme-epic {
+        width: 91%;
     }
 }
 
