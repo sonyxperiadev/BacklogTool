@@ -357,6 +357,7 @@ $(document).ready(function () {
         $("#order-by").val(sorting);
     }
     
+    // Load checkbox-status for the Archived-checkbox
     var dispArchived = readCookie("backlogtool-disparchived");
     if(dispArchived != null) {
     	$('#archived-checkbox').prop('checked', (dispArchived == "checked"));
