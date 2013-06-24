@@ -32,6 +32,7 @@ THE SOFTWARE.
     <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/scripts-areaedit.js?v=${versionNoDots}" />"></script>
@@ -49,23 +50,16 @@ THE SOFTWARE.
     <div id="wrap">
         <div id="header">
             <h1>
-                <a
-                    href="${pageContext.request.contextPath}/${area.name}">
-                    <p id="topic" class="textstyle inline">Backlog
-                        tool /&nbsp</p>
+                <a href="../">
+                    <p id="topic" class="textstyle inline">Backlogtool /&nbsp</p>
                 </a>
-                <p id="topic-area" class="textstyle inline">Edit
-                    area ${area.name}</p>
+                <p id="topic-area" class="textstyle inline">Edit area ${area.name}</p>
             </h1>
-            <br style="clear: both" /> 
-            <a title="Log out" class="login-out-margin" id="login-out" href="../auth/logout"> 
-                <c:if test="${isLoggedIn}">
-    	            LOG OUT
-    	        </c:if> 
-                <c:if test="${!isLoggedIn}">
-    	            LOG IN
-    	        </c:if>
-            </a>
+            <div id="login-out-container">
+                <p class="headerText textstyle inline">${loggedInUser}</p>
+                <a id="login-out" class="fff inline" href="../auth/logout">Log out</a>
+            </div>
+            <br style="clear: both" />
         </div>
         <div id="main">
             <div id="list-container-div">
@@ -103,8 +97,8 @@ THE SOFTWARE.
                             <br>
                         </td>
                         <td style="width: 280px">
-                            <p>Current editors</p> <c:forEach
-                                var="editor" items="${area.editors}">
+                            <p>Current editors</p> 
+                            <c:forEach var="editor" items="${area.editors}">
                                 <b>${editor}</b>
                                 <a><img
                                     src="../resources/css/ui-lightness/images/delete.png"

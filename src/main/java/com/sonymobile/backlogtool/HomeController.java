@@ -26,9 +26,7 @@ package com.sonymobile.backlogtool;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -40,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -81,9 +78,8 @@ public class HomeController {
     @Autowired
     ApplicationVersion version;
 
-    @RequestMapping(value = "/{lastArea}", method = RequestMethod.GET)
-    public ModelAndView home(Locale locale, Model model, @PathVariable String lastArea,
-            HttpServletResponse response) {
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public ModelAndView home(Locale locale, Model model, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
@@ -129,43 +125,18 @@ public class HomeController {
         view.addObject("nonAdminAreas", nonAdminAreas);
         view.addObject("adminAreas", adminAreas);
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("lastArea", lastArea);
         view.addObject("view", "home");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
-    }
-
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public ModelAndView homeNoArea(Locale locale, Model model,
-            HttpServletResponse response) {
-        return home(locale, model, null, response);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
     @RequestMapping(value = "/areaedit/{areaName}", method = RequestMethod.GET)
     public ModelAndView areaedit(Locale locale, Model model, @PathVariable String areaName)
             throws JsonGenerationException, JsonMappingException, IOException {
-        Area area = null;
-
-        Session session = sessionFactory.openSession();
-        Transaction tx = null;
-        try {
-            tx = session.beginTransaction();
-
-            area = (Area) session.get(Area.class, areaName);
-            Hibernate.initialize(area.getAdmins());
-            Hibernate.initialize(area.getEditors());
-
-            tx.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (tx != null) {
-                tx.rollback();
-            }
-        } finally {
-            session.close();
-        }
+        Area area = Util.getArea(areaName, sessionFactory);
 
         File dir = new File(context.getRealPath("/resources/image"));
         String[] icons = dir.list();
@@ -194,6 +165,7 @@ public class HomeController {
         view.addObject("icons", icons);
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 
@@ -308,7 +280,7 @@ public class HomeController {
 
     @RequestMapping(value = "/story-task/{areaName}", method = RequestMethod.GET)
     public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName) {
-        Area area = getArea(areaName);
+        Area area = Util.getArea(areaName, sessionFactory);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -351,6 +323,7 @@ public class HomeController {
         view.addObject("view", "story-task");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -362,7 +335,7 @@ public class HomeController {
 
     @RequestMapping(value = "/epic-story/{areaName}", method = RequestMethod.GET)
     public ModelAndView epicstory(Locale locale, Model model, @PathVariable String areaName) {
-        Area area = getArea(areaName);
+        Area area = Util.getArea(areaName, sessionFactory);
 
         ModelAndView view = new ModelAndView();
         view.addObject("isLoggedIn", isLoggedIn());
@@ -371,6 +344,7 @@ public class HomeController {
         view.addObject("view", "epic-story");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -382,7 +356,7 @@ public class HomeController {
 
     @RequestMapping(value = "/theme-epic/{areaName}", method = RequestMethod.GET)
     public ModelAndView themeepic(Locale locale, Model model, @PathVariable String areaName) {
-        Area area = getArea(areaName);
+        Area area = Util.getArea(areaName, sessionFactory);
 
         ModelAndView view = new ModelAndView();
         view.addObject("isLoggedIn", isLoggedIn());
@@ -391,6 +365,7 @@ public class HomeController {
         view.addObject("view", "theme-epic");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
@@ -398,33 +373,6 @@ public class HomeController {
             view.setViewName("theme-epic");
         }
         return view;
-    }
-
-    /**
-     * Returns the area with argument name if it exists.
-     * @param areaName Area name to search for
-     * @return area
-     */
-    private Area getArea(String areaName) {
-        Area area = null;
-
-        Session session = sessionFactory.openSession();
-        Transaction tx = null;
-        try {
-            tx = session.beginTransaction();
-
-            area = (Area) session.get(Area.class, areaName);
-
-            tx.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (tx != null) {
-                tx.rollback();
-            }
-        } finally {
-            session.close();
-        }
-        return area;
     }
 
     /**

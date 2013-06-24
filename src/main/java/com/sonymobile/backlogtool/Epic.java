@@ -160,6 +160,7 @@ public class Epic {
         this.theme = theme;
     }
 
+    @JsonIgnore
     public Area getArea() {
         return area;
     }
