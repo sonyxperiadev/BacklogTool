@@ -1752,7 +1752,7 @@ $(document).ready(function () {
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
 	                        +'<p class="description story-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
-	                        +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
+	                        +'<textarea placeholder="Description" id="description'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="100000">' + currentParent.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
 	                        //TITLE FIELDS END
@@ -1896,7 +1896,7 @@ $(document).ready(function () {
 	                        //EPIC TITLE END
 	                        //EPIC DESCRIPTION START
 	                        +'<p class="description epic-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
-	                        +'<textarea placeholder="Description" id="epicDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
+	                        +'<textarea placeholder="Description" id="epicDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="100000">' + currentParent.description + '</textarea>'
 	                        //EPIC DESCRIPTION END
 	                        +'</div>'
 	                        //TITLE FIELDS END
@@ -1938,7 +1938,7 @@ $(document).ready(function () {
 	                        //STORY TITLE END
 	                        //STORYDESCRIPTION START
 	                        +'<p class="description story-description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
-	                        +'<textarea placeholder="Description" id="description'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
+	                        +'<textarea placeholder="Description" id="description'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="100000">' + currentChild.description + '</textarea>'
 	                        //STORYDESCRIPTION END
 	                        +'</div>'
 	                        //TITLE FIELDS END
@@ -2038,7 +2038,7 @@ $(document).ready(function () {
 	                        //TITLE END
 	                        //DESCRIPTION START
 	                        +'<p class="description theme-description ' + currentParent.id + '">' + addLinksAndLineBreaks(currentParent.description) + '</p>'
-	                        +'<textarea placeholder="Description" id="themeDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="1000">' + currentParent.description + '</textarea>'
+	                        +'<textarea placeholder="Description" id="themeDescription'+currentParent.id+'" class="bindChange hidden-edit description ' + currentParent.id + '" rows="2" maxlength="100000">' + currentParent.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
 	                        //TITLE FIELDS END
@@ -2070,7 +2070,7 @@ $(document).ready(function () {
 	                        //TITLE END
 	                        //DESCRIPTION START
 	                        +'<p class="description epic-description ' + currentChild.id + '">' + addLinksAndLineBreaks(currentChild.description) + '</p>'
-	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="1000">' + currentChild.description + '</textarea>'
+	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="100000">' + currentChild.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
 	                        +'<a id=' + currentChild.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'

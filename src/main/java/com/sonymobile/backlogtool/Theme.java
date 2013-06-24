@@ -56,6 +56,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 @Entity
 @Table(name="Themes")
 public class Theme {
+    
+    public static final int DESCRIPTION_LENGTH = 100000;
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)

@@ -40,6 +40,7 @@ import org.springframework.orm.hibernate3.HibernateTransactionManager;
 import org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.sonymobile.backlogtool.dbupdate.SchemaVersion;
 import com.sonymobile.backlogtool.permission.User;
 
 /**
@@ -76,7 +77,7 @@ public class HibernateConfiguration {
         AnnotationSessionFactoryBean bean = new AnnotationSessionFactoryBean();
         bean.setAnnotatedClasses(new Class[]{Story.class, Task.class, User.class,
                 Area.class, Theme.class, Epic.class, Attribute.class,
-                AttributeOption.class, LoginTableCreator.class});
+                AttributeOption.class, LoginTableCreator.class, SchemaVersion.class});
         bean.setHibernateProperties(props);
         bean.setDataSource(this.dataSource);
         bean.setSchemaUpdate(true);
