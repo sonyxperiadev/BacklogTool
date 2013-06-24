@@ -29,7 +29,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * Keeps track of the current schema version
+ * Keeps track of the current schema version.
  * 
  * @author Fredrik Persson &lt;fredrik6.persson@sonymobile.com&gt;
  */

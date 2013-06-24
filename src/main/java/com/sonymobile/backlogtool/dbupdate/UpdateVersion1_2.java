@@ -79,9 +79,11 @@ public class UpdateVersion1_2 extends DbUpdater {
                     } else if (dialect.contains("HSQL")) {
                         query = "ALTER TABLE stories ALTER COLUMN description varchar(%d)";
                     }
-                    if (query != null) {
+                    if (query == null) {
+                        throw new SQLException("Unable to find a matching query for the specified database type");
+                    } else {
                         query = String.format(query, Story.DESCRIPTION_LENGTH);
-                        connection.prepareStatement(query).executeUpdate();                        
+                        connection.prepareStatement(query).executeUpdate();
                     }
                 }
             });
