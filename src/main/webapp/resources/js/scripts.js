@@ -211,7 +211,8 @@ $(document).ready(function () {
 
     $('#archived-checkbox').change(function () {
         $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
-        if ($("#archived-checkbox").prop("checked")) {
+        var dispArchived = $("#archived-checkbox").prop("checked");
+        if (dispArchived) {
             $("#archived-list-container").empty();
             buildVisibleList(true);
 
@@ -224,6 +225,8 @@ $(document).ready(function () {
                 enableEdits();
             }
         }
+        var cookieStr = (dispArchived) ? "checked" : "unchecked";
+        createCookie("backlogtool-disparchived", cookieStr, 60);
     });
 
     /**
@@ -353,7 +356,12 @@ $(document).ready(function () {
     if (sorting != null) {
         $("#order-by").val(sorting);
     }
-
+    
+    var dispArchived = readCookie("backlogtool-disparchived");
+    if(dispArchived != null) {
+    	$('#archived-checkbox').prop('checked', (dispArchived == "checked"));
+    }
+    
     var readData = function readData() {
         $.ajax({
             url: "../json/read" + view + "/" + areaName + "?order=" + $("#order-by").val(),
