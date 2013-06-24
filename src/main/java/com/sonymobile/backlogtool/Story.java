@@ -57,6 +57,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 @Entity
 @Table(name="Stories")
 public class Story {
+    
+    public static final int DESCRIPTION_LENGTH = 100000;
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)
@@ -65,7 +67,7 @@ public class Story {
     @Column(length=100)
     private String title;
 
-    @Column(length=1000)
+    @Column(length=DESCRIPTION_LENGTH)
     private String description = "";
 
     private int prio;
