@@ -10,20 +10,20 @@
     <cache name="org.hibernate.cache.StandardQueryCache"
            maxElementsInMemory="50000"
            eternal="false"
-           timeToIdleSeconds="120"
-           timeToLiveSeconds="120"
+           timeToIdleSeconds="1800"
+           timeToLiveSeconds="1800"
            overflowToDisk="false"
            diskPersistent="false"
-               diskExpiryThreadIntervalSeconds="120"
+           diskExpiryThreadIntervalSeconds="1800"
            memoryStoreEvictionPolicy="LRU" />
 
     <defaultCache
             maxElementsInMemory="50000"
             eternal="false"
-            timeToIdleSeconds="120"
-            timeToLiveSeconds="120"
+            timeToIdleSeconds="1800"
+            timeToLiveSeconds="1800"
             overflowToDisk="false"
             diskPersistent="false"
-            diskExpiryThreadIntervalSeconds="120"
+            diskExpiryThreadIntervalSeconds="1800"
             memoryStoreEvictionPolicy="LRU"/>
 </ehcache>

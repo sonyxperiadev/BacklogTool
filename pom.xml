@@ -199,7 +199,7 @@
             <version>3.0.1</version>
         </dependency>
         
-        <!--Hibernate Ecache-->
+        <!--Hibernate Ehcache-->
           <dependency>
               <groupId>net.sf.ehcache</groupId>
               <artifactId>ehcache</artifactId>
