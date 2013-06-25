@@ -1581,7 +1581,7 @@ $(document).ready(function () {
     };
     
     /**
-     * Finds and updates a task li-element with new attributes.
+     * Finds and updates a theme li-element with new attributes.
      */
     var updateThemeLi = function(updatedTheme) {
         var themeId = updatedTheme.id;
