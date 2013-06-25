@@ -63,6 +63,8 @@ import org.hibernate.annotations.Cache;
 @Entity
 @Table(name="Epics")
 public class Epic {
+    
+    public static final int DESCRIPTION_LENGTH = 100000;
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)

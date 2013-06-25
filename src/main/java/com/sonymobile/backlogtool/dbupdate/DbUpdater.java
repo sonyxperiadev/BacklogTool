@@ -27,6 +27,8 @@ import org.hibernate.SessionFactory;
 
 /**
  * This abstract class can be extended for making schema updates to the database.
+ * The getFromVersion-method decides the ordering in which the subclasses are being run.
+ * Subclasses should be named as "UpdateVersionX_Y" if it updates from schema version X to Y.
  * 
  * @author Fredrik Persson &lt;fredrik6.persson@sonymobile.com&gt;
  */
