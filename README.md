@@ -1,6 +1,6 @@
 The MIT License
 
-Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+Copyright 2013 Sony Mobile Communications AB. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,16 +45,16 @@ First, make sure you have the following installed:
 
 For users
 ---------
-1. Download the backlogtool.war backlogtool.properties files from Github to a suitable location
+1. Download the backlogtool.war file from http://developer.sonymobile.com/downloads/tool/binaries-for-backlogtool/ and backlogtool.properties from https://github.com/sonyxperiadev/BacklogTool/raw/master/backlogtool.properties
 2. Copy the .war-file to [Tomcat location]/webapps
 3. Copy the backlog.properties-file to [Tomcat location]/conf and edit it with your own options. The conf folder does not exist by default so you might have to create it.
 4. (Optional) If you want to allow area names with special characters, set URIEncoding like this: http://struts.apache.org/2.0.6/docs/how-to-support-utf-8-uriencoding-with-tomcat.html
 5. Make sure the database and LDAP servers are running and start Tomcat.
-6. Backlogtool should now be available at http://localhost:8080/backlogtool
+6. Backlogtool should now be available at http://localhost:8080/backlogtool. If you want to run backlogtool as the web root, rename 'backlogtool.war' to 'ROOT.war'
 
 For devs
 --------
-1. Download the source code using git as ususal
+1. Download the source code using Git as usual
 2. Install SpringSource Toolsuite (http://www.springsource.org/spring-tool-suite-download)
 3. Launch SpringSource Toolsuite and choose File->Import. Expand "Maven" as import source and choose "Existing Maven Projects". Press Next.
 4. Press the Browse button next to root directory and browse to the location of the source code. Press Ok and wait a few minutes until analysing is complete.
@@ -76,4 +76,3 @@ The java class "JSONController" manages all Ajax requests (except rank updating)
 Authentication is handled by Spring Security, which is set to work with a LDAP server. Many of the JSONController methods are annotated with “"hasPermission(isAdmin)" or similar which triggers a check on the user using the backlogtool.permission package before allowing access.
 
 On the client side, most features have been developed with jQuery and plugins like jQuery UI, jQuery blockUI and jQuery autosize. jQuery blockUI is for locking the UI when displaying an "updating" message when asking for server response. jQuery autosize is used for changing size on the text fields on the fly when editing backlog items.
-
