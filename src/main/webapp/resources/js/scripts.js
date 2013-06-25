@@ -1009,6 +1009,7 @@ $(document).ready(function () {
             li.dblclick(editTask);
         } else if (li.hasClass("story")) {
             li.dblclick(editStory);
+            $("li#"+id+" > div").css("margin-right","3%");
         } else if (li.hasClass("epic")) {
             li.dblclick(editEpic);
         } else if (li.hasClass("theme")) {
@@ -1058,7 +1059,7 @@ $(document).ready(function () {
     /**
      * Returns true if you are going into edit mode on a parent/child.
      */
-    var isGoingIntoEdit = function isGoingIntoEdit(editId){
+    var isGoingIntoEdit = function isGoingIntoEdit(editId) {
         for(var i = 0; editingItems.length > i; i++) {
             if (editingItems[i].id == editId) {
                 return false;
@@ -1081,6 +1082,9 @@ $(document).ready(function () {
         }
         if (isGoingIntoEdit(storyId)) {
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
+            
+            $("li#"+storyId+" > div").css("margin-right","10px");
+
             editingItems.push({id:storyId, type:"story"});
             removeGroupMember();
             $('button.'+storyId).button();
@@ -1165,6 +1169,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
+            $("li#"+storyId+" > div").css("margin-right","3%");
             updateWhenItemsClosed();
         }
     };
@@ -1205,12 +1210,12 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedStory) {
             	//Set updated values, we prefer to not reload the whole page.
-            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
-            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
-            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+            	$('.titles, .titles-padding-left').find('p.titleText.'+storyId).html(updatedStory.title);
+            	$('.titles, .titles-padding-left').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
+            	$('.titles, .titles-padding-left').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
             	
                 //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+                var descriptionParagraph = $('.titles, .titles-padding-left').find('p.description.'+storyId);
                 descriptionParagraph = untruncate(descriptionParagraph, updatedStory.description);
                 descriptionParagraph.truncate(
                         $.extend({}, truncateOptions, {className: 'truncate'+storyId})
@@ -1274,6 +1279,11 @@ $(document).ready(function () {
      * Exit edit mode on a backlog item
      */
     var exitEditMode = function(id) {
+
+        if ($("#"+id).hasClass('story')) {
+        	$("li#"+id+" > div").css("margin-right","3%");
+        }
+        
         $("."+id).toggleClass('hidden-edit');
         editingItems.remove({id:id});
         updateWhenItemsClosed();
@@ -1398,11 +1408,11 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
 
-            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
-            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
+            	$('.titles, .titles-padding-left').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
+            	$('.titles, .titles-padding-left').find('p.titleText.'+epicId).html(updatedEpic.title);
                 
                 //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
+                var descriptionParagraph = $('.titles, .titles-padding-left').find('p.description.'+epicId);
                 descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
                 descriptionParagraph.truncate(
                         $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
@@ -1526,10 +1536,10 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTheme) {
 
-            	$('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
+            	$('.titles').find('p.titleText.'+themeId).html(updatedTheme.title);
 
                 //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
+                var descriptionParagraph = $('.titles').find('p.description.'+themeId);
                 descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
                 descriptionParagraph.truncate(
                         $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
@@ -1680,7 +1690,7 @@ $(document).ready(function () {
      */
     var getArchivedTopic = function(archived, id) {
         if (archived) {
-        	return '<p class="title ' + id + '">Archived</p>';
+        	return '<p class="archived-date title ' + id + '">Archived</p>';
         } else return '';
     };
 
@@ -1760,7 +1770,7 @@ $(document).ready(function () {
 	                        +'<div class="stakeholders">'
 	                        //CUSTOMER FIELD START
 	                        +'<p class="title">Customer </p>'
-	                        +'<p class="customerSite ' + currentParent.id + '">'+getSiteImage(currentParent.customerSite)+'</p>'
+	                        +'<p class="customerSite inline ' + currentParent.id + '">'+getSiteImage(currentParent.customerSite)+'</p>'
 	                        +'<p class="' + currentParent.id + ' customer description">' + currentParent.customer + '</p>'
 	                        +'<select id="customerSite'+currentParent.id+'" class="bindChange customerSite hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1772,7 +1782,7 @@ $(document).ready(function () {
 	                        //CUSTOMER FIELD END
 	                        //CONTRIBUTOR FIELD START
 	                        +'<p class="title">Contributor </p>'
-	                        +'<p id="'+currentParent.id+'" class="contributorSite ' + currentParent.id + '">'+getSiteImage(currentParent.contributorSite)+'</p>'
+	                        +'<p id="'+currentParent.id+'" class="contributorSite inline ' + currentParent.id + '">'+getSiteImage(currentParent.contributorSite)+'</p>'
 	                        +'<p class="' + currentParent.id + ' contributor description">' + currentParent.contributor + '</p>'
 	                        +'<select id="contributorSite'+currentParent.id+'" class="bindChange contributorSite hidden-edit ' + currentParent.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1822,11 +1832,15 @@ $(document).ready(function () {
 	                        +'<option value=""></option>'
 	                        + storyAttr3Options
 	                        +'</select>'
+	                        +'<div class="archive-div">'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveStory' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive story</p></input>'
-	                        +'<button class="inline marginTop save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
-	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(archived, currentParent.id)
-	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
+	                        +'<p class="description archived-date ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        //ATTR3 FIELD END
 	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
@@ -1867,8 +1881,10 @@ $(document).ready(function () {
 	                        +'<option value="2">2</option>'
 	                        +'</select>'
 	                        //CALCULATEDTIME END
-	                        +'<button class="save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        +'<a id=' + currentChild.id + ' title="Remove task" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />'
 	                        +'</li>';
@@ -1881,7 +1897,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentParent.id + '" title="Clone this epic excluding children" class="cloneItem epic"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div class="titles-theme-epic">'
+	                        +'<div class="titles">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Epic ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -1901,11 +1917,15 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
-	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
-	                        +'<button class="save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'<div class="archive-div">'
+	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveEpic' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive epic</p></input><br>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(archived, currentParent.id)
-	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
+	                        +'<p class="description archived-date ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
 	
@@ -1919,7 +1939,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentChild.id + '" title="Clone this story excluding tasks" class="cloneItem story"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div class="padding-left titles-epic-story">'
+	                        +'<div class="titles-padding-left">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Story</p>'
 	                        //TYPE MARK END
@@ -1946,7 +1966,7 @@ $(document).ready(function () {
 	                        +'<div class="stakeholders">'
 	                        //CUSTOMER FIELD START
 	                        +'<p class="title">Customer </p>'
-	                        +'<p class="customerSite ' + currentChild.id + '">'+getSiteImage(currentChild.customerSite)+'</p>'
+	                        +'<p class="customerSite inline ' + currentChild.id + '">'+getSiteImage(currentChild.customerSite)+'</p>'
 	                        +'<p class="' + currentChild.id + ' customer description">' + currentChild.customer + '</p>'
 	                        +'<select id="customerSite'+currentChild.id+'" class="bindChange customerSite hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -1958,7 +1978,7 @@ $(document).ready(function () {
 	                        //CUSTOMER FIELD END
 	                        //CONTRIBUTOR FIELD START
 	                        +'<p class="title">Contributor </p>'
-	                        +'<p id="'+currentChild.id+'" class="contributorSite ' + currentChild.id + '">'+getSiteImage(currentChild.contributorSite)+'</p>'
+	                        +'<p id="'+currentChild.id+'" class="inline contributorSite ' + currentChild.id + '">'+getSiteImage(currentChild.contributorSite)+'</p>'
 	                        +'<p class="' + currentChild.id + ' contributor description">' + currentChild.contributor + '</p>'
 	                        +'<select id="contributorSite'+currentChild.id+'" class="bindChange contributorSite hidden-edit ' + currentChild.id + ' text ui-widget-content ui-corner-all">'
 	                        +'<option value="NONE"></option>'
@@ -2008,11 +2028,15 @@ $(document).ready(function () {
 	                        +'<option value=""></option>'
 	                        + storyAttr3Options
 	                        +'</select>'
+	                        +'<div class="archive-div">'
 	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveStory' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive story</p></input>'
-	                        +'<button class="inline marginTop save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
-	                        +'<button class="inline marginTop cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(currentChild.archived, currentChild.id)
-	                        +'<p class="description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
+	                        +'<p class="archived-date archived-date description ' + currentChild.id + '">' + getDate(currentChild.dateArchived) + '</p>'
 	                        +'</div>'
 	                        //ATTR3 DIV END
 	                        +'<a id=' + currentChild.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
@@ -2027,7 +2051,7 @@ $(document).ready(function () {
 	                        +'<a id="' + currentParent.id + '" title="Clone this theme excluding children" class="cloneItem theme icon"><img src="../resources/image/page_white_copy.png"></a>'
 	                        +'</div>'
 	                        //TITLE FIELDS
-	                        +'<div class="titles-theme-epic">'
+	                        +'<div class="titles">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Theme ' + currentParent.id + '</p>'
 	                        //TYPE MARK END
@@ -2043,11 +2067,15 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        //TITLE FIELDS END
 	                        +'<a id=' + currentParent.id + ' title="Remove theme" class="icon deleteItem delete-icon"></a>'
-	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
-	                        +'<button class="save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'<div class="archive-div">'
+	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentParent.id + '" id="archiveTheme' + currentParent.id + '"' + getArchived(currentParent.archived) + '><p class="title inline hidden-edit ' + currentParent.id + '">Archive theme</p></input><br>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentParent.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentParent.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        + getArchivedTopic(archived, currentParent.id)
-	                        +'<p class="description ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
+	                        +'<p class="description archived-date ' + currentParent.id + '">' + getDate(currentParent.dateArchived) + '</p>'
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
 	
@@ -2059,7 +2087,7 @@ $(document).ready(function () {
 	                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
 	                        +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
 	                        //TITLE FIELDS
-	                        +'<div class="padding-left titles-theme-epic">'
+	                        +'<div class="titles-padding-left">'
 	                        //TYPE MARK START
 	                        +'<p class="typeMark">Epic</p>'
 	                        //TYPE MARK END
@@ -2073,10 +2101,14 @@ $(document).ready(function () {
 	                        +'<textarea placeholder="Description" id="epicDescription'+currentChild.id+'" class="bindChange hidden-edit description ' + currentChild.id + '" rows="2" maxlength="100000">' + currentChild.description + '</textarea>'
 	                        //DESCRIPTION END
 	                        +'</div>'
+	                        +'<div class="archive-div">'
 	                        +'<a id=' + currentChild.id + ' title="Remove epic" class="icon deleteItem delete-icon"></a>'
-	                        +'<input type="checkbox" class="marginTopBig inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
-	                        +'<button class="save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
-	                        +'<button class="cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'<input type="checkbox" class="inline bindChange hidden-edit ' + currentChild.id + '" id="archiveEpic' + currentChild.id + '"' + getArchived(currentChild.archived) + '><p class="title inline hidden-edit ' + currentChild.id + '">Archive epic</p></input><br>'
+	                        +'</div>'
+	                        +'<div class="button-div">'
+	                        +'<button class="inline save-button hidden-edit ' + currentChild.id + '" title="Save">Save</button>'
+	                        +'<button class="inline cancelButton hidden-edit ' + currentChild.id + '" title="Cancel">Cancel</button>'
+	                        +'</div>'
 	                        +'<br style="clear:both" />'
 	                        +'</li>';
 	                    }
