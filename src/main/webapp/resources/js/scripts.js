@@ -1000,6 +1000,7 @@ $(document).ready(function () {
             li.dblclick(editTask);
         } else if (li.hasClass("story")) {
             li.dblclick(editStory);
+            $("li#"+id+" > div").css("margin-right","3%");
         } else if (li.hasClass("epic")) {
             li.dblclick(editEpic);
         } else if (li.hasClass("theme")) {
@@ -1049,7 +1050,7 @@ $(document).ready(function () {
     /**
      * Returns true if you are going into edit mode on a parent/child.
      */
-    var isGoingIntoEdit = function isGoingIntoEdit(editId){
+    var isGoingIntoEdit = function isGoingIntoEdit(editId) {
         for(var i = 0; editingItems.length > i; i++) {
             if (editingItems[i].id == editId) {
                 return false;
@@ -1072,6 +1073,8 @@ $(document).ready(function () {
         }
         if (isGoingIntoEdit(storyId)) {
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
+            
+            $("li#"+storyId+" > div").css("margin-right","10px");
 
             editingItems.push({id:storyId, type:"story"});
             removeGroupMember();
@@ -1157,6 +1160,7 @@ $(document).ready(function () {
         } else {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
+            $("li#"+storyId+" > div").css("margin-right","3%");
             updateWhenItemsClosed();
         }
     };
@@ -1266,6 +1270,11 @@ $(document).ready(function () {
      * Exit edit mode on a backlog item
      */
     var exitEditMode = function(id) {
+
+        if ($("#"+id).hasClass('story')) {
+        	$("li#"+id+" > div").css("margin-right","3%");
+        }
+        
         $("."+id).toggleClass('hidden-edit');
         editingItems.remove({id:id});
         updateWhenItemsClosed();

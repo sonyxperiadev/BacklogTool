@@ -28,11 +28,11 @@ html, body {
 
 @media screen and (max-width: 1024px) {
     div.titles {
-        width: 45%;
+        width: 44%;
     }
     
     div.titles-padding-left {
-        width: 40%;
+        width: 39%;
     }
 }
 
@@ -104,7 +104,7 @@ div.titles, div.titles-padding-left, div.times, div.story-attr1-2, div.story-att
     display: inline-block;
     float: left;
     word-wrap: break-word;
-    margin-right: 10px;
+    margin-right: 3%;
 }
 
 #wrap {
