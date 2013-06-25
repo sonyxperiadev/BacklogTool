@@ -375,13 +375,14 @@ public class HomeController {
         return view;
     }
     
-    @RequestMapping(value = "/pushtest", method = RequestMethod.GET)
-    public ModelAndView pushTest(Locale locale, Model model) {
+    @RequestMapping(value = "/pushtest/{areaname}", method = RequestMethod.GET)
+    public ModelAndView pushTest(Locale locale, Model model, @PathVariable String areaname) {
 
         ModelAndView view = new ModelAndView();
 
 
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("lastArea", areaname);
             view.setViewName("pushtest");
         return view;
     }

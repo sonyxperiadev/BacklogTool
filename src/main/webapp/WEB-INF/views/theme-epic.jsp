@@ -43,6 +43,8 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.dropdown.js" />"></script>
     
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere.js" />"></script>
+    
     <script type="text/javascript">
         var areaName = "${area.name}";
         var view = "${view}";

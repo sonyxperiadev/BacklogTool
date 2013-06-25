@@ -321,16 +321,46 @@ $(document).ready(function () {
 
     var pushId;
 
+//    var addGroupMember = function addGroupMember() {
+//        pushId = ice.push.createPushId();
+//        ice.push.addGroupMember(areaName, pushId);
+//        ice.push.register([pushId], reload);
+//    };
+    
+    
+    var socket;
     var addGroupMember = function addGroupMember() {
-        pushId = ice.push.createPushId();
-        ice.push.addGroupMember(areaName, pushId);
-        ice.push.register([pushId], reload);
+            socket = $.atmosphere;
+            var request = new $.atmosphere.AtmosphereRequest();
+            request.url = '/backlogtool/json/register/' + areaName;
+            request.contentType = "application/json";
+            request.transport = 'websocket';
+            request.fallbackTransport = 'long-polling';
+
+            request.onMessage = function (response) {
+                var message = response.responseBody;
+				alert("Msg recieved: " + message);
+				reload(); // ?
+            };
+
+            request.onError = function(response) {
+				alert("An error occurred");
+            };
+            
+            // TODO: Do we need to keep a reference to the subSocket?
+            var subSocket = socket.subscribe(request);
+            
     };
     addGroupMember();
 
     var removeGroupMember = function removeGroupMember() {
-        ice.push.removeGroupMember(areaName,pushId);
+    	// TODO: Check not null
+        socket.unsubscribe();
     };
+    
+//    var removeGroupMember = function removeGroupMember() {
+//        ice.push.removeGroupMember(areaName,pushId);
+//    };
 
     var displayUpdateMsg = function () {
         $.blockUI({
@@ -2372,6 +2402,7 @@ $(document).ready(function () {
             return container;
         },
         start: function (event, ui) {
+        	removeGroupMember();
             var pressed = $(ui.item);
             pressed.addClass("moving");
 
@@ -2386,6 +2417,7 @@ $(document).ready(function () {
 
         },
         stop: function (event, ui) {
+        	addGroupMember();
             displayUpdateMsg();
             sendMovedItems();
 

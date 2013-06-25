@@ -376,8 +376,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return newTask.getId();
     }
 
@@ -471,8 +472,11 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        
+        AtmosphereUtils.push(areaName);
+        
         return newStory.getId();
     }
 
@@ -551,8 +555,9 @@ public class JSONController {
             newEpic.setTitle("New epic " + newEpic.getId());
             tx.commit();
 
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
+//            PushContext pushContext = PushContext.getInstance(context);
+//            pushContext.push(areaName);
+            AtmosphereUtils.push(areaName);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -615,9 +620,10 @@ public class JSONController {
             newTheme.setTitle("New theme " + newTheme.getId());
             tx.commit();
 
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
-
+//            PushContext pushContext = PushContext.getInstance(context);
+//            pushContext.push(areaName);
+            
+            AtmosphereUtils.push(areaName);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -666,8 +672,9 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
+//            PushContext pushContext = PushContext.getInstance(context);
+//            pushContext.push(areaName);
+        	AtmosphereUtils.push(areaName);
         }
         return task;
     }
@@ -786,8 +793,9 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
+//            PushContext pushContext = PushContext.getInstance(context);
+//            pushContext.push(areaName);
+        	AtmosphereUtils.push(areaName);
         }
         return story;
     }
@@ -866,8 +874,9 @@ public class JSONController {
                 epic.setArchived(updatedEpic.isArchived());
                 tx.commit();
                 if (pushUpdate) {
-                    PushContext pushContext = PushContext.getInstance(context);
-                    pushContext.push(areaName);
+//                    PushContext pushContext = PushContext.getInstance(context);
+//                    pushContext.push(areaName);
+                	AtmosphereUtils.push(areaName);
                 }
                 success = true;
             }
@@ -942,8 +951,9 @@ public class JSONController {
                 theme.setArchived(updatedTheme.isArchived());
                 tx.commit();
                 if (pushUpdate) {
-                    PushContext pushContext = PushContext.getInstance(context);
-                    pushContext.push(areaName);
+//                    PushContext pushContext = PushContext.getInstance(context);
+//                    pushContext.push(areaName);
+                	AtmosphereUtils.push(areaName);
                 }
                 success = true;
             }
@@ -1122,8 +1132,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return clonedId;
     }
 
@@ -1184,8 +1195,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return clonedId;
     }
 
@@ -1235,8 +1247,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return clonedId;
     }
 
@@ -1291,8 +1304,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return true;
     }
 
@@ -1340,8 +1354,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return true;
     }
 
@@ -1402,8 +1417,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return true;
     }
 
@@ -1449,8 +1465,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return true;
     }
 
@@ -1874,8 +1891,9 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
         return true;
     }
 
@@ -2138,9 +2156,10 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
-
+//        PushContext pushContext = PushContext.getInstance(context);
+//        pushContext.push(areaName);
+        AtmosphereUtils.push(areaName);
+        
         return true;
     }
 
@@ -2183,12 +2202,19 @@ public class JSONController {
         broadcaster.broadcast(message,listeners);
     }
     
-    @RequestMapping(value="/test", method = RequestMethod.GET)
+    @RequestMapping(value = "/register/{areaName}", method = RequestMethod.GET)
     @Transactional
-    public @ResponseBody void test(final AtmosphereResource event) {
-        AtmosphereUtils.suspend(event);
-        //Change this code to create a new broadcaster for a specific area
+    public @ResponseBody void registerForArea(final AtmosphereResource event, @PathVariable String areaName) {
+    	System.out.println("=== INFO === registerForArea() with areaName " + areaName);
+    	AtmosphereUtils.suspend(event, areaName);
     }
+    
+//    @RequestMapping(value="/test", method = RequestMethod.GET)
+//    @Transactional
+//    public @ResponseBody void test(final AtmosphereResource event) {
+//        AtmosphereUtils.suspend(event);
+//        //Change this code to create a new broadcaster for a specific area
+//    }
 
 
 }
