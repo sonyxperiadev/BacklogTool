@@ -54,6 +54,10 @@ THE SOFTWARE.
     <logger name="org.springframework.web">
         <level value="info" />
     </logger>
+    
+    <logger name="net.sf.ehcache">
+        <level value="info" />
+    </logger> 
 
     <!-- Root Logger -->
     <root>

@@ -74,6 +74,11 @@ public class HibernateConfiguration {
         props.put("hibernate.dialect", propertiesFile.get("db.hibernate.dialect"));
         props.put("hibernate.format_sql", "true");
         props.put("hibernate.show_sql", "false");
+        
+        props.put("hibernate.cache.region.factory_class", "net.sf.ehcache.hibernate.EhCacheRegionFactory");
+        props.put("hibernate.cache.use_second_level_cache","true");
+        props.put("hibernate.cache.use_query_cache", "false");
+        
         AnnotationSessionFactoryBean bean = new AnnotationSessionFactoryBean();
         bean.setAnnotatedClasses(new Class[]{Story.class, Task.class, User.class,
                 Area.class, Theme.class, Epic.class, Attribute.class,
