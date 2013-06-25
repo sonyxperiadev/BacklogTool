@@ -24,8 +24,10 @@
 package com.sonymobile.backlogtool;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,10 @@ import java.util.Comparator;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.atmosphere.cpr.ApplicationConfig;
+import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.cpr.AtmosphereResourceFactory;
+import org.atmosphere.cpr.Broadcaster;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -2153,5 +2159,36 @@ public class JSONController {
         GrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
         return !auth.getAuthorities().contains(anonymous);
     }
+    
+
+    @RequestMapping(value="/test", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody void test(final AtmosphereResource event, @RequestBody String message) throws InterruptedException {
+        Broadcaster broadcaster = event.getBroadcaster();
+        
+        //TODO: This is a special case for websockets, make sure it works for long-polling as well.
+        String uuid = (String) event.getRequest().getAttribute(ApplicationConfig.SUSPENDED_ATMOSPHERE_RESOURCE_UUID);
+        AtmosphereResource originalEvent = AtmosphereResourceFactory.getDefault().find(uuid);
+        
+        
+        Set<AtmosphereResource> listeners = new HashSet<AtmosphereResource>();
+        
+        
+        for (AtmosphereResource resource : broadcaster.getAtmosphereResources()) {
+            if (!resource.equals(originalEvent)) {
+                listeners.add(resource);
+            }
+        }
+
+        broadcaster.broadcast(message,listeners);
+    }
+    
+    @RequestMapping(value="/test", method = RequestMethod.GET)
+    @Transactional
+    public @ResponseBody void test(final AtmosphereResource event) {
+        AtmosphereUtils.suspend(event);
+        //Change this code to create a new broadcaster for a specific area
+    }
+
 
 }

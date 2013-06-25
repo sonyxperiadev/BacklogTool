@@ -374,6 +374,17 @@ public class HomeController {
         }
         return view;
     }
+    
+    @RequestMapping(value = "/pushtest", method = RequestMethod.GET)
+    public ModelAndView pushTest(Locale locale, Model model) {
+
+        ModelAndView view = new ModelAndView();
+
+
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+            view.setViewName("pushtest");
+        return view;
+    }
 
     /**
      * Checks if the user is allowed to make edits to this specific area.
