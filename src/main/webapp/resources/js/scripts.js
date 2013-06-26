@@ -1208,7 +1208,7 @@ $(document).ready(function () {
                 updateStoryLi(updatedStory);
 
             	if (view == "story-task") {
-            	    //If Story was moved,
+            	    //If story was moved,
             	    //check if this story is in list-container or in archived.list-container and moves it.
             	    if (getParent(storyId).archived != updatedStory.archived) {
             	        li.fadeOut("normal", function() {
@@ -1246,7 +1246,7 @@ $(document).ready(function () {
     };
     
     /**
-     * Finds and updates a story li-element with new attributes.
+     * Finds and updates a story li-element with new values.
      */
     var updateStoryLi = function(updatedStory) {
         var storyId = updatedStory.id;
@@ -1328,7 +1328,7 @@ $(document).ready(function () {
     };
     
     /**
-     * Finds and updates a task li-element with new attributes.
+     * Finds and updates a task li-element with new values.
      */
     var updateTaskLi = function(updatedTask) {
         var taskId = updatedTask.id;
@@ -1455,7 +1455,7 @@ $(document).ready(function () {
     };
     
     /**
-     * Finds and updates a epic li-element with new attributes.
+     * Finds and updates a epic li-element with new values.
      */
     var updateEpicLi = function(updatedEpic) {
         var epicId = updatedEpic.id;
@@ -1552,7 +1552,7 @@ $(document).ready(function () {
 
             	updateThemeLi(updatedTheme);
 
-            	//if Theme was moved from or to archive
+            	//if theme was moved from or to archive
             	if (getParent(themeId).archived != updatedTheme.archived) {
             		//Checks if this theme is in list-container or in archived.list-container and moves it.
             		li.fadeOut("normal", function() {
@@ -1581,7 +1581,7 @@ $(document).ready(function () {
     };
     
     /**
-     * Finds and updates a theme li-element with new attributes.
+     * Finds and updates a theme li-element with new values.
      */
     var updateThemeLi = function(updatedTheme) {
         var themeId = updatedTheme.id;
