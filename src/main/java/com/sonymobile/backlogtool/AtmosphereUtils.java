@@ -83,7 +83,7 @@ public final class AtmosphereUtils {
 	 *            The name of the area
 	 */
 	public static void push(String areaName) {
-		push(areaName, "hello");
+		push(areaName, "{\"hello\":1}");
 	}
 
 	/**

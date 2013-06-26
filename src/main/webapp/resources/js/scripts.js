@@ -354,7 +354,7 @@ $(document).ready(function () {
 		request.onMessage = function(response) {
 			if (!ignorePush) {
 				var message = response.responseBody;
-				// TODO: process response (message)
+				processPushData(message);
 				reload();
 			}
 		};
@@ -383,9 +383,9 @@ $(document).ready(function () {
 		} catch (error) {
 			alert("Error: Invalid JSON in server-push-message");
 		}
-		var data = json.data;
+		var data = jsonObj.data;
 		if(jsonObj.type == "story") {
-			
+			updateStoryLi(data);
 		} else if(jsonObj.type == "epic") {
 			
 		} else if(jsonObj.type == "theme") {
