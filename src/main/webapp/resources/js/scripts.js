@@ -145,8 +145,8 @@ $(document)
 					Date.prototype.yyyymmdd = function() {
 						var yyyy = this.getFullYear().toString();
 						var mm = (this.getMonth() + 1).toString(); // getMonth()
-																	// is
-																	// zero-based
+						// is
+						// zero-based
 						var dd = this.getDate().toString();
 						return (mm[1] ? mm : "0" + mm[0]) + "/"
 								+ (dd[1] ? dd : "0" + dd[0]) + "/" + yyyy;
@@ -385,13 +385,13 @@ $(document)
 						request.onMessage = function(response) {
 							if (!ignorePush) {
 								var message = response.responseBody;
-								alert("Msg recieved: " + message);
-								reload(); // ?
+								// TODO: process response (message)
+								reload();
 							}
 						};
 
 						request.onError = function(response) {
-							alert("An error occurred");
+							alert("An error occurred: " + response.responseBody);
 						};
 
 						socket.subscribe(request);
@@ -506,7 +506,7 @@ $(document)
 					};
 
 					readData();
-
+					
 					Array.prototype.remove = function(value) {
 						for ( var i = 0; i < this.length; i++) {
 							if (this[i] == value
@@ -1253,10 +1253,10 @@ $(document)
 						}
 						if (isGoingIntoEdit(storyId)) {
 							$("li#" + storyId).unbind("dblclick"); // Only the
-																	// cancel
-																	// button
-																	// closes
-																	// again
+							// cancel
+							// button
+							// closes
+							// again
 							editingItems.push({
 								id : storyId,
 								type : "story"
@@ -1710,10 +1710,10 @@ $(document)
 						var task = getChild(taskId);
 						if (isGoingIntoEdit(taskId)) {
 							$("li#" + taskId).unbind("dblclick"); // Only the
-																	// cancel
-																	// button
-																	// closes
-																	// again
+							// cancel
+							// button
+							// closes
+							// again
 							editingItems.push({
 								id : taskId,
 								type : "task"
@@ -1902,10 +1902,10 @@ $(document)
 
 						if (isGoingIntoEdit(epicId)) {
 							$("li#" + epicId).unbind("dblclick"); // Only the
-																	// cancel
-																	// button
-																	// closes
-																	// again
+							// cancel
+							// button
+							// closes
+							// again
 							editingItems.push({
 								id : epicId,
 								type : "epic"
@@ -2086,10 +2086,10 @@ $(document)
 						}
 						if (isGoingIntoEdit(themeId)) {
 							$("li#" + themeId).unbind("dblclick"); // Only the
-																	// cancel
-																	// button
-																	// closes
-																	// again
+							// cancel
+							// button
+							// closes
+							// again
 							editingItems.push({
 								id : themeId,
 								type : "theme"
@@ -2211,8 +2211,8 @@ $(document)
 									false);
 							// $('.save-button').button( "option", "disabled",
 							// true );
-							addGroupMember();
 							reload();
+							addGroupMember();
 						}
 					};
 
@@ -3552,7 +3552,6 @@ $(document)
 
 										},
 										stop : function(event, ui) {
-											addGroupMember();
 											displayUpdateMsg();
 											sendMovedItems();
 
@@ -3560,6 +3559,7 @@ $(document)
 											pressed.removeClass("moving");
 
 											lastPressed = null;
+											addGroupMember();
 										}
 
 									});
@@ -3603,13 +3603,11 @@ $(document)
 									});
 
 					/**
-					 * Sets timeout for a function, to be reset after each call on delay.
-					 * Can for example be used to trigger a function after
-					 * typing has stopped in a textbox.
-					 * Usage:
-					 * delay(function() {
-					        //To be called after timeout
-					    }, *delayInMs* ); 
+					 * Sets timeout for a function, to be reset after each call
+					 * on delay. Can for example be used to trigger a function
+					 * after typing has stopped in a textbox. Usage:
+					 * delay(function() { //To be called after timeout },
+					 * *delayInMs* );
 					 */
 					var delay = (function() {
 						var timer = 0;
@@ -3626,8 +3624,8 @@ $(document)
 					});
 
 					/*
-					 * Update view when the filter is changed.
-					 * Also disable drag and drop if filter is active.
+					 * Update view when the filter is changed. Also disable drag
+					 * and drop if filter is active.
 					 */
 					var updateFilter = function() {
 						$(".parent-child-list").empty();
@@ -3644,12 +3642,14 @@ $(document)
 							$("#list-container").sortable("option", "disabled",
 									true);
 
-							//Remove selected items if they are invisible after changing filter
+							// Remove selected items if they are invisible after
+							// changing filter
 							selectedItems = $.grep(selectedItems, function(
 									selected, i) {
 								return isFiltered(selected.id);
 							});
-							updateCookie(); //Necessary if selected items changed
+							updateCookie(); // Necessary if selected items
+											// changed
 						} else {
 							window.history
 									.replaceState({}, document.title, '?');
@@ -3673,15 +3673,15 @@ $(document)
 						if (e.which == KEYCODE_CTRL) {
 							isCtrl = false;
 						}// else if (e.which == 16) {
-						//   isShift = false;
-						//  }
+						// isShift = false;
+						// }
 					});
 
 					$(window).keydown(function(e) {
 						if (e.which == KEYCODE_CTRL) {
 							isCtrl = true;
-						} //else if (e.which == 16) {
-						//   isShift = true;
+						} // else if (e.which == 16) {
+						// isShift = true;
 						// }
 					});
 

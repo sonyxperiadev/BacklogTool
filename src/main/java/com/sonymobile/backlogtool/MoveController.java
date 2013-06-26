@@ -204,9 +204,6 @@ public class MoveController {
             session.close();
         }
 
-//        PushContext pushContext = PushContext.getInstance(context);
-//        pushContext.push(areaName);
-        
         AtmosphereUtils.push(areaName);
         
         return true;
@@ -355,9 +352,6 @@ public class MoveController {
             session.close();
         }
 
-//        PushContext pushContext = PushContext.getInstance(context);
-//        pushContext.push(areaName);
-        
         AtmosphereUtils.push(areaName);
         
         return true;
@@ -509,9 +503,6 @@ public class MoveController {
             session.close();
         }
 
-//        PushContext pushContext = PushContext.getInstance(context);
-//        pushContext.push(areaName);
-        
         AtmosphereUtils.push(areaName);
         return true;
     }

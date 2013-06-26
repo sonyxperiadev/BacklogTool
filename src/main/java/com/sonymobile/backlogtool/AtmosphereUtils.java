@@ -75,23 +75,23 @@ public final class AtmosphereUtils {
 		Broadcaster b = AtmosphereUtils.lookupBroadcaster(areaName);
 //		b.removeAtmosphereResource(resource);
 		
-		String uuid = (String) resource.getRequest().getAttribute(ApplicationConfig.SUSPENDED_ATMOSPHERE_RESOURCE_UUID);
-        AtmosphereResource originalEvent = AtmosphereResourceFactory.getDefault().find(uuid);
-        
-        boolean found = false;
-        System.out.println("=== INFO === suspend(), resources: " + b.getAtmosphereResources().size());
-        for (AtmosphereResource res : b.getAtmosphereResources()) {
-            if (res.equals(originalEvent)) {
-                found = true;
-            }
-        }
-        
-        System.out.println("=== INFO === suspend(), found: " + String.valueOf(found));
-        if(!found) {
-        	System.out.println("=== INFO === suspend(), adding resource");
+//		String uuid = (String) resource.getRequest().getAttribute(ApplicationConfig.SUSPENDED_ATMOSPHERE_RESOURCE_UUID);
+//        AtmosphereResource originalEvent = AtmosphereResourceFactory.getDefault().find(uuid);
+//        
+//        boolean found = false;
+//        System.out.println("=== INFO === suspend(), resources: " + b.getAtmosphereResources().size());
+//        for (AtmosphereResource res : b.getAtmosphereResources()) {
+//            if (res.equals(originalEvent)) {
+//                found = true;
+//            }
+//        }
+//        
+//        System.out.println("=== INFO === suspend(), found: " + String.valueOf(found));
+//        if(!found) {
+//        	System.out.println("=== INFO === suspend(), adding resource");
         	b.addAtmosphereResource(resource);
-        }
-        System.out.println("=== INFO === suspend(), resources: " + b.getAtmosphereResources().size());
+//        }
+//        System.out.println("=== INFO === suspend(), resources: " + b.getAtmosphereResources().size());
 		if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource.transport())) {
 			resource.resumeOnBroadcast(true).suspend(-1, false);
 		} else {
@@ -104,7 +104,13 @@ public final class AtmosphereUtils {
 			LOG.error("Interrupted while trying to suspend resource {}", resource);
 		}
 	}
-
+	
+	/**
+	 * Find the Broadcaster for the specified area. Either returns an existing Broadcaster,
+	 * or creates a new one if none exists.
+	 * @param areaName The name of the area
+	 * @return The Broadcaster for the specified area
+	 */
 	public static Broadcaster lookupBroadcaster(String areaName) {
 		System.out.println("=== INFO === lookupBroadcaster() for area " + areaName);
 		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
@@ -114,18 +120,26 @@ public final class AtmosphereUtils {
 			bc.setID(areaName);
 			BroadcasterFactory.getDefault().add(bc, bc.getID());
 		}
-				
 		return bc;
 	}
 	
+	/**
+	 * Push a notification to all clients registered on the specified area
+	 * @param areaName The name of the area
+	 */
 	public static void push(String areaName) {
-		System.out.println("=== INFO === Push for area " + areaName);
-		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
-		bc.broadcast("hej");
+		push(areaName, "hello");
 	}
 	
-	public static void push(String areaname, String data) {
-		
+	/**
+	 * Push a notification to alla clients registered on the specified area
+	 * @param areaName The name of the area
+	 * @param data The data to send in the push
+	 */
+	public static void push(String areaName, String data) {
+		System.out.println("=== INFO === Push for area " + areaName);
+		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
+		bc.broadcast(data);
 	}
 
 }
