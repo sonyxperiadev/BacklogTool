@@ -23,9 +23,13 @@
  */
 package com.sonymobile.backlogtool.permission;
 
+import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_ONLY;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cache;
 
 /**
  * This class represents a backlog user account.
@@ -34,6 +38,7 @@ import javax.persistence.Table;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
+@Cache(usage=READ_ONLY)
 @Entity
 @Table(name="Users")
 public class User {

@@ -26,6 +26,7 @@ package com.sonymobile.backlogtool;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -34,8 +35,11 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.Session;
+import org.hibernate.annotations.Cache;
+import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE;
 
 /**
  * An area can be looked upon as a backlog instance where all themes, epics,
@@ -45,6 +49,8 @@ import org.hibernate.Session;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
+@Cacheable
+@Cache(usage=READ_WRITE)
 @Entity
 @Table(name="Areas")
 public class Area {
