@@ -6,7 +6,7 @@
     <artifactId>backlogtool</artifactId>
     <name>backlog-tool</name>
     <packaging>war</packaging>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <description>
         <![CDATA[A tool for managing backlogs]]>
     </description>
@@ -204,6 +204,16 @@
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-runtime</artifactId>
             <version>1.0.13</version>
+        </dependency>
+
+        
+        <!--Hibernate Ehcache-->
+          <dependency>
+              <groupId>net.sf.ehcache</groupId>
+              <artifactId>ehcache</artifactId>
+              <version>2.7.1</version>
+              <type>pom</type>
+              <scope>compile</scope>
         </dependency>
     </dependencies>
 

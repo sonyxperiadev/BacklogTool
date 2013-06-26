@@ -74,7 +74,7 @@ THE SOFTWARE.
         <property name="username" value="${db.username}" />
         <property name="password" value="${db.password}" />
     </bean>
-    
+   
     <security:ldap-user-service id="ldapUserService" user-search-base="${ldap.user-search-base}" user-search-filter="${ldap.user-search-filter}"/>
 
     <security:authentication-manager>
