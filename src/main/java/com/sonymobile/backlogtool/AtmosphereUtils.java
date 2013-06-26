@@ -95,6 +95,7 @@ public final class AtmosphereUtils {
 	 *            The data to send in the push
 	 */
 	public static void push(String areaName, String data) {
+		System.out.println("=== INFO === Pushing data:\n \t " + data + "\n to area " + areaName);
 		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
 		bc.broadcast(data);
 	}

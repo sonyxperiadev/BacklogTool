@@ -406,7 +406,24 @@ $(document)
 					var removeGroupMember = function removeGroupMember() {
 						ignorePush = true;
 					};
-
+					
+					var processPushData = function processPushData(dataString) {
+						var jsonObj = {};
+						try {
+							jsonObj = JSON.parse(dataString);
+						} catch (error) {
+							alert("Error: Invalid JSON in server-push-message");
+						}
+						var data = json.data;
+						if(jsonObj.type == "story") {
+							
+						} else if(jsonObj.type == "epic") {
+							
+						} else if(jsonObj.type == "theme") {
+							
+						}
+					};
+					
 					var displayUpdateMsg = function() {
 						$.blockUI({
 							message : '<h1>Updating...</h1>',

@@ -671,10 +671,11 @@ public class JSONController {
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
-            @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) {
+            @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
+        
         try {
             tx = session.beginTransaction();
 
@@ -770,7 +771,7 @@ public class JSONController {
             if (updatedStory.getEpicTitle() != null) {
                 story.setEpic(newEpic);
             }
-
+            
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -781,7 +782,12 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-        	AtmosphereUtils.push(areaName);
+        	ObjectMapper mapper = new ObjectMapper();
+        	mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
+        	HashMap<String, Object> typeMapper = new HashMap<String, Object>();
+        	typeMapper.put("type", "story");
+        	typeMapper.put("data", story);
+        	AtmosphereUtils.push(areaName, mapper.writeValueAsString(typeMapper));
         }
         
         return story;
