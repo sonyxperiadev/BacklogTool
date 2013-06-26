@@ -1205,35 +1205,10 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedStory) {
             	//Set updated values, we prefer to not reload the whole page.
-            	$('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
-            	$('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
-            	$('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
-            	
-                //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
-                descriptionParagraph = untruncate(descriptionParagraph, updatedStory.description);
-                descriptionParagraph.truncate(
-                        $.extend({}, truncateOptions, {className: 'truncate'+storyId})
-                );
-                if (extendedDescriptions.indexOf('truncate'+storyId) != -1) {
-                    $('a.truncate'+storyId, descriptionParagraph.parent()).click();
-                }
-
-            	$('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
-            	$('.stakeholders').find('p.customer.'+storyId).html(updatedStory.customer);
-
-            	$('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(updatedStory.contributorSite));
-            	$('.stakeholders').find('p.contributor.'+storyId).html(updatedStory.contributor);
-
-            	$('.times').find('p.added.' + storyId).html(getDate(updatedStory.added));
-            	$('.times').find('p.deadline.' + storyId).html(getDate(updatedStory.deadline));
-
-            	$('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
-            	$('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
-            	$('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
+                updateStoryLi(updatedStory);
 
             	if (view == "story-task") {
-            	    //If Story was moved,
+            	    //If story was moved,
             	    //check if this story is in list-container or in archived.list-container and moves it.
             	    if (getParent(storyId).archived != updatedStory.archived) {
             	        li.fadeOut("normal", function() {
@@ -1268,6 +1243,39 @@ $(document).ready(function () {
             }
         });
         li.dblclick(editStory);
+    };
+    
+    /**
+     * Finds and updates a story li-element with new values.
+     */
+    var updateStoryLi = function(updatedStory) {
+        var storyId = updatedStory.id;
+        $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
+        $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
+        $('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+        
+        //Re-add truncate on the description paragraph
+        var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+        descriptionParagraph = untruncate(descriptionParagraph, updatedStory.description);
+        descriptionParagraph.truncate(
+                $.extend({}, truncateOptions, {className: 'truncate'+storyId})
+        );
+        if (extendedDescriptions.indexOf('truncate'+storyId) != -1) {
+            $('a.truncate'+storyId, descriptionParagraph.parent()).click();
+        }
+
+        $('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
+        $('.stakeholders').find('p.customer.'+storyId).html(updatedStory.customer);
+
+        $('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(updatedStory.contributorSite));
+        $('.stakeholders').find('p.contributor.'+storyId).html(updatedStory.contributor);
+
+        $('.times').find('p.added.' + storyId).html(getDate(updatedStory.added));
+        $('.times').find('p.deadline.' + storyId).html(getDate(updatedStory.deadline));
+
+        $('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
+        $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
+        $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
     };
 
     /**
@@ -1307,19 +1315,7 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTask) {
             	//Set the updated values
-            	$(".taskOwner."+updatedTask.id).find("p.taskInfo").html(updatedTask.owner);
-            	$(".calculatedTime."+updatedTask.id).find("p.taskInfo").html(updatedTask.calculatedTime);
-            	$(".taskStatus."+updatedTask.id).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
-                
-                //Re-add truncate on the title paragraph
-                var titleParagraph = $(".taskTitle."+updatedTask.id).find("p.taskInfo");
-                titleParagraph = untruncate(titleParagraph, updatedTask.title);
-                titleParagraph.truncate(
-                        $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
-                );
-                if (extendedDescriptions.indexOf('truncate'+taskId) != -1) {
-                    $('a.truncate'+taskId, titleParagraph.parent()).click();
-                }
+            	updateTaskLi(updatedTask);
                 
                 replaceChild(taskId, updatedTask);
             	exitEditMode(taskId);
@@ -1329,6 +1325,26 @@ $(document).ready(function () {
             }
         });
         li.dblclick(editTask);
+    };
+    
+    /**
+     * Finds and updates a task li-element with new values.
+     */
+    var updateTaskLi = function(updatedTask) {
+        var taskId = updatedTask.id;
+        $(".taskOwner."+taskId).find("p.taskInfo").html(updatedTask.owner);
+        $(".calculatedTime."+taskId).find("p.taskInfo").html(updatedTask.calculatedTime);
+        $(".taskStatus."+taskId).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
+        
+        //Re-add truncate on the title paragraph
+        var titleParagraph = $(".taskTitle."+taskId).find("p.taskInfo");
+        titleParagraph = untruncate(titleParagraph, updatedTask.title);
+        titleParagraph.truncate(
+                $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
+        );
+        if (extendedDescriptions.indexOf('truncate'+taskId) != -1) {
+            $('a.truncate'+taskId, titleParagraph.parent()).click();
+        }
     };
 
     var editTask = function(event) {
@@ -1398,18 +1414,7 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
 
-            	$('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
-            	$('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
-                
-                //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
-                descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
-                descriptionParagraph.truncate(
-                        $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
-                );
-                if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
-                    $('a.truncate'+epicId, descriptionParagraph.parent()).click();
-                }
+                updateEpicLi(updatedEpic);
 
             	if (view == "epic-story") {
             	    //If epic was moved,
@@ -1447,6 +1452,25 @@ $(document).ready(function () {
             }
         });
         li.dblclick(editEpic);
+    };
+    
+    /**
+     * Finds and updates a epic li-element with new values.
+     */
+    var updateEpicLi = function(updatedEpic) {
+        var epicId = updatedEpic.id;
+        $('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
+        $('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
+        
+        //Re-add truncate on the description paragraph
+        var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
+        descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
+        descriptionParagraph.truncate(
+                $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
+        );
+        if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
+            $('a.truncate'+epicId, descriptionParagraph.parent()).click();
+        }
     };
 
     var editEpic = function(event) {
@@ -1526,21 +1550,11 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedTheme) {
 
-            	$('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
+            	updateThemeLi(updatedTheme);
 
-                //Re-add truncate on the description paragraph
-                var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
-                descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
-                descriptionParagraph.truncate(
-                        $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
-                );
-                if (extendedDescriptions.indexOf('truncate'+themeId) != -1) {
-                    $('a.truncate'+themeId, descriptionParagraph.parent()).click();
-                }
-
-            	//if Story was moved from or to archive
+            	//if theme was moved from or to archive
             	if (getParent(themeId).archived != updatedTheme.archived) {
-            		//Checks if this story is in list-container or in archived.list-container and moves it.
+            		//Checks if this theme is in list-container or in archived.list-container and moves it.
             		li.fadeOut("normal", function() {
             			if (li.parent('#list-container').length) {
             				//move all children and parent
@@ -1556,7 +1570,7 @@ $(document).ready(function () {
             	} else {
                     exitEditMode(themeId);
             	}
-            	//Replacing story with a new one
+            	//Replacing theme with a new one
             	replaceParent(themeId, updatedTheme);
             },
             error: function (request, status, error) {
@@ -1564,6 +1578,24 @@ $(document).ready(function () {
             }
         });
         li.dblclick(editTheme);
+    };
+    
+    /**
+     * Finds and updates a theme li-element with new values.
+     */
+    var updateThemeLi = function(updatedTheme) {
+        var themeId = updatedTheme.id;
+        $('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
+
+        //Re-add truncate on the description paragraph
+        var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
+        descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
+        descriptionParagraph.truncate(
+                $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
+        );
+        if (extendedDescriptions.indexOf('truncate'+themeId) != -1) {
+            $('a.truncate'+themeId, descriptionParagraph.parent()).click();
+        }
     };
 
     var editTheme = function(event) {
