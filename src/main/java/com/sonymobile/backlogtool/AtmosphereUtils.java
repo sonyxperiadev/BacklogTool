@@ -1,143 +1,100 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ *  The MIT License
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Copyright 2013 Sony Mobile Communications AB. All rights reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
  */
 package com.sonymobile.backlogtool;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import javax.servlet.http.HttpServletRequest;
-
-import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
-import org.atmosphere.cpr.AtmosphereResourceFactory;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
-import org.atmosphere.cpr.Meteor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Gunnar Hillert
- * @since  1.0
- *
+ * @author Christoffer Lauri <christoffer.lauri@sonymobile.com>
+ * 
  */
 public final class AtmosphereUtils {
 
-	public static final Logger LOG = LoggerFactory.getLogger(AtmosphereUtils.class);
+	/**
+	 * Suspend the client and add it to the Broadcaster associated with the
+	 * specified area (register the client for push-notifications for the
+	 * specified area)
+	 * 
+	 * @param resource
+	 *            The AtmosphereResource for the client
+	 * @param areaName
+	 *            The area(name) to associate the resource/client with
+	 */
+	public static void suspendClient(final AtmosphereResource resource,
+			String areaName) {
+		AtmosphereUtils.getBroadcasterForArea(areaName).addAtmosphereResource(
+				resource);
 
-	public static AtmosphereResource getAtmosphereResource(HttpServletRequest request) {
-		return getMeteor(request).getAtmosphereResource();
-	}
-	public static Meteor getMeteor(HttpServletRequest request) {
-		return Meteor.build(request);
-	}
-	public static void suspend(final AtmosphereResource resource, String areaName) {
-
-		final CountDownLatch countDownLatch = new CountDownLatch(1);
-		resource.addEventListener(new AtmosphereResourceEventListenerAdapter() {
-			@Override
-			public void onSuspend(AtmosphereResourceEvent event) {
-				countDownLatch.countDown();
-				LOG.info("Suspending Client..." + resource.uuid());
-				resource.removeEventListener(this);
-			}
-
-			@Override
-			public void onDisconnect(AtmosphereResourceEvent event) {
-				LOG.info("Disconnecting Client..." + resource.uuid());
-				super.onDisconnect(event);
-			}
-
-			@Override
-			public void onBroadcast(AtmosphereResourceEvent event) {
-				LOG.info("Client is broadcasting..." + resource.uuid());
-				super.onBroadcast(event);
-			}
-
-		});
-		
-		//TODO: Can several instances of the same resource exist in the Broadcaster's list? 
-		Broadcaster b = AtmosphereUtils.lookupBroadcaster(areaName);
-//		b.removeAtmosphereResource(resource);
-		
-//		String uuid = (String) resource.getRequest().getAttribute(ApplicationConfig.SUSPENDED_ATMOSPHERE_RESOURCE_UUID);
-//        AtmosphereResource originalEvent = AtmosphereResourceFactory.getDefault().find(uuid);
-//        
-//        boolean found = false;
-//        System.out.println("=== INFO === suspend(), resources: " + b.getAtmosphereResources().size());
-//        for (AtmosphereResource res : b.getAtmosphereResources()) {
-//            if (res.equals(originalEvent)) {
-//                found = true;
-//            }
-//        }
-//        
-//        System.out.println("=== INFO === suspend(), found: " + String.valueOf(found));
-//        if(!found) {
-//        	System.out.println("=== INFO === suspend(), adding resource");
-        	b.addAtmosphereResource(resource);
-//        }
-//        System.out.println("=== INFO === suspend(), resources: " + b.getAtmosphereResources().size());
-		if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource.transport())) {
+		if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource
+				.transport())) {
 			resource.resumeOnBroadcast(true).suspend(-1, false);
 		} else {
 			resource.suspend(-1);
 		}
-
-		try {
-			countDownLatch.await();
-		} catch (InterruptedException e) {
-			LOG.error("Interrupted while trying to suspend resource {}", resource);
-		}
 	}
-	
+
 	/**
-	 * Find the Broadcaster for the specified area. Either returns an existing Broadcaster,
-	 * or creates a new one if none exists.
-	 * @param areaName The name of the area
+	 * Find the Broadcaster for the specified area. Either returns an existing
+	 * Broadcaster, or creates a new one if none exists.
+	 * 
+	 * @param areaName
+	 *            The name of the area
 	 * @return The Broadcaster for the specified area
 	 */
-	public static Broadcaster lookupBroadcaster(String areaName) {
-		System.out.println("=== INFO === lookupBroadcaster() for area " + areaName);
+	public static Broadcaster getBroadcasterForArea(String areaName) {
 		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
-		if(bc == null) {
-			System.out.println("=== INFO === lookupBroadcaster() for area " + areaName + ", no bc for the area");
+		if (bc == null) {
 			bc = BroadcasterFactory.getDefault().get();
 			bc.setID(areaName);
 			BroadcasterFactory.getDefault().add(bc, bc.getID());
 		}
 		return bc;
 	}
-	
+
 	/**
-	 * Push a notification to all clients registered on the specified area
-	 * @param areaName The name of the area
+	 * Push a notification with data "hello" to all clients registered on the
+	 * specified area
+	 * 
+	 * @param areaName
+	 *            The name of the area
 	 */
 	public static void push(String areaName) {
 		push(areaName, "hello");
 	}
-	
+
 	/**
-	 * Push a notification to alla clients registered on the specified area
-	 * @param areaName The name of the area
-	 * @param data The data to send in the push
+	 * Push a notification to all clients registered on the specified area
+	 * 
+	 * @param areaName
+	 *            The name of the area
+	 * @param data
+	 *            The data to send in the push
 	 */
 	public static void push(String areaName, String data) {
-		System.out.println("=== INFO === Push for area " + areaName);
 		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
 		bc.broadcast(data);
 	}

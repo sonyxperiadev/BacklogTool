@@ -2143,30 +2143,7 @@ public class JSONController {
         GrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
         return !auth.getAuthorities().contains(anonymous);
     }
-    
-
-    @RequestMapping(value="/test", method = RequestMethod.POST)
-    @Transactional
-    public @ResponseBody void test(final AtmosphereResource event, @RequestBody String message) throws InterruptedException {
-        Broadcaster broadcaster = event.getBroadcaster();
-        
-        //TODO: This is a special case for websockets, make sure it works for long-polling as well.
-        String uuid = (String) event.getRequest().getAttribute(ApplicationConfig.SUSPENDED_ATMOSPHERE_RESOURCE_UUID);
-        AtmosphereResource originalEvent = AtmosphereResourceFactory.getDefault().find(uuid);
-        
-        
-        Set<AtmosphereResource> listeners = new HashSet<AtmosphereResource>();
-        
-        
-        for (AtmosphereResource resource : broadcaster.getAtmosphereResources()) {
-            if (!resource.equals(originalEvent)) {
-                listeners.add(resource);
-            }
-        }
-
-        broadcaster.broadcast(message,listeners);
-    }
-    
+  
     /**
      * Used by clients to register themselves for push-notifications for a certain area
      * @param event
@@ -2176,7 +2153,7 @@ public class JSONController {
     @Transactional
     public @ResponseBody void registerForArea(final AtmosphereResource event, @PathVariable String areaName) {
     	System.out.println("=== INFO === registerForArea() with areaName " + areaName);
-    	AtmosphereUtils.suspend(event, areaName);
+    	AtmosphereUtils.suspendClient(event, areaName);
     }
     
 }
