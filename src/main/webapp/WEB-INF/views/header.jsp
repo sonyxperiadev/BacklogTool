@@ -102,8 +102,8 @@ THE SOFTWARE.
         <c:if test="${view == 'story-task'}">
             <option value="contributor">Contributor</option>
             <option value="customer">Customer</option>
-            <option value="contributorsite">Contributor site</option>
-            <option value="customersite">Customer site</option>
+            <option value="contributorSite">Contributor site</option>
+            <option value="customerSite">Customer site</option>
             <option value="storyAttr1">${area.storyAttr1.name}</option>
             <option value="storyAttr2">${area.storyAttr2.name}</option>
             <option value="storyAttr3">${area.storyAttr3.name}</option>

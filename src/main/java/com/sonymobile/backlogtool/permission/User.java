@@ -23,7 +23,7 @@
  */
 package com.sonymobile.backlogtool.permission;
 
-import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_ONLY;
+import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -38,7 +38,7 @@ import org.hibernate.annotations.Cache;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
-@Cache(usage=READ_ONLY)
+@Cache(usage=READ_WRITE)
 @Entity
 @Table(name="Users")
 public class User {

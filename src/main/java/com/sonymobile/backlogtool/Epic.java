@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -58,7 +57,6 @@ import org.hibernate.annotations.Cache;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
-@Cacheable
 @Cache(usage=READ_WRITE)
 @Entity
 @Table(name="Epics")
@@ -91,7 +89,7 @@ public class Epic {
     @ManyToOne
     private Area area;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="epic")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy="epic")
     @OrderBy("prioInEpic")
     private Set<Story> children = new HashSet<Story>();
 

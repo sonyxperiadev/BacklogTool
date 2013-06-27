@@ -27,7 +27,6 @@ import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE;
 
 import java.util.Date;
 
-import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -49,7 +48,6 @@ import org.hibernate.annotations.Cache;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
-@Cacheable
 @Cache(usage=READ_WRITE)
 @Entity
 @Table(name="Tasks")
