@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -58,7 +57,6 @@ import org.hibernate.annotations.Cache;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
-@Cacheable
 @Cache(usage=READ_WRITE)
 @Entity
 @Table(name="Stories")
@@ -82,7 +80,7 @@ public class Story {
 
     private boolean archived;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="story")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy="story")
     @OrderBy("prioInStory")
     private Set<Task> children = new HashSet<Task>();
 

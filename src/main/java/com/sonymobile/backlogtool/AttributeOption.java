@@ -25,7 +25,6 @@ package com.sonymobile.backlogtool;
 
 import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE;
 
-import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -43,7 +42,6 @@ import org.hibernate.annotations.Cache;
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
  */
-@Cacheable
 @Cache(usage=READ_WRITE)
 @Entity
 @Table(name = "AttributeOptions")

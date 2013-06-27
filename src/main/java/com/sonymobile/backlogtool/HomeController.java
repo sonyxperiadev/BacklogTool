@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -240,8 +241,8 @@ public class HomeController {
      * @return page
      */
     @RequestMapping(value = "/print-stories/{areaName}", method = RequestMethod.GET)
-    public ModelAndView printStories(Locale locale, Model model, @RequestParam int[] ids, @PathVariable String areaName) {
-        List<Story> stories = new ArrayList<Story>();
+    public ModelAndView printStories(Locale locale, Model model, @RequestParam List<Integer> ids, @PathVariable String areaName) {
+        List<Story> stories = null;
         Area area = null;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -254,12 +255,17 @@ public class HomeController {
                 throw new Exception("Could not find area!");
             }
 
-            for (int id : ids) {
-                Story story = (Story) session.get(Story.class, id);
-                if (story != null && story.getArea() == area) {
-                    stories.add(story);
-                }
-            }
+            Hibernate.initialize(area.getStoryAttr1());
+            Hibernate.initialize(area.getStoryAttr2());
+            Hibernate.initialize(area.getStoryAttr3());
+
+            Query storyQuery = session.createQuery("select distinct s from Story s " +
+                    "left join fetch s.children " +
+                    "where s.area like ? and s.id in (:ids)");
+            storyQuery.setParameter(0, area);
+            storyQuery.setParameterList("ids", ids);
+
+            stories = Util.castList(Story.class, storyQuery.list());
 
             tx.commit();
         } catch (Exception e) {
