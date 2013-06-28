@@ -46,6 +46,7 @@ import org.atmosphere.cpr.Broadcaster;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -125,22 +126,28 @@ public class JSONController {
             if (order.contains("storyAttr")) {
                 //If the user wants to sort by one of the custom created attributes, then the attributeOptions
                 //needs to be sorted by their compareValues.
-                String queryString1 = "from Story where area.name like ? order by " + order + ".compareValue";
+                String queryString1 = "select distinct s from Story s " +
+                        "left join fetch s.children " +
+                        "left join fetch s." + order + " as attr " +
+                        "where s.area.name like ? " +
+                        "order by attr.compareValue";
                 Query query1 = session.createQuery(queryString1);
                 query1.setParameter(0, areaName);
 
-                //When sorting by compareValues, all stories with null as this attribute are excluded and therefore
-                //have to be added in a separate request:
-                String queryString2 = "from Story where area.name like ? and " + order + " is null";
-                Query query2 = session.createQuery(queryString2);
-                query2.setParameter(0, areaName);
-
                 list = Util.castList(Story.class, query1.list());
-                list.addAll(Util.castList(Story.class, query2.list()));
             } else if (order.equals("prio")) {
+                String nonArchivedQueryString = "select distinct s from Story s " +
+                		"left join fetch s.children " +
+                		"where s.area.name like ? and " +
+                		"s.archived=false " +
+                		"order by s.prio";
+                
                 //Since the archived stories don't have any prio, we order them by their date archived.
-                String nonArchivedQueryString = "from Story where area.name like ? and archived=false order by prio";
-                String archivedQueryString = "from Story where area.name like ? and archived=true order by dateArchived desc";
+                String archivedQueryString = "select distinct s from Story s " +
+                		"left join fetch s.children " +
+                		"where s.area.name like ? " +
+                		"and s.archived=true " +
+                		"order by s.dateArchived desc";
 
                 Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
                 Query archivedQuery = session.createQuery(archivedQueryString);
@@ -151,7 +158,10 @@ public class JSONController {
                 list = Util.castList(Story.class, nonArchivedQuery.list());
                 list.addAll(Util.castList(Story.class, archivedQuery.list()));
             } else {
-                String queryString = "from Story where area.name like ? order by " + order;
+                String queryString = "select distinct s from Story s " +
+                		"left join fetch s.children " +
+                		"where s.area.name like ? " +
+                		"order by s." + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
 
@@ -184,19 +194,32 @@ public class JSONController {
             tx = session.beginTransaction();
 
             if (order.equals("prio")) {
-                String queryString1 = "from Epic where area.name like ? and archived=false order by prio";
-                Query query1 = session.createQuery(queryString1);
-                query1.setParameter(0, areaName);
+                String nonArchivedQueryString = "select distinct e from Epic e " +
+                        "left join fetch e.children " +
+                        "where e.area.name like ? and " +
+                        "e.archived=false " +
+                        "order by e.prio";
 
-                String queryString2 = "from Epic where area.name like ? and archived=true order by dateArchived desc";
-                Query query2 = session.createQuery(queryString2);
-                query2.setParameter(0, areaName);
+                //Since the archived epics don't have any prio, we order them by their date archived.
+                String archivedQueryString = "select distinct e from Epic e " +
+                        "left join fetch e.children " +
+                        "where e.area.name like ? " +
+                        "and e.archived=true " +
+                        "order by e.dateArchived desc";
 
-                epics = Util.castList(Epic.class, query1.list());
-                epics.addAll(Util.castList(Epic.class, query2.list()));
+                Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
+                Query archivedQuery = session.createQuery(archivedQueryString);
+
+                archivedQuery.setParameter(0, areaName);
+                nonArchivedQuery.setParameter(0, areaName);
+
+                epics = Util.castList(Epic.class, archivedQuery.list());
+                epics.addAll(Util.castList(Epic.class, nonArchivedQuery.list()));
             } else {
-
-                String queryString = "from Epic where area.name like ? order by " + order;
+                String queryString = "select distinct e from Epic e " +
+                        "left join fetch e.children " +
+                        "where e.area.name like ? " +
+                        "order by e." + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
                 epics = Util.castList(Epic.class, query.list());
@@ -231,18 +254,32 @@ public class JSONController {
             tx = session.beginTransaction();
 
             if (order.equals("prio")) {
-                String queryString1 = "from Theme where area.name like ? and archived=false order by prio";
-                Query query1 = session.createQuery(queryString1);
-                query1.setParameter(0, areaName);
+                String nonArchivedQueryString = "select distinct t from Theme t " +
+                        "left join fetch t.children " +
+                        "where t.area.name like ? and " +
+                        "t.archived=false " +
+                        "order by t.prio";
 
-                String queryString2 = "from Theme where area.name like ? and archived=true order by dateArchived desc";
-                Query query2 = session.createQuery(queryString2);
-                query2.setParameter(0, areaName);
+                //Since the archived themes don't have any prio, we order them by their date archived.
+                String archivedQueryString = "select distinct t from Theme t " +
+                        "left join fetch t.children " +
+                        "where t.area.name like ? " +
+                        "and t.archived=true " +
+                        "order by t.dateArchived desc";
 
-                themes = Util.castList(Theme.class, query1.list());
-                themes.addAll(Util.castList(Theme.class, query2.list()));
+                Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
+                Query archivedQuery = session.createQuery(archivedQueryString);
+
+                archivedQuery.setParameter(0, areaName);
+                nonArchivedQuery.setParameter(0, areaName);
+
+                themes = Util.castList(Theme.class, archivedQuery.list());
+                themes.addAll(Util.castList(Theme.class, nonArchivedQuery.list()));
             } else {
-                String queryString = "from Theme where area.name like ? order by " + order;
+                String queryString = "select distinct t from Theme t " +
+                        "left join fetch t.children " +
+                        "where t.area.name like ? " +
+                        "order by t." + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
                 themes = Util.castList(Theme.class, query.list());
@@ -679,6 +716,7 @@ public class JSONController {
             tx = session.beginTransaction();
 
             story = (Story) session.get(Story.class, updatedStory.getId());
+            Hibernate.initialize(story.getChildren());
             if (!story.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
@@ -801,6 +839,7 @@ public class JSONController {
             tx = session.beginTransaction();
 
             epic = (Epic) session.get(Epic.class, updatedEpic.getId());
+            Hibernate.initialize(epic.getChildren());
             if (!epic.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
@@ -890,6 +929,7 @@ public class JSONController {
             tx = session.beginTransaction();
 
             theme = (Theme) session.get(Theme.class, updatedTheme.getId());
+            Hibernate.initialize(theme.getChildren());
             if (!theme.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }

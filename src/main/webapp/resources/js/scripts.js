@@ -625,16 +625,18 @@ $(document).ready(function () {
             $(this).removeClass("ui-icon-triangle-1-e");
             $(this).addClass("ui-icon-triangle-1-s");
         }
-        var belongingChildren = $(this).closest('li').attr("children").trim().split(' ');
-        for (var k = 0; k < belongingChildren.length; ++k) {
-            var currentChildId = belongingChildren[k];
-            $('#' + currentChildId).slideToggle();
+        var parent = getParent($(this).closest('li').attr("id"));
+        var children = new Array();
+        for (var k = 0; k < parent.children.length; k++) {
+            var currentChildId = parent.children[k].id;
+            children.push(document.getElementById(currentChildId));
             if (visible[currentChildId]) {
                 visible[currentChildId] = false;
             } else {
                 visible[currentChildId] = true;
             }
         }
+        $(children).slideToggle();
         e.stopPropagation();
     };
 
@@ -1816,19 +1818,17 @@ $(document).ready(function () {
         	currentParent = parents[k];
         	if (!isFilterActive() || isFiltered(currentParent.id)) {
 	            if (currentParent.archived == archived) {
-	                var belongingChildren = ' ';
 	
+	                //Check if at least one child is visible
 	                var oneVisible = false;
-	                //Add all task ids of the same story to a string
-	                //and check if at least one is visible
 	                for (var i = 0; i < currentParent.children.length; ++i) {
-	                    belongingChildren += currentParent.children[i].id + ' ';
 	                    if (visible[currentParent.children[i].id] == true) {
 	                        oneVisible = true;
+	                        break;
 	                    }
 	                }
 	                //Sets all children of same group as visible if at least one was visible
-	                if (oneVisible == true) {
+	                if (oneVisible) {
 	                    for (var i = 0; i < currentParent.children.length; ++i) {
 	                        visible[currentParent.children[i].id] = true;
 	                    }
@@ -1836,10 +1836,8 @@ $(document).ready(function () {
 	
 	                var icon = '';
 	
-	                var belongingChildrenArray = belongingChildren.trim().split(' ');
-	
-	                if (belongingChildrenArray[0] != "") {
-	                    if (visible[belongingChildrenArray[0]] == true) {
+	                if (currentParent.children.length > 0) {
+	                    if (oneVisible) {
 	                        icon = 'expand-icon ui-icon ui-icon-triangle-1-s';
 	                    } else {
 	                        icon = 'expand-icon ui-icon ui-icon-triangle-1-e';
@@ -1952,7 +1950,7 @@ $(document).ready(function () {
 	                        //ATTR3 FIELD END
 	                        +'<a id=' + currentParent.id + ' title="Remove story" class="icon deleteItem delete-icon"></a>'
 	                        +'<br style="clear:both" />';
-	                    newContainer += '<li class="parentLi story ui-state-default editStory" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
+	                    newContainer += '<li class="parentLi story ui-state-default editStory" id="' + currentParent.id + '">' + list +'</li>';
 	
 	
 	                    for (var i=0; i<currentParent.children.length; ++i) {
@@ -2030,7 +2028,7 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
 	
-	                    newContainer += '<li class="parentLi epic ui-state-default editEpic" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
+	                    newContainer += '<li class="parentLi epic ui-state-default editEpic" id="' + currentParent.id + '">' + list +'</li>';
 	
 	
 	                    for (var i=0; i<currentParent.children.length; ++i) {
@@ -2172,7 +2170,7 @@ $(document).ready(function () {
 	                        +'</div>'
 	                        +'<br style="clear:both" />';
 	
-	                    newContainer += '<li class="parentLi theme ui-state-default editTheme" id="' + currentParent.id + '" children="' + belongingChildren + '">' + list +'</li>';
+	                    newContainer += '<li class="parentLi theme ui-state-default editTheme" id="' + currentParent.id + '">' + list +'</li>';
 	
 	
 	                    for (var i = 0; i<currentParent.children.length; ++i) {
