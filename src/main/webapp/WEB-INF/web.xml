@@ -52,31 +52,38 @@ THE SOFTWARE.
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
-  <servlet>
-    <servlet-name>appServlet</servlet-name>
-    <servlet-class>org.atmosphere.cpr.MeteorServlet</servlet-class>
-    <init-param>
-      <param-name>contextConfigLocation</param-name>
-      <param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
-    </init-param>
-    <init-param>
+    <servlet>
+        <servlet-name>appServlet</servlet-name>
+        <servlet-class>org.atmosphere.cpr.MeteorNativeCometServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
+        </init-param>
+        <init-param>
             <param-name>org.atmosphere.servlet</param-name>
             <param-value>org.springframework.web.servlet.DispatcherServlet</param-value>
         </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet>
-    <servlet-name>icepush</servlet-name>
-    <servlet-class>org.icepush.servlet.ICEpushServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
+        <init-param>
+            <param-name>org.atmosphere.cpr.AtmosphereInterceptor</param-name>
+            <param-value>org.atmosphere.interceptor.HeartbeatInterceptor</param-value>
+        </init-param>
+        <init-param>
+            <param-name>org.atmosphere.interceptor.HeartbeatInterceptor.heartbeatFrequencyInSeconds</param-name>
+            <param-value>90</param-value>
+        </init-param>
+        <init-param>
+            <param-name>org.atmosphere.useNative</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>org.atmosphere.useWebSocketAndServlet3</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
   <servlet-mapping>
     <servlet-name>appServlet</servlet-name>
     <url-pattern>/</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>icepush</servlet-name>
-    <url-pattern>*.icepush</url-pattern>
   </servlet-mapping>
 </web-app>
 

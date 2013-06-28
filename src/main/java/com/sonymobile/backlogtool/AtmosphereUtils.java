@@ -34,70 +34,71 @@ import org.atmosphere.cpr.BroadcasterFactory;
  */
 public final class AtmosphereUtils {
 
-	/**
-	 * Suspend the client and add it to the Broadcaster associated with the
-	 * specified area (register the client for push-notifications for the
-	 * specified area)
-	 * 
-	 * @param resource
-	 *            The AtmosphereResource for the client
-	 * @param areaName
-	 *            The area(name) to associate the resource/client with
-	 */
-	public static void suspendClient(final AtmosphereResource resource,
-			String areaName) {
-		AtmosphereUtils.getBroadcasterForArea(areaName).addAtmosphereResource(
-				resource);
+    /**
+     * Suspend the client and add it to the Broadcaster associated with the
+     * specified area (register the client for push-notifications for the
+     * specified area)
+     * 
+     * @param resource
+     *            The AtmosphereResource for the client
+     * @param areaName
+     *            The area(name) to associate the resource/client with
+     */
+    public static void suspendClient(final AtmosphereResource resource,
+            String areaName) {
+        AtmosphereUtils.getBroadcasterForArea(areaName).addAtmosphereResource(
+                resource);
 
-		if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource
-				.transport())) {
-			resource.resumeOnBroadcast(true).suspend(-1, false);
-		} else {
-			resource.suspend(-1);
-		}
-	}
+        if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource
+                .transport())) {
+            //resource.resumeOnBroadcast(true).suspend(-1, false);
+            resource.resumeOnBroadcast(true).suspend(-1);
+        } else {
+            resource.suspend(-1);
+        }
+    }
 
-	/**
-	 * Find the Broadcaster for the specified area. Either returns an existing
-	 * Broadcaster, or creates a new one if none exists.
-	 * 
-	 * @param areaName
-	 *            The name of the area
-	 * @return The Broadcaster for the specified area
-	 */
-	public static Broadcaster getBroadcasterForArea(String areaName) {
-		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
-		if (bc == null) {
-			bc = BroadcasterFactory.getDefault().get();
-			bc.setID(areaName);
-			BroadcasterFactory.getDefault().add(bc, bc.getID());
-		}
-		return bc;
-	}
+    /**
+     * Find the Broadcaster for the specified area. Either returns an existing
+     * Broadcaster, or creates a new one if none exists.
+     * 
+     * @param areaName
+     *            The name of the area
+     * @return The Broadcaster for the specified area
+     */
+    public static Broadcaster getBroadcasterForArea(String areaName) {
+        Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
+        if (bc == null) {
+            bc = BroadcasterFactory.getDefault().get();
+            bc.setID(areaName);
+            BroadcasterFactory.getDefault().add(bc, bc.getID());
+        }
+        return bc;
+    }
 
-	/**
-	 * Push a notification with data "hello" to all clients registered on the
-	 * specified area
-	 * 
-	 * @param areaName
-	 *            The name of the area
-	 */
-	public static void push(String areaName) {
-		push(areaName, "{\"hello\":1}");
-	}
+    /**
+     * Push a notification with data "hello" to all clients registered on the
+     * specified area
+     * 
+     * @param areaName
+     *            The name of the area
+     */
+    public static void push(String areaName) {
+        push(areaName, "{\"hello\":1}");
+    }
 
-	/**
-	 * Push a notification to all clients registered on the specified area
-	 * 
-	 * @param areaName
-	 *            The name of the area
-	 * @param data
-	 *            The data to send in the push
-	 */
-	public static void push(String areaName, String data) {
-		System.out.println("=== INFO === Pushing data:\n \t " + data + "\n to area " + areaName);
-		Broadcaster bc = BroadcasterFactory.getDefault().lookup(areaName);
-		bc.broadcast(data);
-	}
+    /**
+     * Push a notification to all clients registered on the specified area
+     * 
+     * @param areaName
+     *            The name of the area
+     * @param data
+     *            The data to send in the push
+     */
+    public static void push(String areaName, String data) {
+        System.out.println("=== INFO === Pushing data:\n \t " + data + "\n to area " + areaName);
+        Broadcaster bc = getBroadcasterForArea(areaName);
+        bc.broadcast(data);
+    }
 
 }

@@ -253,7 +253,7 @@ $(document).ready(function () {
      */
     var addLinksAndLineBreaks = function(text) {
         return text.replace(/\n/g, '<br />').replace( /(http:\/\/[^\s]+)/gi , '<a href="$1">$1</a>' );
-    }
+    };
 
     var replaceNullWithEmpty = function (object) {
         if (object == null) {
@@ -338,60 +338,88 @@ $(document).ready(function () {
         $.unblockUI();
     };
 
-	var ignorePush;
-	var socket;
-	/**
-	 * Registers for push-notifications for the current area
-	 */
-	var connectPush = function connectPush() {
-		socket = $.atmosphere;
-		var request = new $.atmosphere.AtmosphereRequest();
-		request.url = '../json/register/' + areaName;
-		request.contentType = "application/json";
-		request.transport = 'websocket';
-		request.fallbackTransport = 'long-polling';
+    var ignorePush;
+    var socket;
+    /**
+     * Registers for push-notifications for the current area
+     */
+    var connectPush = function connectPush() {
+        socket = $.atmosphere;
+        var request = new $.atmosphere.AtmosphereRequest();
+        request.url = '../json/register/' + areaName;
+        request.contentType = "application/json";
+        request.transport = 'websocket';
+        request.fallbackTransport = 'long-polling';
+//      request.logLevel = 'debug';
 
-		request.onMessage = function(response) {
-			if (!ignorePush) {
-				var message = response.responseBody;
-				processPushData(message);
-				reload();
-			}
-		};
+        request.onMessage = function(response) {
+            if (!ignorePush) {
+                window.console && console.log("Received message, about to process...");
+                var message = response.responseBody;
+                processPushData(message);
+                reload();
+            }
+        };
 
-		request.onError = function(response) {
-			alert("An error occurred: " + response.responseBody);
-		};
+        request.onError = function(response) {
+//          window.console && console.log("No json-data in push-message");
+        };
 
-		socket.subscribe(request);
-	};
-	connectPush();
+        request.onOpen = function(response) {
+//          window.console && console.log("onOpen: " + response.responseBody);
+        };
 
-	var addGroupMember = function addGroupMember() {
-		ignorePush = false;
-	};
-	addGroupMember();
+        request.onClose = function(response) {
+//          window.console && console.log("onClose: " + response.responseBody);
+        };
 
-	var removeGroupMember = function removeGroupMember() {
-		ignorePush = true;
-	};
-	
-	var processPushData = function processPushData(dataString) {
-		var jsonObj = {};
-		try {
-			jsonObj = JSON.parse(dataString);
-		} catch (error) {
-			alert("Error: Invalid JSON in server-push-message");
-		}
-		var data = jsonObj.data;
-		if(jsonObj.type == "story") {
-			updateStoryLi(data);
-		} else if(jsonObj.type == "epic") {
-			
-		} else if(jsonObj.type == "theme") {
-			
-		}
-	};
+        request.onReconnect = function(response) {
+//          window.console && console.log("onReconnect: " + response.responseBody);
+        };
+
+        request.onTransportFailure = function(errorMsg, response) {
+//          window.console && console.log("onTransportFailure: " + errorMsg + " || " + response.responseBody);
+        };
+
+        socket.subscribe(request);
+    };
+    connectPush();
+
+    var addGroupMember = function addGroupMember() {
+        ignorePush = false;
+    };
+    addGroupMember();
+
+    var removeGroupMember = function removeGroupMember() {
+        ignorePush = true;
+    };
+
+    /**
+     * Try to interpret the data as JSON, and forward the data
+     * to corresponding method
+     */
+    var processPushData = function processPushData(dataString) {
+        var jsonObj = {};
+        try {
+            jsonObj = JSON.parse(dataString);
+        } catch (error) {
+            alert("Error: Invalid JSON-message from the server");
+        }
+        var data = jsonObj.data;
+        if(data) {
+            if(jsonObj.type == "Story") {
+                updateStoryLi(data);
+            } else if(jsonObj.type == "Task") {
+                updateTaskLi(data);
+            } else if(jsonObj.type == "Epic") {
+                updateEpicLi(data);
+            } else if(jsonObj.type == "Theme") {
+                updateThemeLi(data);
+            }
+        } else {
+            window.console && console.log("No json-data in push-message");
+        }
+    };
     
     var displayUpdateMsg = function () {
         $.blockUI({
@@ -1338,7 +1366,7 @@ $(document).ready(function () {
         $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
         $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
     };
-
+    
     /**
      * Exit edit mode on a backlog item
      */

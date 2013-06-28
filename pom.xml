@@ -193,19 +193,23 @@
             <artifactId>spring-security-ldap</artifactId>
             <version>3.1.0.RELEASE</version>
         </dependency>
-        <dependency>
-            <groupId>org.icepush</groupId>
-            <artifactId>icepush</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-    
+
         <!-- Atmosphere -->
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-runtime</artifactId>
-            <version>1.0.13</version>
+            <version>1.1.0.RC4</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-compat-jbossweb</artifactId>
+            <version>1.1.0.RC4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-compat-tomcat</artifactId>
+            <version>1.1.0.RC4</version>
+        </dependency>
         
         <!--Hibernate Ehcache-->
           <dependency>
