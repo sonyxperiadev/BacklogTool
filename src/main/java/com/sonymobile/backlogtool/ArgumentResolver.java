@@ -40,19 +40,19 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  */
 public class ArgumentResolver implements HandlerMethodArgumentResolver {
 
-	@Override
-	public boolean supportsParameter(MethodParameter param) {
-		return AtmosphereResource.class.isAssignableFrom(param
-				.getParameterType());
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter param) {
+        return AtmosphereResource.class.isAssignableFrom(param
+                .getParameterType());
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter param,
-			ModelAndViewContainer modelAndView, NativeWebRequest request,
-			WebDataBinderFactory bFactory) {
+    @Override
+    public Object resolveArgument(MethodParameter param,
+            ModelAndViewContainer modelAndView, NativeWebRequest request,
+            WebDataBinderFactory bFactory) {
 
-		HttpServletRequest req = request
-				.getNativeRequest(HttpServletRequest.class);
-		return Meteor.build(req).getAtmosphereResource();
-	}
+        HttpServletRequest req = request
+                .getNativeRequest(HttpServletRequest.class);
+        return Meteor.build(req).getAtmosphereResource();
+    }
 }

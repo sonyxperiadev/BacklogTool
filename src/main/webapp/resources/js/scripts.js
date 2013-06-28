@@ -449,7 +449,7 @@ $(document).ready(function () {
     // Load checkbox-status for the Archived-checkbox
     var dispArchived = readCookie("backlogtool-disparchived");
     if(dispArchived != null) {
-    	$('#archived-checkbox').prop('checked', (dispArchived == "checked"));
+        $('#archived-checkbox').prop('checked', (dispArchived == "checked"));
     }
     
     var readData = function readData() {
@@ -2491,7 +2491,7 @@ $(document).ready(function () {
             return container;
         },
         start: function (event, ui) {
-        	removeGroupMember();
+            removeGroupMember();
             var pressed = $(ui.item);
             pressed.addClass("moving");
 

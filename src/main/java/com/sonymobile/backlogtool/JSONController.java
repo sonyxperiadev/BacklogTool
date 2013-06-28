@@ -2210,7 +2210,7 @@ public class JSONController {
     @RequestMapping(value = "/register/{areaName}", method = RequestMethod.GET)
     @Transactional
     public @ResponseBody void registerForArea(final AtmosphereResource event, @PathVariable String areaName) {
-        System.out.println("=== INFO === registerForArea() with areaName " + areaName);
+//        System.out.println("=== INFO === registerForArea() with areaName " + areaName);
         AtmosphereUtils.suspendClient(event, areaName);
     }
 

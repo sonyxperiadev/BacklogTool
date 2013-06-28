@@ -39,11 +39,9 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.autosize-min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/scripts.js?v=${versionNoDots}" />"></script>
-    <!-- <script type="text/javascript" src="code.icepush"></script> -->
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.dropdown.js" />"></script>
-
-	<script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere.js" />"></script>
 
     <script type="text/javascript">
         var areaName = "${area.name}";
