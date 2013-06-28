@@ -827,9 +827,8 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updateepic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Epic updateEpic(@PathVariable String areaName,
+    public @ResponseBody String updateEpic(@PathVariable String areaName,
             @RequestBody NewEpicContainer updatedEpic, @RequestParam boolean pushUpdate) throws Exception {
-        boolean success = false;
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -902,7 +901,6 @@ public class JSONController {
                     PushContext pushContext = PushContext.getInstance(context);
                     pushContext.push(areaName);
                 }
-                success = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -912,15 +910,16 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return epic;
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(epic);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updatetheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Theme updateTheme(@PathVariable String areaName,
+    public @ResponseBody String updateTheme(@PathVariable String areaName,
             @RequestBody Theme updatedTheme, @RequestParam boolean pushUpdate) throws Exception {
-        boolean success = false;
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -979,7 +978,6 @@ public class JSONController {
                     PushContext pushContext = PushContext.getInstance(context);
                     pushContext.push(areaName);
                 }
-                success = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -989,7 +987,9 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return theme;
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(theme);
     }
 
     /**
