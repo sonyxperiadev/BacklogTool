@@ -51,7 +51,6 @@ public final class AtmosphereUtils {
 
         if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource
                 .transport())) {
-            //resource.resumeOnBroadcast(true).suspend(-1, false);
             resource.resumeOnBroadcast(true).suspend(-1);
         } else {
             resource.suspend(-1);

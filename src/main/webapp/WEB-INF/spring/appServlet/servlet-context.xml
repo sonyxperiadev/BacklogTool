@@ -76,7 +76,7 @@ THE SOFTWARE.
         <beans:property name="password" value="${db.password}" />
     </beans:bean>
     
-        <!-- Enables the Spring MVC @Controller programming model -->
+    <!-- Enables the Spring MVC @Controller programming model -->
     <mvc:annotation-driven>
         <mvc:argument-resolvers>
             <beans:bean
