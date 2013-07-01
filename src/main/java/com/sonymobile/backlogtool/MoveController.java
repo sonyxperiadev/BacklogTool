@@ -203,7 +203,7 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         
         return true;
     }
@@ -351,7 +351,7 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         
         return true;
     }
@@ -502,7 +502,7 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 

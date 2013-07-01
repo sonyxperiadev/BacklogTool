@@ -1339,6 +1339,13 @@ $(document).ready(function () {
      */
     var updateStoryLi = function(updatedStory) {
         var storyId = updatedStory.id;
+        
+        var storyLi = $('li#' + storyId + ".story");
+        if(storyLi.length == 0) {
+            window.console && console.log("Clone up a new story-li");
+            // clone up placeholder
+        }
+        
         $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
         $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
         $('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");

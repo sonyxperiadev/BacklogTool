@@ -23,16 +23,25 @@
  */
 package com.sonymobile.backlogtool;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.cpr.Meteor;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * @author Gunnar Hillert
- * @author Christoffer Lauri <christoffer.lauri@sonymobile.com>
+ * Responsible for providing Atmosphere-specific functions, such as suspending
+ * clients, pushing data and resolve method parameters into argument values
  * 
+ * @author Christoffer Lauri <christoffer.lauri@sonymobile.com>
  */
-public final class AtmosphereUtils {
+public final class AtmosphereHandler implements HandlerMethodArgumentResolver {
 
     /**
      * Suspend the client and add it to the Broadcaster associated with the
@@ -46,8 +55,7 @@ public final class AtmosphereUtils {
      */
     public static void suspendClient(final AtmosphereResource resource,
             String areaName) {
-        AtmosphereUtils.getBroadcasterForArea(areaName).addAtmosphereResource(
-                resource);
+        getBroadcasterForArea(areaName).addAtmosphereResource(resource);
 
         if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource
                 .transport())) {
@@ -95,9 +103,25 @@ public final class AtmosphereUtils {
      *            The data to send in the push
      */
     public static void push(String areaName, String data) {
-//        System.out.println("=== INFO === Pushing data:\n \t " + data + "\n to area " + areaName);
+//        System.out.println("=== INFO === Pushing data:\n \t " + data
+//                + "\n to area " + areaName);
         Broadcaster bc = getBroadcasterForArea(areaName);
         bc.broadcast(data);
+    }
+
+    @Override
+    public Object resolveArgument(MethodParameter param,
+            ModelAndViewContainer cont, NativeWebRequest req,
+            WebDataBinderFactory bFac) throws Exception {
+        HttpServletRequest httpReq = req
+                .getNativeRequest(HttpServletRequest.class);
+        return Meteor.build(httpReq).getAtmosphereResource();
+    }
+
+    @Override
+    public boolean supportsParameter(MethodParameter param) {
+        return AtmosphereResource.class.isAssignableFrom(param
+                .getParameterType());
     }
 
 }

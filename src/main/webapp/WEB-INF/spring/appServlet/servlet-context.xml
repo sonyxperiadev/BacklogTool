@@ -80,7 +80,7 @@ THE SOFTWARE.
     <mvc:annotation-driven>
         <mvc:argument-resolvers>
             <beans:bean
-                class="com.sonymobile.backlogtool.ArgumentResolver" />
+                class="com.sonymobile.backlogtool.AtmosphereHandler" />
         </mvc:argument-resolvers>
     </mvc:annotation-driven>
 

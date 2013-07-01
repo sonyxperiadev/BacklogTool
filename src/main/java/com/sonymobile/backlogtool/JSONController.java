@@ -412,7 +412,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return newTask.getId();
     }
 
@@ -497,6 +497,7 @@ public class JSONController {
             }
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString(Story.class, newStory));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -506,7 +507,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
 
         return newStory.getId();
     }
@@ -586,7 +586,7 @@ public class JSONController {
             newEpic.setTitle("New epic " + newEpic.getId());
             tx.commit();
 
-            AtmosphereUtils.push(areaName);
+            AtmosphereHandler.push(areaName);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -649,7 +649,7 @@ public class JSONController {
             newTheme.setTitle("New theme " + newTheme.getId());
             tx.commit();
 
-            AtmosphereUtils.push(areaName);
+            AtmosphereHandler.push(areaName);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -698,7 +698,7 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-            AtmosphereUtils.push(areaName, getJsonString(Task.class, task));
+            AtmosphereHandler.push(areaName, getJsonString(Task.class, task));
         }
         return task;
     }
@@ -819,7 +819,7 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-            AtmosphereUtils.push(areaName, getJsonString(Story.class, story));
+            AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
         }
 
         return story;
@@ -900,7 +900,7 @@ public class JSONController {
                 epic.setArchived(updatedEpic.isArchived());
                 tx.commit();
                 if (pushUpdate) {
-                    AtmosphereUtils.push(areaName, getJsonString(Epic.class, epic));
+                    AtmosphereHandler.push(areaName, getJsonString(Epic.class, epic));
                 }
                 success = true;
             }
@@ -976,7 +976,7 @@ public class JSONController {
                 theme.setArchived(updatedTheme.isArchived());
                 tx.commit();
                 if (pushUpdate) {
-                    AtmosphereUtils.push(areaName, getJsonString(Theme.class, theme));
+                    AtmosphereHandler.push(areaName, getJsonString(Theme.class, theme));
                 }
                 success = true;
             }
@@ -1155,7 +1155,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return clonedId;
     }
 
@@ -1216,7 +1216,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return clonedId;
     }
 
@@ -1266,7 +1266,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return clonedId;
     }
 
@@ -1321,7 +1321,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1369,7 +1369,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1430,7 +1430,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1476,7 +1476,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1900,7 +1900,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -2163,7 +2163,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereUtils.push(areaName);
+        AtmosphereHandler.push(areaName);
 
         return true;
     }
@@ -2211,7 +2211,7 @@ public class JSONController {
     @Transactional
     public @ResponseBody void registerForArea(final AtmosphereResource event, @PathVariable String areaName) {
 //        System.out.println("=== INFO === registerForArea() with areaName " + areaName);
-        AtmosphereUtils.suspendClient(event, areaName);
+        AtmosphereHandler.suspendClient(event, areaName);
     }
 
 }
