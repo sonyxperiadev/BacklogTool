@@ -159,6 +159,9 @@ public final class Util {
      * and newline-chars have been replaced with <br />.
      */
     public static String textAsHtmlLinksAndLineBreaks(String text) {
+        if (text == null) {
+            return "";
+        }
         return text.replaceAll("(?i)(http:\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
                 .replaceAll("\\n", "<br />");
     }

@@ -62,6 +62,9 @@ THE SOFTWARE.
                     <c:forEach var="story" items="${nonArchivedList}">
                         <c:if test="${ids == null || ids.contains(story.id)}">
                             <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                            <c:forEach var="task" items="${story.children}">
+                                <%@ include file="/WEB-INF/views/placeholders/task.jsp" %>
+                            </c:forEach>
                         </c:if>
                     </c:forEach>
                 </ul>

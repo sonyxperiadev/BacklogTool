@@ -109,8 +109,7 @@
         <!-- ATTR1 FIELD START -->
         <p class="title">${area.storyAttr1.name}</p>
         <p class="description story-attr1 ${story.id}">
-            <c:if
-                test='${story.storyAttr1 != null && story.storyAttr1.iconEnabled}'>
+            <c:if test='${story.storyAttr1 != null && story.storyAttr1.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr1.icon}"
                     title="${story.storyAttr1.name}" /> ${story.storyAttr1.name}</c:if>
         </p>
@@ -125,8 +124,7 @@
         <!-- ATTR2 FIELD START -->
         <p class="title">${area.storyAttr2.name}</p>
         <p class="description story-attr2 ${story.id}">
-            <c:if
-                test='${story.storyAttr2 != null && story.storyAttr2.iconEnabled}'>
+            <c:if test='${story.storyAttr2 != null && story.storyAttr2.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr2.icon}"
                     title="${story.storyAttr2.name}" /> ${story.storyAttr2.name}</c:if>
         </p>
@@ -144,8 +142,7 @@
     <div class="story-attr3">
         <p class="title">${area.storyAttr3.name}</p>
         <p class="description story-attr3 ${story.id}">
-            <c:if
-                test='${story.storyAttr3 != null && story.storyAttr3.iconEnabled}'>
+            <c:if test='${story.storyAttr3 != null && story.storyAttr3.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr3.icon}"
                     title="${story.storyAttr3.name}" /> ${story.storyAttr3.name}</c:if>
         </p>
