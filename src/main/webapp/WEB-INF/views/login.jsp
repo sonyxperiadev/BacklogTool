@@ -70,7 +70,7 @@ THE SOFTWARE.
                     </p>
                     <div>
                         <p>
-                            <input id="j_remember" class="remember-me" name="_spring_security_remember_me" type="checkbox" />
+                            <input id="j_remember" class="remember-me" name="_spring_security_remember_me" type="checkbox" checked="checked" />
                             <label for="j_remember" class="remember-me">Remember Me</label>
                         </p>
                     </div>
