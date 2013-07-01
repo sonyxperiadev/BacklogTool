@@ -370,6 +370,12 @@ public class HomeController {
             session.close();
         }
 
+        Story placeholderStory = new Story();
+        Task placeholderTask = new Task();
+        placeholderStory.setId(-1);
+        placeholderTask.setId(-1);
+        placeholderTask.setStory(placeholderStory);//Makes sure task.story.id is -1 as well
+
         ModelAndView view = new ModelAndView();
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("area", area);
@@ -381,6 +387,8 @@ public class HomeController {
         view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         view.addObject("nonArchivedList", nonArchivedList);
         view.addObject("ids", ids);
+        view.addObject("placeholderStory", placeholderStory);
+        view.addObject("placeholderTask", placeholderTask);
 
         if (area == null) {
             view.setViewName("area-noexist");

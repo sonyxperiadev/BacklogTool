@@ -54,9 +54,11 @@ THE SOFTWARE.
         </div>
         <div id="main">
             <div id="story-placeholder" class="placeholder" >
+                <c:set var="story" value="${placeholderStory}"/>
                 <%@ include file="/WEB-INF/views/placeholders/story.jsp"%>
             </div>
             <div id="task-placeholder" class="placeholder" >
+                <c:set var="task" value="${placeholderTask}"/>
                 <%@ include file="/WEB-INF/views/placeholders/task.jsp"%>
             </div>
 
