@@ -674,3 +674,7 @@ div#login-error {
 p.addOptionSeries, p.addOption {
 	margin-left: 40px;
 }
+
+.placeholder {
+	display: none;
+}

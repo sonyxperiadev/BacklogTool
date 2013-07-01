@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@ page session="false"%>
 <!DOCTYPE html>
 <html>
@@ -52,8 +53,18 @@ THE SOFTWARE.
             <c:import url="header.jsp" />
         </div>
         <div id="main">
+            <div id="story-placeholder" class="placeholder" >
+                <%@ include file="/WEB-INF/views/placeholders/story.jsp"%>
+            </div>
+
             <div id="list-container-div">
-                <ul class="parent-child-list" id="list-container"></ul>
+                <ul class="parent-child-list" id="list-container">
+                    <c:forEach var="story" items="${nonArchivedList}">
+                        <c:if test="${ids == null || ids.contains(story.id)}">
+                            <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                        </c:if>
+                    </c:forEach>
+                </ul>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
         </div>

@@ -153,4 +153,13 @@ public final class Util {
         }
         return area;
     }
+
+    /**
+     * @return text where <a>-tags have been added around URLs
+     * and newline-chars have been replaced with <br />.
+     */
+    public static String textAsHtmlLinksAndLineBreaks(String text) {
+        return text.replaceAll("(?i)(http:\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
+                .replaceAll("\\n", "<br />");
+    }
 }

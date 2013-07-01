@@ -177,6 +177,15 @@ public class Story {
     }
 
     /**
+     * @return description where <a>-tags have been added around URLs
+     * and newline-chars have been replaced with <br />.
+     */
+    @JsonIgnore
+    public String getDescriptionWithLinksAndLineBreaks() {
+        return Util.textAsHtmlLinksAndLineBreaks(getDescription());
+    }
+
+    /**
      * @param description the description to set
      */
     public void setDescription(String description) {

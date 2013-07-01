@@ -51,6 +51,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -285,13 +286,16 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/story-task/{areaName}", method = RequestMethod.GET)
-    public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName) {
+    public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName,
+            @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
         Area area = Util.getArea(areaName, sessionFactory);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
+        List<Story> nonArchivedList = null;
         List<String> adminAreas = null;
+
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -310,8 +314,53 @@ public class HomeController {
                     adminAreas.add(currentArea.getName());
                 }
             }
-            tx.commit();
 
+            //TODO: This code can be shared with readstory-task in JSONController.
+            if (order.contains("storyAttr")) {
+                //If the user wants to sort by one of the custom created attributes, then the attributeOptions
+                //needs to be sorted by their compareValues.
+                String queryString1 = "select distinct s from Story s " +
+                        "left join fetch s.children " +
+                        "left join fetch s." + order + " as attr " +
+                        "where s.area.name like ? " +
+                        "order by attr.compareValue";
+                Query query1 = session.createQuery(queryString1);
+                query1.setParameter(0, areaName);
+
+                nonArchivedList = Util.castList(Story.class, query1.list());
+            } else if (order.equals("prio")) {
+                String nonArchivedQueryString = "select distinct s from Story s " +
+                        "left join fetch s.children " +
+                        "where s.area.name like ? and " +
+                        "s.archived=false " +
+                        "order by s.prio";
+
+                //Since the archived stories don't have any prio, we order them by their date archived.
+                String archivedQueryString = "select distinct s from Story s " +
+                        "left join fetch s.children " +
+                        "where s.area.name like ? " +
+                        "and s.archived=true " +
+                        "order by s.dateArchived desc";
+
+                Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
+                Query archivedQuery = session.createQuery(archivedQueryString);
+
+                archivedQuery.setParameter(0, areaName);
+                nonArchivedQuery.setParameter(0, areaName);
+
+                nonArchivedList = Util.castList(Story.class, nonArchivedQuery.list());
+                //list.addAll(Util.castList(Story.class, archivedQuery.list()));
+            } else {
+                String queryString = "select distinct s from Story s " +
+                        "left join fetch s.children " +
+                        "where s.area.name like ? " +
+                        "order by s." + order;
+                Query query = session.createQuery(queryString);
+                query.setParameter(0, areaName);
+
+                nonArchivedList = Util.castList(Story.class, query.list());
+            }
+            tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -330,6 +379,8 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        view.addObject("nonArchivedList", nonArchivedList);
+        view.addObject("ids", ids);
 
         if (area == null) {
             view.setViewName("area-noexist");

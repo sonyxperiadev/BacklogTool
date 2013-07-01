@@ -124,7 +124,7 @@ $(document).ready(function () {
         var yyyy = this.getFullYear().toString();
         var mm = (this.getMonth()+1).toString(); // getMonth() is zero-based
         var dd  = this.getDate().toString();
-        return (mm[1]?mm:"0" + mm[0]) + "/" + (dd[1]?dd:"0"+dd[0]) + "/" + yyyy;
+        return yyyy + "-" + (mm[1]?mm:"0" + mm[0]) + "-" + (dd[1]?dd:"0"+dd[0]);
     };
     
     /**
@@ -1095,8 +1095,8 @@ $(document).ready(function () {
             });
 
             //Sets values for all edit fields
-            $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
-            $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
+            $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1, dateFormat: "yy-mm-dd" });
+            $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1, dateFormat: "yy-mm-dd" });
 
             if (story.deadline == null) {
                 $("#deadline"+storyId).val("");
@@ -2117,6 +2117,8 @@ $(document).ready(function () {
         return newContainer;
     };
 
+    var firstBuild = true;
+
     /**
      * Builds the visible html list using the JSON data
      */
@@ -2124,7 +2126,7 @@ $(document).ready(function () {
     	if ($("#archived-checkbox").prop("checked")) {
     	    $("#archived-list-container").append(generateList(true)).show();
     	}
-    	if (archived != true) {
+    	if (archived != true && !firstBuild) {
     	    $('#list-container').append(generateList(false));    	    
     	}
         editingItems =  new Array();
@@ -2257,6 +2259,7 @@ $(document).ready(function () {
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
+        firstBuild = false;
     };
 
     var setHeightAndMargin = function (value) {
@@ -2371,14 +2374,6 @@ $(document).ready(function () {
             }
         });
     };
-
-    //Sets the first parent with children as fully visible on start
-    if (parents.length > 0) {
-        var firstParent = parents[0];
-        for (var k = 0; k < firstParent.children.length; ++k) {
-            visible[firstParent.children[k].id] = true;
-        }
-    }
 
     $("#list-container").sortable({
         tolerance: 'pointer',
