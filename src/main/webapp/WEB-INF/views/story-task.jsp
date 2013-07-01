@@ -56,6 +56,9 @@ THE SOFTWARE.
             <div id="story-placeholder" class="placeholder" >
                 <%@ include file="/WEB-INF/views/placeholders/story.jsp"%>
             </div>
+            <div id="task-placeholder" class="placeholder" >
+                <%@ include file="/WEB-INF/views/placeholders/task.jsp"%>
+            </div>
 
             <div id="list-container-div">
                 <ul class="parent-child-list" id="list-container">
