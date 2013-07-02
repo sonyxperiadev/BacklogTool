@@ -34,7 +34,6 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.icepush.PushContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -204,8 +203,8 @@ public class MoveController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
+        
         return true;
     }
 
@@ -352,8 +351,8 @@ public class MoveController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
+        
         return true;
     }
 
@@ -503,8 +502,7 @@ public class MoveController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
