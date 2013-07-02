@@ -436,6 +436,7 @@ public class HomeController {
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("nonArchivedList", nonArchivedList);
+            view.addObject("ids", ids);
             view.addObject("area", area);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "epic-story");
@@ -502,6 +503,7 @@ public class HomeController {
             view.addObject("placeholderTheme", placeholderTheme);
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("nonArchivedList", nonArchivedList);
+            view.addObject("ids", ids);
             view.addObject("area", area);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "theme-epic");
