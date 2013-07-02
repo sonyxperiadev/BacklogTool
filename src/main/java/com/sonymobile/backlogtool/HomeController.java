@@ -287,7 +287,8 @@ public class HomeController {
 
     @RequestMapping(value = "/story-task/{areaName}", method = RequestMethod.GET)
     public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName,
-            @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
+            @CookieValue(value="backlogtool-orderby", defaultValue="prio", required = false) String order,
+            @RequestParam(required=false) Set<Integer> ids) {
 
         Area area = Util.getArea(areaName, sessionFactory);
 
@@ -328,20 +329,21 @@ public class HomeController {
                             "left join fetch s.children " +
                             "left join fetch s." + order + " as attr " +
                             "where s.area = ? " +
-                            "and s.archived=false " +
+                            "and s.archived = false " +
                             "order by attr.compareValue";
-                } else if (order.equals("prio")) {
-                    queryString = "select distinct s from Story s " +
-                            "left join fetch s.children " +
-                            "where s.area = ? and " +
-                            "s.archived=false " +
-                            "order by s.prio";
-                } else {
+                } else if (order.equals("title") || order.equals("description") || order.equals("contributor")
+                        || order.equals("customer") || order.equals("contributorSite") || order.equals("customerSite")) {
                     queryString = "select distinct s from Story s " +
                             "left join fetch s.children " +
                             "where s.area = ? " +
                             "and s.archived = false " +
                             "order by s." + order;
+                } else { //Fall back to sorting by prio
+                    queryString = "select distinct s from Story s " +
+                            "left join fetch s.children " +
+                            "where s.area = ? and " +
+                            "s.archived = false " +
+                            "order by s.prio";
                 }
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, area);
@@ -381,7 +383,8 @@ public class HomeController {
 
     @RequestMapping(value = "/epic-story/{areaName}", method = RequestMethod.GET)
     public ModelAndView epicstory(Locale locale, Model model, @PathVariable String areaName,
-            @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
+            @CookieValue(value="backlogtool-orderby", defaultValue="prio", required = false) String order,
+            @RequestParam(required=false) Set<Integer> ids) {
 
         Area area = Util.getArea(areaName, sessionFactory);
         List<Epic> nonArchivedList = null;
@@ -399,18 +402,18 @@ public class HomeController {
                 tx = session.beginTransaction();
 
                 String queryString = null;
-                if (order.equals("prio")) {
-                    queryString = "select distinct e from Epic e " +
-                            "left join fetch e.children " +
-                            "where e.area = ? and " +
-                            "e.archived=false " +
-                            "order by e.prio";
-                } else {
+                if (order.equals("title") || order.equals("description")) {
                     queryString = "select distinct e from Epic e " +
                             "left join fetch e.children " +
                             "where e.area = ? and " +
                             "e.archived=false " +
                             "order by e." + order;
+                } else { //Fall back to sorting by prio
+                    queryString = "select distinct e from Epic e " +
+                            "left join fetch e.children " +
+                            "where e.area = ? and " +
+                            "e.archived = false " +
+                            "order by e.prio";
                 }
 
                 Query query = session.createQuery(queryString);
@@ -450,7 +453,8 @@ public class HomeController {
 
     @RequestMapping(value = "/theme-epic/{areaName}", method = RequestMethod.GET)
     public ModelAndView themeepic(Locale locale, Model model, @PathVariable String areaName,
-            @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
+            @CookieValue(value="backlogtool-orderby", defaultValue="prio", required = false) String order,
+            @RequestParam(required=false) Set<Integer> ids) {
 
         Area area = Util.getArea(areaName, sessionFactory);
         List<Theme> nonArchivedList = null;
@@ -467,18 +471,18 @@ public class HomeController {
             try {
                 tx = session.beginTransaction();
                 String queryString = null;
-                if (order.equals("prio")) {
-                    queryString = "select distinct t from Theme t " +
-                            "left join fetch t.children " +
-                            "where t.area = ? and " +
-                            "t.archived=false " +
-                            "order by t.prio";
-                } else {
+                if (order.equals("title") || order.equals("description")) {
                     queryString = "select distinct t from Theme t " +
                             "left join fetch t.children " +
                             "where t.area = ? and " +
                             "t.archived = false " +
                             "order by t." + order;
+                } else { //Fall back to sorting by prio
+                    queryString = "select distinct t from Theme t " +
+                            "left join fetch t.children " +
+                            "where t.area = ? and " +
+                            "t.archived = false " +
+                            "order by t.prio";
                 }
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, area);

@@ -442,6 +442,10 @@ $(document).ready(function () {
     var sorting = readCookie("backlogtool-orderby");
     if (sorting != null) {
         $("#order-by").val(sorting);
+        if ($("#order-by").val() == null) {
+            //Failed to set the cookievalue, revert to prio
+            $("#order-by").val("prio");
+        }
     }
 
     // Load checkbox-status for the Archived-checkbox
