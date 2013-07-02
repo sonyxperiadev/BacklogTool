@@ -1,4 +1,4 @@
-<li class="childLi task ui-state-default editTask" parentId="${task.story.id}" id="${task.id}">
+<li class="childLi task ui-state-default editTask ui-hidden" parentId="${task.story.id}" id="${task.id}">
     <!-- TASKTITLE START -->
     <!-- TYPE MARK START -->
     <p class="marginLeft typeMark">Task ${task.id}</p>
