@@ -1870,7 +1870,7 @@ $(document).ready(function () {
 	                        newContainer += '<li class="childLi task ui-state-default editTask" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
 	                        //TASKTITLE START
 	                        //TYPE MARK START
-	                        +'<p class="marginLeft typeMark">Task</p>'
+	                        +'<p class="marginLeft typeMark">Task ' + currentChild.id + '</p>'
 	                        //TYPE MARK END
 	                        +'<div class="taskTitle ' + currentChild.id + '">'
 	                        +'<p class="taskInfo">'+ addLinksAndLineBreaks(currentChild.title) +'</p>'
@@ -1951,7 +1951,7 @@ $(document).ready(function () {
 	                        //TITLE FIELDS
 	                        +'<div class="padding-left titles-epic-story">'
 	                        //TYPE MARK START
-	                        +'<p class="typeMark">Story</p>'
+	                        +'<p class="typeMark">Story ' + currentChild.id + '</p>'
 	                        //TYPE MARK END
 	                        //THEME START
 	                        +'<p class="theme ' + currentChild.id + '">' + replaceNullWithEmpty(currentChild.themeTitle) + '</p>'
@@ -2087,11 +2087,13 @@ $(document).ready(function () {
 	                    for (var i = 0; i<currentParent.children.length; ++i) {
 	                        var currentChild = currentParent.children[i];
 	                        newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
+	                        +'<div id="icons">'
 	                        +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
+	                        +'</div>'
 	                        //TITLE FIELDS
 	                        +'<div class="padding-left titles-theme-epic">'
 	                        //TYPE MARK START
-	                        +'<p class="typeMark">Epic</p>'
+	                        +'<p class="typeMark">Epic ' + currentChild.id + '</p>'
 	                        //TYPE MARK END
 	                        +'<br style="clear:both" />'
 	                        //TITLE START

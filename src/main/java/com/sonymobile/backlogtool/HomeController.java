@@ -288,6 +288,7 @@ public class HomeController {
     @RequestMapping(value = "/story-task/{areaName}", method = RequestMethod.GET)
     public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName,
             @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
+
         Area area = Util.getArea(areaName, sessionFactory);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -295,148 +296,220 @@ public class HomeController {
 
         List<Story> nonArchivedList = null;
         List<String> adminAreas = null;
-
-        Session session = sessionFactory.openSession();
-        Transaction tx = null;
-        try {
-            tx = session.beginTransaction();
-
-            User currentUser = (User) session.get(User.class, username);
-
-            Query allAreasQuery = session.createQuery("from Area order by name");
-            List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
-
-            adminAreas = new ArrayList<String>();
-            for (Area currentArea : allAreas) {
-                if (!areaName.equals(currentArea.getName()) &&
-                        ((currentUser != null && currentUser.isMasterAdmin()) 
-                                || currentArea.isAdmin(username))) {
-                    adminAreas.add(currentArea.getName());
-                }
-            }
-
-            //TODO: This code can be shared with readstory-task in JSONController.
-            if (order.contains("storyAttr")) {
-                //If the user wants to sort by one of the custom created attributes, then the attributeOptions
-                //needs to be sorted by their compareValues.
-                String queryString1 = "select distinct s from Story s " +
-                        "left join fetch s.children " +
-                        "left join fetch s." + order + " as attr " +
-                        "where s.area.name like ? " +
-                        "order by attr.compareValue";
-                Query query1 = session.createQuery(queryString1);
-                query1.setParameter(0, areaName);
-
-                nonArchivedList = Util.castList(Story.class, query1.list());
-            } else if (order.equals("prio")) {
-                String nonArchivedQueryString = "select distinct s from Story s " +
-                        "left join fetch s.children " +
-                        "where s.area.name like ? and " +
-                        "s.archived=false " +
-                        "order by s.prio";
-
-                //Since the archived stories don't have any prio, we order them by their date archived.
-                String archivedQueryString = "select distinct s from Story s " +
-                        "left join fetch s.children " +
-                        "where s.area.name like ? " +
-                        "and s.archived=true " +
-                        "order by s.dateArchived desc";
-
-                Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
-                Query archivedQuery = session.createQuery(archivedQueryString);
-
-                archivedQuery.setParameter(0, areaName);
-                nonArchivedQuery.setParameter(0, areaName);
-
-                nonArchivedList = Util.castList(Story.class, nonArchivedQuery.list());
-                //list.addAll(Util.castList(Story.class, archivedQuery.list()));
-            } else {
-                String queryString = "select distinct s from Story s " +
-                        "left join fetch s.children " +
-                        "where s.area.name like ? " +
-                        "order by s." + order;
-                Query query = session.createQuery(queryString);
-                query.setParameter(0, areaName);
-
-                nonArchivedList = Util.castList(Story.class, query.list());
-            }
-            tx.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (tx != null) {
-                tx.rollback();
-            }
-        } finally {
-            session.close();
-        }
-
-        Story placeholderStory = new Story();
-        Task placeholderTask = new Task();
-        placeholderStory.setId(-1);
-        placeholderTask.setId(-1);
-        placeholderTask.setStory(placeholderStory);//Makes sure task.story.id is -1 as well
-
         ModelAndView view = new ModelAndView();
-        view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("area", area);
-        view.addObject("adminAreas", adminAreas); 
-        view.addObject("disableEdits", isDisableEdits(areaName));
-        view.addObject("view", "story-task");
-        view.addObject("version", version.getVersion());
-        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
-        view.addObject("nonArchivedList", nonArchivedList);
-        view.addObject("ids", ids);
-        view.addObject("placeholderStory", placeholderStory);
-        view.addObject("placeholderTask", placeholderTask);
 
         if (area == null) {
             view.setViewName("area-noexist");
         } else {
             view.setViewName("story-task");
+            Session session = sessionFactory.openSession();
+            Transaction tx = null;
+            try {
+                tx = session.beginTransaction();
+
+                User currentUser = (User) session.get(User.class, username);
+
+                Query allAreasQuery = session.createQuery("from Area order by name");
+                List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
+
+                adminAreas = new ArrayList<String>();
+                for (Area currentArea : allAreas) {
+                    if (!areaName.equals(currentArea.getName()) &&
+                            ((currentUser != null && currentUser.isMasterAdmin()) 
+                                    || currentArea.isAdmin(username))) {
+                        adminAreas.add(currentArea.getName());
+                    }
+                }
+                String queryString = null;
+                if (order.contains("storyAttr")) {
+                    //If the user wants to sort by one of the custom created attributes, then the attributeOptions
+                    //needs to be sorted by their compareValues.
+                    queryString = "select distinct s from Story s " +
+                            "left join fetch s.children " +
+                            "left join fetch s." + order + " as attr " +
+                            "where s.area = ? " +
+                            "and s.archived=false " +
+                            "order by attr.compareValue";
+                } else if (order.equals("prio")) {
+                    queryString = "select distinct s from Story s " +
+                            "left join fetch s.children " +
+                            "where s.area = ? and " +
+                            "s.archived=false " +
+                            "order by s.prio";
+                } else {
+                    queryString = "select distinct s from Story s " +
+                            "left join fetch s.children " +
+                            "where s.area = ? " +
+                            "and s.archived = false " +
+                            "order by s." + order;
+                }
+                Query query = session.createQuery(queryString);
+                query.setParameter(0, area);
+                nonArchivedList = Util.castList(Story.class, query.list());
+
+                tx.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (tx != null) {
+                    tx.rollback();
+                }
+            } finally {
+                session.close();
+            }
+
+            Story placeholderStory = new Story();
+            Task placeholderTask = new Task();
+            placeholderStory.setId(-1);
+            placeholderTask.setId(-1);
+            placeholderTask.setStory(placeholderStory);//Makes sure task.story.id is -1 as well
+
+            view.addObject("placeholderStory", placeholderStory);
+            view.addObject("placeholderTask", placeholderTask);
+            view.addObject("area", area);
+            view.addObject("adminAreas", adminAreas);
+            view.addObject("disableEdits", isDisableEdits(areaName));
+            view.addObject("view", "story-task");
+            view.addObject("nonArchivedList", nonArchivedList);
+            view.addObject("ids", ids);
         }
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("isLoggedIn", isLoggedIn());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 
     @RequestMapping(value = "/epic-story/{areaName}", method = RequestMethod.GET)
-    public ModelAndView epicstory(Locale locale, Model model, @PathVariable String areaName) {
+    public ModelAndView epicstory(Locale locale, Model model, @PathVariable String areaName,
+            @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
+
         Area area = Util.getArea(areaName, sessionFactory);
+        List<Epic> nonArchivedList = null;
 
         ModelAndView view = new ModelAndView();
-        view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("area", area);
-        view.addObject("disableEdits", isDisableEdits(areaName));
-        view.addObject("view", "epic-story");
-        view.addObject("version", version.getVersion());
-        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
         } else {
             view.setViewName("epic-story");
+
+            Session session = sessionFactory.openSession();
+            Transaction tx = null;
+            try {
+                tx = session.beginTransaction();
+
+                String queryString = null;
+                if (order.equals("prio")) {
+                    queryString = "select distinct e from Epic e " +
+                            "left join fetch e.children " +
+                            "where e.area = ? and " +
+                            "e.archived=false " +
+                            "order by e.prio";
+                } else {
+                    queryString = "select distinct e from Epic e " +
+                            "left join fetch e.children " +
+                            "where e.area = ? and " +
+                            "e.archived=false " +
+                            "order by e." + order;
+                }
+
+                Query query = session.createQuery(queryString);
+                query.setParameter(0, area);
+                nonArchivedList = Util.castList(Epic.class, query.list());
+
+                tx.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (tx != null) {
+                    tx.rollback();
+                }
+            } finally {
+                session.close();
+            }
+
+            Epic placeholderEpic = new Epic();
+            Story placeholderStory = new Story();
+            placeholderEpic.setId(-1);
+            placeholderStory.setId(-1);
+            placeholderStory.setEpic(placeholderEpic);//Makes sure story.epic.id is -1 as well
+
+            view.addObject("placeholderEpic", placeholderEpic);
+            view.addObject("placeholderStory", placeholderStory);
+            view.addObject("nonArchivedList", nonArchivedList);
+            view.addObject("area", area);
+            view.addObject("disableEdits", isDisableEdits(areaName));
+            view.addObject("view", "epic-story");
         }
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("isLoggedIn", isLoggedIn());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 
     @RequestMapping(value = "/theme-epic/{areaName}", method = RequestMethod.GET)
-    public ModelAndView themeepic(Locale locale, Model model, @PathVariable String areaName) {
+    public ModelAndView themeepic(Locale locale, Model model, @PathVariable String areaName,
+            @CookieValue("backlogtool-orderby") String order, @RequestParam(required=false) Set<Integer> ids) {
+
         Area area = Util.getArea(areaName, sessionFactory);
+        List<Theme> nonArchivedList = null;
 
         ModelAndView view = new ModelAndView();
-        view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("area", area);
-        view.addObject("disableEdits", isDisableEdits(areaName));
-        view.addObject("view", "theme-epic");
-        view.addObject("version", version.getVersion());
-        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (area == null) {
             view.setViewName("area-noexist");
         } else {
             view.setViewName("theme-epic");
+
+            Session session = sessionFactory.openSession();
+            Transaction tx = null;
+            try {
+                tx = session.beginTransaction();
+                String queryString = null;
+                if (order.equals("prio")) {
+                    queryString = "select distinct t from Theme t " +
+                            "left join fetch t.children " +
+                            "where t.area = ? and " +
+                            "t.archived=false " +
+                            "order by t.prio";
+                } else {
+                    queryString = "select distinct t from Theme t " +
+                            "left join fetch t.children " +
+                            "where t.area = ? and " +
+                            "t.archived = false " +
+                            "order by t." + order;
+                }
+                Query query = session.createQuery(queryString);
+                query.setParameter(0, area);
+
+                nonArchivedList = Util.castList(Theme.class, query.list());
+
+                tx.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (tx != null) {
+                    tx.rollback();
+                }
+            } finally {
+                session.close();
+            }
+            Theme placeholderTheme = new Theme();
+            Epic placeholderEpic = new Epic();
+            placeholderTheme.setId(-1);
+            placeholderEpic.setId(-1);
+            placeholderEpic.setTheme(placeholderTheme);//Makes sure epic.theme.id is -1 as well
+
+            view.addObject("placeholderTheme", placeholderTheme);
+            view.addObject("placeholderEpic", placeholderEpic);
+            view.addObject("nonArchivedList", nonArchivedList);
+            view.addObject("area", area);
+            view.addObject("disableEdits", isDisableEdits(areaName));
+            view.addObject("view", "theme-epic");
         }
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("isLoggedIn", isLoggedIn());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return view;
     }
 

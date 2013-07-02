@@ -117,6 +117,15 @@ public class Epic {
         this.description = StringEscapeUtils.unescapeHtml(description);
     }
 
+    /**
+     * @return description where <a>-tags have been added around URLs
+     * and newline-chars have been replaced with <br />.
+     */
+    @JsonIgnore
+    public String getDescriptionWithLinksAndLineBreaks() {
+        return Util.textAsHtmlLinksAndLineBreaks(getDescription());
+    }
+
     public int getPrio() {
         return prio;
     }

@@ -1,7 +1,7 @@
 <li class="childLi task ui-state-default editTask" parentId="${task.story.id}" id="${task.id}">
     <!-- TASKTITLE START -->
     <!-- TYPE MARK START -->
-    <p class="marginLeft typeMark">Task</p>
+    <p class="marginLeft typeMark">Task ${task.id}</p>
     <!-- TYPE MARK END -->
     <div class="taskTitle ${task.id}">
         <p class="taskInfo">${task.titleWithLinksAndLineBreaks}</p>

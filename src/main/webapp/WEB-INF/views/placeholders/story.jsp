@@ -1,16 +1,26 @@
-<li class="parentLi story ui-state-default editStory" id="${story.id}">
+<li class="story ui-state-default editStory <c:if test='${view.equals("story-task")}'>parentLi</c:if><c:if test='${view.equals("epic-story")}'>childLi</c:if>" 
+    id="${story.id}">
     <div id="icons">
-        <div title="Show tasks"
-            class="icon <c:if test="${story.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>"></div>
-        <a id="${story.id}" title="Create new task"
-            class="icon createTask add-child-icon"></a><br> 
+        <c:if test='${view.equals("story-task")}'>
+            <div title="Show tasks"
+                class="icon <c:if test="${story.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>"></div>
+            <a id="${story.id}" title="Create new task"
+                class="icon createTask add-child-icon"></a><br> 
+        </c:if>
         <a id="${story.id}" title="Clone this story excluding tasks"
             class="cloneItem story"> <img src="../resources/image/page_white_copy.png"></a> 
-        <a id="${story.id}" title="Clone this story including tasks"
-            class="cloneItem-with-children story"> <img src="../resources/image/page_white_stack.png"></a>
+        <c:if test='${view.equals("story-task")}'>
+            <a id="${story.id}" title="Clone this story including tasks"
+                class="cloneItem-with-children story"> <img src="../resources/image/page_white_stack.png"></a>
+        </c:if>
     </div>
     <!--  TITLE FIELDS -->
-    <div class="titles">
+    <c:if test='${view.equals("story-task")}'>
+        <div class="titles">
+    </c:if>
+    <c:if test='${view.equals("epic-story")}'>
+        <div class="padding-left titles-epic-story">
+    </c:if>
         <!-- TYPE MARK START -->
         <p class="typeMark">Story ${story.id}</p>
         <!-- TYPE MARK END -->
@@ -91,8 +101,7 @@
     <div class="times">
         <p class="title">Deadline</p>
         <p class="deadline description ${story.id}">
-            <fmt:formatDate value="${story.deadline}"
-                pattern="yyyy-MM-dd" />
+            <fmt:formatDate value="${story.deadline}" pattern="yyyy-MM-dd" />
         </p>
         <input id="deadline${story.id}" type="text"
             class="bindChange deadline hidden-edit ${story.id} text ui-widget-content ui-corner-all">
@@ -169,8 +178,7 @@
             <p class="title ${story.id}">Archived</p>
         </c:if>
         <p class="description ${story.id}">
-            <fmt:formatDate value="${story.dateArchived}"
-                pattern="yyyy-MM-dd" />
+            <fmt:formatDate value="${story.dateArchived}" pattern="yyyy-MM-dd" />
         </p>
     </div>
     <!-- ATTR3 FIELD END -->
