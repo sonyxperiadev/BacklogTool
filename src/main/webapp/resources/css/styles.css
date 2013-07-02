@@ -130,6 +130,7 @@ p {
 .headerText {
     font-size:10px !important;
     text-align: center;
+    vertical-align: sub;
 }
 
 .order-by, .showArchive, .hideShowAll {
