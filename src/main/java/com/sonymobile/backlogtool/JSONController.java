@@ -24,8 +24,10 @@
 package com.sonymobile.backlogtool;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,10 @@ import java.util.Comparator;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.atmosphere.cpr.ApplicationConfig;
+import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.cpr.AtmosphereResourceFactory;
+import org.atmosphere.cpr.Broadcaster;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -45,7 +51,6 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.icepush.PushContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -407,8 +412,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return newTask.getId();
     }
 
@@ -438,7 +442,7 @@ public class JSONController {
                         //Find what prioInEpic lastItem has if it belongs to this epic
                         if (story.getId() == lastItem.getId()) {
                             newPrioInEpic = story.getPrioInEpic() + 1;
-                            
+
                             //Move down all stories within the epic below the new story
                             for (Story currentStory : epic.getChildren()) {
                                 int prioInEpic = currentStory.getPrioInEpic();
@@ -467,7 +471,7 @@ public class JSONController {
                         //Find what prio lastItem has
                         if (story.getId() == lastItem.getId()) {
                             newPrio = story.getPrio() + 1;
-                            
+
                             //Move down all stories below the new story
                             for (Story currentStory : storyList) {
                                 int prio = currentStory.getPrio();
@@ -493,6 +497,7 @@ public class JSONController {
             }
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString(Story.class, newStory));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -502,8 +507,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+
         return newStory.getId();
     }
 
@@ -524,7 +528,7 @@ public class JSONController {
             boolean createThemeIfDoesNotExist = true;
             Theme theme = getTheme(newEpic.getThemeTitle(), area, session, createThemeIfDoesNotExist);
             ListItem lastItem = newEpic.getLastItem();
-            
+
             if (theme != null) {
                 int newPrioInTheme = theme.getChildren().size() + 1;
                 if (lastItem != null && lastItem.getType().equals("child")) {
@@ -532,7 +536,7 @@ public class JSONController {
                         //Find what prioInTheme lastItem has if it belongs to this theme
                         if (epic.getId() == lastItem.getId()) {
                             newPrioInTheme = epic.getPrioInTheme() + 1;
-                            
+
                             //Move down all epics within the theme below the new epic
                             for (Epic currentEpic : theme.getChildren()) {
                                 int prioInTheme = currentEpic.getPrioInTheme();
@@ -561,7 +565,7 @@ public class JSONController {
                         //Find what prio lastItem has
                         if (epic.getId() == lastItem.getId()) {
                             newPrio = epic.getPrio() + 1;
-                            
+
                             //Move down all epics below the new epic
                             for (Epic currentEpic : epicList) {
                                 int prio = currentEpic.getPrio();
@@ -575,15 +579,14 @@ public class JSONController {
                 }
                 newEpic.setPrio(newPrio);
             }
-            
+
             newEpic.setArea(area);
             newEpic.setTheme(theme);
             session.save("com.sonymobile.backlogtool.Epic", newEpic);
             newEpic.setTitle("New epic " + newEpic.getId());
             tx.commit();
 
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
+            AtmosphereHandler.push(areaName);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -626,7 +629,7 @@ public class JSONController {
                         //Find what prio lastItem has
                         if (theme.getId() == lastItem.getId()) {
                             newPrio = theme.getPrio() + 1;
-                            
+
                             //Move down all themes below the new theme
                             for (Theme currentTheme : themeList) {
                                 int prio = currentTheme.getPrio();
@@ -646,9 +649,7 @@ public class JSONController {
             newTheme.setTitle("New theme " + newTheme.getId());
             tx.commit();
 
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
-
+            AtmosphereHandler.push(areaName);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -664,7 +665,7 @@ public class JSONController {
     @RequestMapping(value="/updatetask/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Task updateTask(@PathVariable String areaName,
-            @RequestBody NewTaskContainer updatedTask, @RequestParam boolean pushUpdate) {
+            @RequestBody NewTaskContainer updatedTask, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Task task = null;
@@ -697,8 +698,7 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
+            AtmosphereHandler.push(areaName, getJsonString(Task.class, task));
         }
         return task;
     }
@@ -707,10 +707,11 @@ public class JSONController {
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
-            @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) {
+            @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
+
         try {
             tx = session.beginTransaction();
 
@@ -818,9 +819,9 @@ public class JSONController {
             session.close();
         }
         if (pushUpdate) {
-            PushContext pushContext = PushContext.getInstance(context);
-            pushContext.push(areaName);
+            AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
         }
+
         return story;
     }
 
@@ -898,8 +899,7 @@ public class JSONController {
                 epic.setArchived(updatedEpic.isArchived());
                 tx.commit();
                 if (pushUpdate) {
-                    PushContext pushContext = PushContext.getInstance(context);
-                    pushContext.push(areaName);
+                    AtmosphereHandler.push(areaName, getJsonString(Epic.class, epic));
                 }
             }
         } catch (Exception e) {
@@ -975,8 +975,7 @@ public class JSONController {
                 theme.setArchived(updatedTheme.isArchived());
                 tx.commit();
                 if (pushUpdate) {
-                    PushContext pushContext = PushContext.getInstance(context);
-                    pushContext.push(areaName);
+                    AtmosphereHandler.push(areaName, getJsonString(Theme.class, theme));
                 }
             }
         } catch (Exception e) {
@@ -1156,8 +1155,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return clonedId;
     }
 
@@ -1218,8 +1216,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return clonedId;
     }
 
@@ -1269,8 +1266,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return clonedId;
     }
 
@@ -1325,8 +1321,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1374,8 +1369,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1436,8 +1430,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1483,8 +1476,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1582,7 +1574,7 @@ public class JSONController {
                                 prio = Util.getNextPrio(BacklogType.EPIC, newArea, session);                                
                             }
                             newEpic.setPrio(prio);
-                            
+
                             newEpic.setArea(newArea);
 
                             //Set correct prioInTheme
@@ -1607,7 +1599,7 @@ public class JSONController {
                         if (newEpic == null) {
                             //Create new epic
                             newEpic = story.getEpic().copy(false);
-                            
+
                             //Set correct prio
                             int prio = -1;
                             if (!newEpic.isArchived()) {
@@ -1620,10 +1612,10 @@ public class JSONController {
                         //Set correct prioInEpic
                         int prioInEpic = newEpic.getChildren().size() + 1;
                         story.setPrioInEpic(prioInEpic);
-                        
+
                         story.getEpic().getChildren().remove(story);
                         story.getEpic().rebuildChildrenOrder();
-                        
+
                         story.setEpic(newEpic);
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
@@ -1740,7 +1732,7 @@ public class JSONController {
         }
         return areaName;
     }
-    
+
     /**
      * Used when changing name of an area.
      * @return new area name if everything was ok
@@ -1767,7 +1759,7 @@ public class JSONController {
                 Area newArea = new Area();
                 newArea.setName(newName);
                 session.save(newArea);
-                
+
                 newArea.setStoryAttr1(oldArea.getStoryAttr1());
                 newArea.setStoryAttr2(oldArea.getStoryAttr2());
                 newArea.setStoryAttr3(oldArea.getStoryAttr3());
@@ -1776,7 +1768,7 @@ public class JSONController {
                 oldArea.setAdmins(null);
                 newArea.setEditors(oldArea.getEditors());
                 oldArea.setEditors(null);
-                
+
                 Query storyQuery = session.createQuery("from Story where area like ?");
                 storyQuery.setParameter(0, oldArea);
                 List<Story> stories = Util.castList(Story.class, storyQuery.list());
@@ -1797,7 +1789,7 @@ public class JSONController {
                 for (Theme theme : themes) {
                     theme.setArea(newArea);
                 }
-                
+
                 session.delete(oldArea);
             } else {
                 newName = null;
@@ -1908,8 +1900,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -2100,7 +2091,7 @@ public class JSONController {
 
             Set<AttributeOption> dbOptions = dbAttribute.getOptions();
             Set<AttributeOption> updatedOptions = updatedAttribute.getOptions();
-            
+
             if (updatedOptions.size() > 1500) {
                 throw new Exception("Too many attribute options");
             }
@@ -2172,8 +2163,7 @@ public class JSONController {
             session.close();
         }
 
-        PushContext pushContext = PushContext.getInstance(context);
-        pushContext.push(areaName);
+        AtmosphereHandler.push(areaName);
 
         return true;
     }
@@ -2185,13 +2175,43 @@ public class JSONController {
     @RequestMapping(value="/readArea/{areaName}", method = RequestMethod.GET)
     @Transactional
     public @ResponseBody Area readArea(@PathVariable String areaName) {
-       return Util.getArea(areaName, sessionFactory);
+        return Util.getArea(areaName, sessionFactory);
     }
 
     private boolean isLoggedIn() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         GrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
         return !auth.getAuthorities().contains(anonymous);
+    }
+
+    /**
+     * Generates a JSON-string from the specified data
+     * @param clazz The class (e.g. Task.class)
+     * @param data The object-data
+     * @return A String in JSON-format
+     * @throws JsonGenerationException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
+    private <T> String getJsonString(Class<T> clazz, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(clazz, ChildrenExcluder.class);
+        HashMap<String, Object> typeMapper = new HashMap<String, Object>();
+        typeMapper.put("type", clazz.getSimpleName());
+        typeMapper.put("data", data);
+        return mapper.writeValueAsString(typeMapper);
+    }
+
+    /**
+     * Used by clients to register themselves for push-notifications for a certain area
+     * @param event
+     * @param areaName
+     */
+    @RequestMapping(value = "/register/{areaName}", method = RequestMethod.GET)
+    @Transactional
+    public @ResponseBody void registerForArea(final AtmosphereResource event, @PathVariable String areaName) {
+//        System.out.println("=== INFO === registerForArea() with areaName " + areaName);
+        AtmosphereHandler.suspendClient(event, areaName);
     }
 
 }
