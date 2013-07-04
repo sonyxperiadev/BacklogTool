@@ -3,7 +3,11 @@
     <div id="icons">
         <c:if test='${view.equals("story-task")}'>
             <div title="Show tasks"
-                class="icon <c:if test="${story.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>"></div>
+                class="icon 
+                <c:if test="${story.children.size() > 0}">
+                    expand-icon ui-icon ui-icon-triangle-1-e
+                </c:if>">
+            </div>
             <a id="${story.id}" title="Create new task"
                 class="icon createTask add-child-icon"></a><br> 
         </c:if>
@@ -120,8 +124,9 @@
         <p class="description story-attr1 ${story.id}">
             <c:if test='${story.storyAttr1 != null && story.storyAttr1.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr1.icon}"
-                    title="${story.storyAttr1.name}" /> ${story.storyAttr1.name}
+                    title="${story.storyAttr1.name}" /> 
             </c:if>
+            ${story.storyAttr1.name}
         </p>
         <select id="storyAttr1${story.id}"
             class="bindChange story-attr1 hidden-edit ${story.id} text ui-widget-content ui-corner-all">
@@ -136,8 +141,9 @@
         <p class="description story-attr2 ${story.id}">
             <c:if test='${story.storyAttr2 != null && story.storyAttr2.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr2.icon}"
-                    title="${story.storyAttr2.name}" /> ${story.storyAttr2.name}
+                    title="${story.storyAttr2.name}" /> 
              </c:if>
+             ${story.storyAttr2.name}
         </p>
         <select id="storyAttr2${story.id}"
             class="bindChange story-attr2 hidden-edit ${story.id} text ui-widget-content ui-corner-all">
@@ -155,8 +161,9 @@
         <p class="description story-attr3 ${story.id}">
             <c:if test='${story.storyAttr3 != null && story.storyAttr3.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr3.icon}"
-                    title="${story.storyAttr3.name}" /> ${story.storyAttr3.name}
+                    title="${story.storyAttr3.name}" /> 
             </c:if>
+            ${story.storyAttr3.name}
         </p>
         <select id="storyAttr3${story.id}"
             class="bindChange story-attr3 hidden-edit ${story.id} text ui-widget-content ui-corner-all">

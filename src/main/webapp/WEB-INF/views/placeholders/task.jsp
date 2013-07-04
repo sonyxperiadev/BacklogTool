@@ -25,8 +25,9 @@
         <p class="taskInfo ${task.id}">
             <c:if test='${task.taskAttr1 != null && task.taskAttr1.iconEnabled}'>
                 <img src="../resources/image/${task.taskAttr1.icon}"
-                    title="${task.taskAttr1.name}" /> ${task.taskAttr1.name}
+                    title="${task.taskAttr1.name}" /> 
             </c:if>
+            ${task.taskAttr1.name}
         </p>
     </div> 
     <select id="taskAttr1${task.id}"
