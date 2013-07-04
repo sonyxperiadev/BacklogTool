@@ -4,12 +4,14 @@
         <c:if test='${view.equals("epic-story")}'>
             <div title="Show stories"
             class="icon 
-            <c:if test="${epic.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>
+            <c:if test="${epic.children.size() > 0}">
+                expand-icon ui-icon ui-icon-triangle-1-e
+            </c:if>
             ">
-    </div>
-    <a id="${epic.id}" title="Create new story"
-        class="icon createStory add-child-icon"></a> 
-    </c:if>
+            </div>
+            <a id="${epic.id}" title="Create new story"
+                class="icon createStory add-child-icon"></a> 
+        </c:if>
     <a id="${epic.id}" title="Clone this epic excluding children" class="cloneItem epic">
     <img src="../resources/image/page_white_copy.png"></a>
     </div> 

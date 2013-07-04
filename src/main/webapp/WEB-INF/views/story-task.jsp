@@ -65,8 +65,8 @@ THE SOFTWARE.
 
             <div id="list-container-div">
                 <ul class="parent-child-list" id="list-container">
-                    <c:forEach var="story" items="${nonArchivedList}">
-                        <c:if test="${ids == null || ids.contains(story.id)}">
+                    <c:forEach var="story" items="${nonArchivedStories}">
+                        <c:if test="${filterIds == null || filterIds.contains(story.id)}">
                             <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
                             <c:forEach var="task" items="${story.children}">
                                 <%@ include file="/WEB-INF/views/placeholders/task.jsp" %>

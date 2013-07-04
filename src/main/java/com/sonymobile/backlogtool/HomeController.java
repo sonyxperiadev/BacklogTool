@@ -60,13 +60,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.sonymobile.backlogtool.permission.User;
 
-
 /**
  * Handles requests for the application web pages.
- *
+ * 
  * @author Fredrik Persson &lt;fredrik5.persson@sonymobile.com&gt;
  * @author Nicklas Nilsson &lt;nicklas4.persson@sonymobile.com&gt;
- *
+ * 
  */
 @Controller
 public class HomeController {
@@ -76,13 +75,15 @@ public class HomeController {
 
     @Autowired
     ServletContext context;
-    
+
     @Autowired
     ApplicationVersion version;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public ModelAndView home(Locale locale, Model model, HttpServletResponse response) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    public ModelAndView home(Locale locale, Model model,
+            HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
         String username = auth.getName();
 
         List<String> adminAreas = null;
@@ -95,8 +96,10 @@ public class HomeController {
 
             User currentUser = (User) session.get(User.class, username);
 
-            Query allAreasQuery = session.createQuery("from Area order by name");
-            List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
+            Query allAreasQuery = session
+                    .createQuery("from Area order by name");
+            List<Area> allAreas = Util.castList(Area.class,
+                    allAreasQuery.list());
 
             adminAreas = new ArrayList<String>();
             nonAdminAreas = new ArrayList<String>();
@@ -120,8 +123,9 @@ public class HomeController {
             session.close();
         }
 
-        //Disables cache on this page so that the area list is refreshed every time.
-        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        // Disables cache on this page so that the area list is refreshed every time.
+        response.setHeader("Cache-Control",
+                "no-cache, no-store, must-revalidate");
 
         ModelAndView view = new ModelAndView("home");
         view.addObject("nonAdminAreas", nonAdminAreas);
@@ -130,35 +134,38 @@ public class HomeController {
         view.addObject("view", "home");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext()
+                .getAuthentication().getName());
         return view;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
     @RequestMapping(value = "/areaedit/{areaName}", method = RequestMethod.GET)
-    public ModelAndView areaedit(Locale locale, Model model, @PathVariable String areaName)
-            throws JsonGenerationException, JsonMappingException, IOException {
+    public ModelAndView areaedit(Locale locale, Model model,
+            @PathVariable String areaName) throws JsonGenerationException,
+            JsonMappingException, IOException {
         Area area = Util.getArea(areaName, sessionFactory);
 
         File dir = new File(context.getRealPath("/resources/image"));
         String[] icons = dir.list();
-        
-        //Maps: SeriesID -> comparevalue -> attributeID
-        HashMap<Integer,HashMap<Integer,Integer>> seriesIds = new HashMap<Integer,HashMap<Integer,Integer>>();
+
+        // Maps: SeriesID -> comparevalue -> attributeID
+        HashMap<Integer, HashMap<Integer, Integer>> seriesIds = new HashMap<Integer, HashMap<Integer, Integer>>();
 
         ArrayList<Attribute> allAttributes = new ArrayList<Attribute>();
         allAttributes.add(area.getStoryAttr1());
         allAttributes.add(area.getStoryAttr2());
         allAttributes.add(area.getStoryAttr3());
         allAttributes.add(area.getTaskAttr1());
-        
+
         for (Attribute currentAttr : allAttributes) {
             Set<AttributeOption> options = currentAttr.getOptions();
             Set<AttributeOption> newOptions = groupSeries(options, seriesIds);
             currentAttr.setOptions(newOptions);
         }
 
-        String seriesIdsString = new ObjectMapper().writeValueAsString(seriesIds);
+        String seriesIdsString = new ObjectMapper()
+                .writeValueAsString(seriesIds);
 
         ModelAndView view = new ModelAndView("areaedit");
         view.addObject("isLoggedIn", isLoggedIn());
@@ -167,19 +174,24 @@ public class HomeController {
         view.addObject("icons", icons);
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext()
+                .getAuthentication().getName());
         return view;
     }
 
     /**
      * Helper for areaedit. Groups attribute options in series.
-     * @param options the options to group
-     * @param seriesIds map where the series ids are mapped to another map where
-     *                  compare values are mapped to attribute ids.
+     * 
+     * @param options
+     *            the options to group
+     * @param seriesIds
+     *            map where the series ids are mapped to another map where
+     *            compare values are mapped to attribute ids.
      * @return Set of grouped attribute options
      */
-    private static Set<AttributeOption> groupSeries(Set<AttributeOption> options,
-            HashMap<Integer,HashMap<Integer,Integer>> seriesIds) {
+    private static Set<AttributeOption> groupSeries(
+            Set<AttributeOption> options,
+            HashMap<Integer, HashMap<Integer, Integer>> seriesIds) {
         Set<AttributeOption> newOptions = new LinkedHashSet<AttributeOption>();
         String lastName = null;
         String lastIcon = null;
@@ -189,23 +201,32 @@ public class HomeController {
         int lastSeriesEnd = -1;
         int lastSeriesId = -1;
         Integer lastSeriesIncrement = null;
-        HashMap<Integer,Integer> lastIds = new HashMap<Integer, Integer>();
+        HashMap<Integer, Integer> lastIds = new HashMap<Integer, Integer>();
         for (AttributeOption option : options) {
             Integer seriesIncrement = option.getSeriesIncrement();
-            if (seriesIncrement != null) { //If current is part of series.
-                if (lastSeriesIncrement!= null && seriesIncrement != null
+            if (seriesIncrement != null) { // If current is part of series.
+                if (lastSeriesIncrement != null
+                        && seriesIncrement != null
                         && Double.compare(lastSeriesIncrement, seriesIncrement) == 0
-                        && lastName != null && lastName.equals(option.getNameNoNumber())
-                        && lastIcon != null && lastIcon.equals(option.getIcon())
-                        && option.getNumber() == lastSeriesEnd+lastSeriesIncrement) { //If current series was same as last
+                        && lastName != null
+                        && lastName.equals(option.getNameNoNumber())
+                        && lastIcon != null
+                        && lastIcon.equals(option.getIcon())
+                        && option.getNumber() == lastSeriesEnd
+                                + lastSeriesIncrement) { // If current series
+                                                         // was same as last
                     lastSeriesEnd = option.getNumber();
-                } else { //Not same as last
-                    if (lastSeriesIncrement != null) { //If it's not the first series
-                        AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
-                                lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+                } else { // Not same as last
+                    if (lastSeriesIncrement != null) { // If it's not the first
+                                                       // series
+                        AttributeOptionSeries series = new AttributeOptionSeries(
+                                lastSeriesId, lastName, lastIcon,
+                                lastIconEnabled, lastCompareValue,
+                                lastSeriesStart, lastSeriesEnd,
+                                lastSeriesIncrement);
                         newOptions.add(series);
                     }
-                    
+
                     lastSeriesStart = option.getNumber();
                     lastSeriesEnd = option.getNumber();
                     lastCompareValue = option.getCompareValue();
@@ -216,21 +237,26 @@ public class HomeController {
                     lastIds = new HashMap<Integer, Integer>();
                 }
                 lastIds.put(option.getNumber(), option.getId());
-            } else { //Current is not part of a series                
-                if (lastSeriesIncrement != null) {//If current is not part of series, but last was
+            } else { // Current is not part of a series
+                if (lastSeriesIncrement != null) {// If current is not part of
+                                                  // series, but last was
                     seriesIds.put(lastSeriesId, lastIds);
-                    AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
-                            lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+                    AttributeOptionSeries series = new AttributeOptionSeries(
+                            lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                            lastCompareValue, lastSeriesStart, lastSeriesEnd,
+                            lastSeriesIncrement);
                     newOptions.add(series);
-                } 
+                }
                 newOptions.add(option);
             }
             lastSeriesIncrement = seriesIncrement;
         }
-        if (lastSeriesIncrement != null) { //Last was a series
+        if (lastSeriesIncrement != null) { // Last was a series
             seriesIds.put(lastSeriesId, lastIds);
-            AttributeOptionSeries series = new AttributeOptionSeries(lastSeriesId, lastName, lastIcon, lastIconEnabled,
-                    lastCompareValue, lastSeriesStart, lastSeriesEnd, lastSeriesIncrement);
+            AttributeOptionSeries series = new AttributeOptionSeries(
+                    lastSeriesId, lastName, lastIcon, lastIconEnabled,
+                    lastCompareValue, lastSeriesStart, lastSeriesEnd,
+                    lastSeriesIncrement);
             newOptions.add(series);
         }
         return newOptions;
@@ -238,11 +264,14 @@ public class HomeController {
 
     /**
      * Returns a printer-friendly page for stories
-     * @param ids which stories to print
+     * 
+     * @param ids
+     *            which stories to print
      * @return page
      */
     @RequestMapping(value = "/print-stories/{areaName}", method = RequestMethod.GET)
-    public ModelAndView printStories(Locale locale, Model model, @RequestParam List<Integer> ids, @PathVariable String areaName) {
+    public ModelAndView printStories(Locale locale, Model model,
+            @RequestParam List<Integer> ids, @PathVariable String areaName) {
         List<Story> stories = null;
         Area area = null;
         Session session = sessionFactory.openSession();
@@ -260,9 +289,10 @@ public class HomeController {
             Hibernate.initialize(area.getStoryAttr2());
             Hibernate.initialize(area.getStoryAttr3());
 
-            Query storyQuery = session.createQuery("select distinct s from Story s " +
-                    "left join fetch s.children " +
-                    "where s.area like ? and s.id in (:ids)");
+            Query storyQuery = session
+                    .createQuery("select distinct s from Story s "
+                            + "left join fetch s.children "
+                            + "where s.area like ? and s.id in (:ids)");
             storyQuery.setParameter(0, area);
             storyQuery.setParameterList("ids", ids);
 
@@ -286,17 +316,21 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/story-task/{areaName}", method = RequestMethod.GET)
-    public ModelAndView storytask(Locale locale, Model model, @PathVariable String areaName,
-            @CookieValue(value="backlogtool-orderby", defaultValue="prio", required = false) String order,
-            @RequestParam(required=false) Set<Integer> ids) {
+    public ModelAndView storytask(
+            Locale locale,
+            Model model,
+            @PathVariable String areaName,
+            @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
+            @RequestParam(required = false, value="ids") Set<Integer> filterIds) {
 
         Area area = Util.getArea(areaName, sessionFactory);
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
         String username = auth.getName();
 
-        List<Story> nonArchivedList = null;
-        List<String> adminAreas = null;
+        List<Story> nonArchivedStories = null;
+        Set<String> adminAreas = null;
         ModelAndView view = new ModelAndView();
 
         if (area == null) {
@@ -308,46 +342,40 @@ public class HomeController {
             try {
                 tx = session.beginTransaction();
 
-                User currentUser = (User) session.get(User.class, username);
+                //Get the areas that the user is admin for, which is used to
+                //populate the move-to-area select box. Exclude the current area, since
+                //it's no point of moving stories to the same area.
+                //Allow only admins to move since missing story attributes are created
+                //automatically.
+                adminAreas = getAdminAreaNames(session, username);
+                adminAreas.remove(area.getName());
 
-                Query allAreasQuery = session.createQuery("from Area order by name");
-                List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
-
-                adminAreas = new ArrayList<String>();
-                for (Area currentArea : allAreas) {
-                    if (!areaName.equals(currentArea.getName()) &&
-                            ((currentUser != null && currentUser.isMasterAdmin()) 
-                                    || currentArea.isAdmin(username))) {
-                        adminAreas.add(currentArea.getName());
-                    }
-                }
                 String queryString = null;
                 if (order.contains("storyAttr")) {
-                    //If the user wants to sort by one of the custom created attributes, then the attributeOptions
-                    //needs to be sorted by their compareValues.
-                    queryString = "select distinct s from Story s " +
-                            "left join fetch s.children " +
-                            "left join fetch s." + order + " as attr " +
-                            "where s.area = ? " +
-                            "and s.archived = false " +
-                            "order by attr.compareValue";
-                } else if (order.equals("title") || order.equals("description") || order.equals("contributor")
-                        || order.equals("customer") || order.equals("contributorSite") || order.equals("customerSite")) {
-                    queryString = "select distinct s from Story s " +
-                            "left join fetch s.children " +
-                            "where s.area = ? " +
-                            "and s.archived = false " +
-                            "order by s." + order;
-                } else { //Fall back to sorting by prio
-                    queryString = "select distinct s from Story s " +
-                            "left join fetch s.children " +
-                            "where s.area = ? and " +
-                            "s.archived = false " +
-                            "order by s.prio";
+                    // If the user wants to sort by one of the custom created
+                    // attributes,
+                    // then the attributeOptions needs to be sorted by their
+                    // compareValues.
+                    queryString = "select distinct s from Story s "
+                            + "left join fetch s.children "
+                            + "left join fetch s." + order + " as attr "
+                            + "where s.area = ? " + "and s.archived = false "
+                            + "order by attr.compareValue";
+                } else if (order.matches("description|contributor" +
+                        "|customer|contributorSite|customerSite")) {
+                    queryString = "select distinct s from Story s "
+                            + "left join fetch s.children "
+                            + "where s.area = ? " + "and s.archived = false "
+                            + "order by s." + order;
+                } else { // Fall back to sorting by prio
+                    queryString = "select distinct s from Story s "
+                            + "left join fetch s.children "
+                            + "where s.area = ? and " + "s.archived = false "
+                            + "order by s.prio";
                 }
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, area);
-                nonArchivedList = Util.castList(Story.class, query.list());
+                nonArchivedStories = Util.castList(Story.class, query.list());
 
                 tx.commit();
             } catch (Exception e) {
@@ -363,7 +391,8 @@ public class HomeController {
             Task placeholderTask = new Task();
             placeholderStory.setId(-1);
             placeholderTask.setId(-1);
-            placeholderTask.setStory(placeholderStory);//Makes sure task.story.id is -1 as well
+            //Prevents NPE from task.getStory().getId():
+            placeholderTask.setStory(placeholderStory);
 
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("placeholderTask", placeholderTask);
@@ -371,23 +400,27 @@ public class HomeController {
             view.addObject("adminAreas", adminAreas);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "story-task");
-            view.addObject("nonArchivedList", nonArchivedList);
-            view.addObject("ids", ids);
+            view.addObject("nonArchivedStories", nonArchivedStories);
+            view.addObject("filterIds", filterIds);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext()
+                .getAuthentication().getName());
         return view;
     }
 
     @RequestMapping(value = "/epic-story/{areaName}", method = RequestMethod.GET)
-    public ModelAndView epicstory(Locale locale, Model model, @PathVariable String areaName,
-            @CookieValue(value="backlogtool-orderby", defaultValue="prio", required = false) String order,
-            @RequestParam(required=false) Set<Integer> ids) {
+    public ModelAndView epicstory(
+            Locale locale,
+            Model model,
+            @PathVariable String areaName,
+            @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
+            @RequestParam(required = false, value="ids") Set<Integer> filterIds) {
 
         Area area = Util.getArea(areaName, sessionFactory);
-        List<Epic> nonArchivedList = null;
+        List<Epic> nonArchivedEpics = null;
 
         ModelAndView view = new ModelAndView();
 
@@ -402,23 +435,21 @@ public class HomeController {
                 tx = session.beginTransaction();
 
                 String queryString = null;
-                if (order.equals("title") || order.equals("description")) {
-                    queryString = "select distinct e from Epic e " +
-                            "left join fetch e.children " +
-                            "where e.area = ? and " +
-                            "e.archived=false " +
-                            "order by e." + order;
-                } else { //Fall back to sorting by prio
-                    queryString = "select distinct e from Epic e " +
-                            "left join fetch e.children " +
-                            "where e.area = ? and " +
-                            "e.archived = false " +
-                            "order by e.prio";
+                if (order.matches("title|description")) {
+                    queryString = "select distinct e from Epic e "
+                            + "left join fetch e.children "
+                            + "where e.area = ? and " + "e.archived=false "
+                            + "order by e." + order;
+                } else { // Fall back to sorting by prio
+                    queryString = "select distinct e from Epic e "
+                            + "left join fetch e.children "
+                            + "where e.area = ? and " + "e.archived = false "
+                            + "order by e.prio";
                 }
 
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, area);
-                nonArchivedList = Util.castList(Epic.class, query.list());
+                nonArchivedEpics = Util.castList(Epic.class, query.list());
 
                 tx.commit();
             } catch (Exception e) {
@@ -434,12 +465,13 @@ public class HomeController {
             Story placeholderStory = new Story();
             placeholderEpic.setId(-1);
             placeholderStory.setId(-1);
-            placeholderStory.setEpic(placeholderEpic);//Makes sure story.epic.id is -1 as well
+            //Prevents NPE from story.getEpic().getId():
+            placeholderStory.setEpic(placeholderEpic);
 
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("placeholderStory", placeholderStory);
-            view.addObject("nonArchivedList", nonArchivedList);
-            view.addObject("ids", ids);
+            view.addObject("nonArchivedEpics", nonArchivedEpics);
+            view.addObject("filterIds", filterIds);
             view.addObject("area", area);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "epic-story");
@@ -447,17 +479,21 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext()
+                .getAuthentication().getName());
         return view;
     }
 
     @RequestMapping(value = "/theme-epic/{areaName}", method = RequestMethod.GET)
-    public ModelAndView themeepic(Locale locale, Model model, @PathVariable String areaName,
-            @CookieValue(value="backlogtool-orderby", defaultValue="prio", required = false) String order,
-            @RequestParam(required=false) Set<Integer> ids) {
+    public ModelAndView themeepic(
+            Locale locale,
+            Model model,
+            @PathVariable String areaName,
+            @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
+            @RequestParam(required = false, value="ids") Set<Integer> filterIds) {
 
         Area area = Util.getArea(areaName, sessionFactory);
-        List<Theme> nonArchivedList = null;
+        List<Theme> nonArchivedThemes = null;
 
         ModelAndView view = new ModelAndView();
 
@@ -471,23 +507,21 @@ public class HomeController {
             try {
                 tx = session.beginTransaction();
                 String queryString = null;
-                if (order.equals("title") || order.equals("description")) {
-                    queryString = "select distinct t from Theme t " +
-                            "left join fetch t.children " +
-                            "where t.area = ? and " +
-                            "t.archived = false " +
-                            "order by t." + order;
-                } else { //Fall back to sorting by prio
-                    queryString = "select distinct t from Theme t " +
-                            "left join fetch t.children " +
-                            "where t.area = ? and " +
-                            "t.archived = false " +
-                            "order by t.prio";
+                if (order.matches("title||description")) {
+                    queryString = "select distinct t from Theme t "
+                            + "left join fetch t.children "
+                            + "where t.area = ? and " + "t.archived = false "
+                            + "order by t." + order;
+                } else { // Fall back to sorting by prio
+                    queryString = "select distinct t from Theme t "
+                            + "left join fetch t.children "
+                            + "where t.area = ? and " + "t.archived = false "
+                            + "order by t.prio";
                 }
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, area);
 
-                nonArchivedList = Util.castList(Theme.class, query.list());
+                nonArchivedThemes = Util.castList(Theme.class, query.list());
 
                 tx.commit();
             } catch (Exception e) {
@@ -502,12 +536,13 @@ public class HomeController {
             Epic placeholderEpic = new Epic();
             placeholderTheme.setId(-1);
             placeholderEpic.setId(-1);
-            placeholderEpic.setTheme(placeholderTheme);//Makes sure epic.theme.id is -1 as well
+            //Prevents NPE from epic.getTheme().getId():
+            placeholderEpic.setTheme(placeholderTheme);
 
             view.addObject("placeholderTheme", placeholderTheme);
             view.addObject("placeholderEpic", placeholderEpic);
-            view.addObject("nonArchivedList", nonArchivedList);
-            view.addObject("ids", ids);
+            view.addObject("nonArchivedThemes", nonArchivedThemes);
+            view.addObject("filterIds", filterIds);
             view.addObject("area", area);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "theme-epic");
@@ -515,19 +550,48 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        view.addObject("loggedInUser", SecurityContextHolder.getContext()
+                .getAuthentication().getName());
         return view;
     }
 
     /**
+     * Returns a sorted set (by name) of area names that the
+     * argument username is admin for.
+     * 
+     * @param session
+     *            hibernate session
+     * @param username
+     * @return sorted set of area names
+     */
+    private Set<String> getAdminAreaNames(Session session, String username) {
+        Set<String> adminAreas = new LinkedHashSet<String>();
+        User currentUser = (User) session.get(User.class, username);
+
+        Query allAreasQuery = session.createQuery("from Area order by name");
+        List<Area> allAreas = Util.castList(Area.class, allAreasQuery.list());
+
+        for (Area currentArea : allAreas) {
+            if ((currentUser != null && currentUser.isMasterAdmin())
+                    || currentArea.isAdmin(username)) {
+                adminAreas.add(currentArea.getName());
+            }
+        }
+        return adminAreas;
+    }
+
+    /**
      * Checks if the user is allowed to make edits to this specific area.
-     * @param areaName Area name to check
+     * 
+     * @param areaName
+     *            Area name to check
      * @return disableEdits true if edits shall be disabled
      */
     private boolean isDisableEdits(String areaName) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
         if (!isLoggedIn()) {
-            //Not logged in, edits must be disabled.
+            // Not logged in, edits must be disabled.
             return true;
         }
         String username = auth.getName();
@@ -541,7 +605,8 @@ public class HomeController {
             User currentUser = (User) session.get(User.class, username);
 
             Area area = (Area) session.get(Area.class, areaName);
-            if (area != null && (area.isAdmin(username) || area.isEditor(username))
+            if (area != null
+                    && (area.isAdmin(username) || area.isEditor(username))
                     || (currentUser != null && currentUser.isMasterAdmin())) {
                 disableEdits = false;
             }
@@ -558,8 +623,10 @@ public class HomeController {
     }
 
     private boolean isLoggedIn() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        GrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        GrantedAuthority anonymous = new SimpleGrantedAuthority(
+                "ROLE_ANONYMOUS");
         return !auth.getAuthorities().contains(anonymous);
     }
 

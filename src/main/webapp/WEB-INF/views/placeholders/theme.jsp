@@ -2,7 +2,9 @@
     <div id="icons">
         <div title="Show epics"
         class="icon 
-        <c:if test="${theme.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>
+        <c:if test="${theme.children.size() > 0}">
+            expand-icon ui-icon ui-icon-triangle-1-e
+        </c:if>
         ">
     </div>
     <a id="${theme.id}" title="Create new epic"
@@ -33,10 +35,13 @@
     </div>
     <!-- TITLE FIELDS END --> 
     <a id="${theme.id}" title="Remove theme"
-        class="icon deleteItem delete-icon"></a> <input type="checkbox"
-    class="marginTopBig inline bindChange hidden-edit ${theme.id}"
-    id="archiveTheme${theme.id}"
-    <c:if test='${theme.archived}'>checked="checked"</c:if>
+        class="icon deleteItem delete-icon"></a> 
+    <input type="checkbox"
+        class="marginTopBig inline bindChange hidden-edit ${theme.id}"
+        id="archiveTheme${theme.id}"
+        <c:if test='${theme.archived}'>
+            checked="checked"
+        </c:if>
     >
     <p class="title inline hidden-edit ${theme.id}">Archive theme</p>
     </input><br>
@@ -46,8 +51,7 @@
         <p class="title ${theme.id}">Archived</p>
     </c:if>
     <p class="description ${theme.id}">
-        <fmt:formatDate value="${theme.dateArchived}"
-            pattern="yyyy-MM-dd" />
+        <fmt:formatDate value="${theme.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
     <br style="clear: both" />
 </li>
