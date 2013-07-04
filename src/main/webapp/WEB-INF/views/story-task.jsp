@@ -64,11 +64,10 @@ THE SOFTWARE.
             </div>
 
             <div id="list-container-div">
-                <ul class="parent-child-list" id="list-container">
+
                     <p class="typeMark oneline"></p>
-        <!-- STORY TITLE START -->
-        <p class="story titleText oneline">Title</p><div class="oneline attr-div"><p class="title oneline">${area.storyAttr1.name}</p></div>
-                </ul>
+                    <p class="story titleText oneline">Title</p><div class="oneline attr-div"><p class="title oneline">${area.storyAttr1.name}</p></div>
+
             
             
                 <ul class="parent-child-list" id="list-container">

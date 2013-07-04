@@ -689,6 +689,7 @@ p.addOptionSeries, p.addOption {
 }
 
 .oneline.title-text {
+	white-space:nowrap;
 	width: 30%;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -696,18 +697,27 @@ p.addOptionSeries, p.addOption {
 	font-size: 1em;
 }
 
-.attr-text {
-	height: 1em;
+.oneline.attr-text {
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-.attr-div {
-	width: 12%;
+	width: 14%;
+	white-space:nowrap;
+	height: 100%;
 }
 
 .oneline-li {
 	padding-top: 2px;
-	padding-bottom: 5px;
+	padding-bottom: 4px;
 }
 
+.oneline.date-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 14%;
+	white-space:nowrap;
+	height: 100%;
+}
+
+.attr-icon {
+	vertical-align: sub;
+}
