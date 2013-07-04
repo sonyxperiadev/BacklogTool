@@ -65,9 +65,16 @@ THE SOFTWARE.
 
             <div id="list-container-div">
                 <ul class="parent-child-list" id="list-container">
+                    <p class="typeMark oneline"></p>
+        <!-- STORY TITLE START -->
+        <p class="story titleText oneline">Title</p><div class="oneline attr-div"><p class="title oneline">${area.storyAttr1.name}</p></div>
+                </ul>
+            
+            
+                <ul class="parent-child-list" id="list-container">
                     <c:forEach var="story" items="${nonArchivedList}">
                         <c:if test="${ids == null || ids.contains(story.id)}">
-                            <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                            <%@ include file="/WEB-INF/views/placeholders/story-oneline.jsp" %>
                             <c:forEach var="task" items="${story.children}">
                                 <%@ include file="/WEB-INF/views/placeholders/task.jsp" %>
                             </c:forEach>

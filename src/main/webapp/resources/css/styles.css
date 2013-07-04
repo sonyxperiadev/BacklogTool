@@ -74,9 +74,14 @@ h1 {
 }
 
 
-.story p {
-    min-height: 15px;
-    margin: 1px 0 1px 0;
+/* .story p { */
+/*     min-height: 15px; */
+/*     margin: 1px 0 1px 0; */
+/* } */
+
+p.story {
+	min-height: 15px;
+	margin: 1px 0 1px 0;
 }
 
 form {
@@ -678,3 +683,31 @@ p.addOptionSeries, p.addOption {
 .placeholder {
 	display: none;
 }
+
+.oneline {
+	display: inline-block;
+}
+
+.oneline.title-text {
+	width: 30%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-left: 6px;
+	font-size: 1em;
+}
+
+.attr-text {
+	height: 1em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.attr-div {
+	width: 12%;
+}
+
+.oneline-li {
+	padding-top: 2px;
+	padding-bottom: 5px;
+}
+
