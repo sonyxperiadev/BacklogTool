@@ -102,6 +102,15 @@ public class Task {
     }
 
     /**
+     * @return title where <a>-tags have been added around URLs
+     * and newline-chars have been replaced with <br />.
+     */
+    @JsonIgnore
+    public String getTitleWithLinksAndLineBreaks() {
+        return Util.textAsHtmlLinksAndLineBreaks(getTitle());
+    }
+
+    /**
      * Sets the id for this task. The server uses this one.
      */
     public void setId(int id) {
