@@ -23,6 +23,29 @@
  */
 
 /**
+ * Overrides the default outerWidth and outerHeight functions
+ * since they are very slow for items with display: none.
+ * The methods are called a lot by the jQuery.sortable() function,
+ * making drag and drop very slow without these lines.
+ */
+(function ($) {
+    var outerWidth = $.fn.outerWidth;
+    $.fn.outerWidth = function() {
+        if ($(this).css('display') === 'none') {
+            return 0;
+        }
+        return outerWidth.call(this);
+    };
+    var outerHeight = $.fn.outerHeight;
+    $.fn.outerHeight = function() {
+        if ($(this).css('display') === 'none') {
+            return 0;
+        }
+        return outerHeight.call(this);
+    };
+})(jQuery);
+
+/**
  * Creates a cookie and saves locally.
  * 
  * @param name
