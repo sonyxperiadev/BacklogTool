@@ -64,13 +64,14 @@ THE SOFTWARE.
             </div>
 
             <div id="list-container-div">
-<div id="table-header" style="margin-left:9px;">
-                    <p class="oneline" style="width:${longestId+5}ex;padding:0.3em;font-size:0.75em">ID</p>
-                    <p class="oneline" style="margin-left:6px;width:30%">Title</p>
-                    <p class="oneline" style="width:14%">${area.storyAttr1.name}</p>
-                    <p class="oneline" style="width:14%">${area.storyAttr2.name}</p>
-                    <p class="oneline" style="width:14%">${area.storyAttr3.name}</p>
-                    <p class="oneline" style="width:14%">Deadline</p>
+<div id="table-header" style="margin-left:20px;width:100%">
+                    <p class="oneline" style="width:${longestId+6}ex;padding:0.3em;font-size:0.75em;vertical-align:top;font-weight: bold;">ID</p>
+                    <p class="oneline" style="margin-left:4px;width:30%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Title</p>
+                    <p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr1.name}</p>
+                    <p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr2.name}</p>
+                    <p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr3.name}</p>
+                    <p class="oneline" style="width:5%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Deadline</p>
+                    <p class="oneline" style="width:5%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Archived</p>
 </div>
 
             

@@ -701,7 +701,7 @@ p.addOptionSeries, p.addOption {
 .oneline.attr-text {
 	overflow: hidden;
 	text-overflow: ellipsis;
-	width: 14%;
+	width: 12%;
 	white-space:nowrap;
 	height: 100%;
 }
@@ -709,12 +709,14 @@ p.addOptionSeries, p.addOption {
 .oneline-li {
 	padding-top: 2px;
 	padding-bottom: 4px;
+	border: 0;
+	background: none;
 }
 
 .oneline.date-text {
 	overflow: hidden;
 	text-overflow: ellipsis;
-	width: 14%;
+	width: 12%;
 	white-space:nowrap;
 	height: 100%;
 }

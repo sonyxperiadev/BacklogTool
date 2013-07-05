@@ -1,7 +1,10 @@
-<li class="story ui-state-default oneline-li <c:if test='${view.equals("story-task")}'>parentLi</c:if>" 
-    id="${story.id}">
+<li class="story ui-state-default oneline-li parentLi" id="${story.id}">
 
-        <p class="typeMark oneline" style="width:${longestId+5}ex;">Story ${story.id}</p>
+        <div title="Show tasks"
+                class="icon <c:if test="${story.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
+        </div>
+
+        <p class="typeMark oneline" style="width:${longestId+6}ex;">Story ${story.id}</p>
         <p class="title-text oneline">${story.title}</p>
 
         <p class="oneline attr-text">
