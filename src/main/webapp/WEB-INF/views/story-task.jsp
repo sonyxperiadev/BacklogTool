@@ -65,13 +65,12 @@ THE SOFTWARE.
 
             <div id="list-container-div">
 <div id="table-header" style="margin-left:9px;">
-                    <p class="oneline" style="width:${longestId+2}em;padding:0.3em;font-size:0.75em">ID</p>
+                    <p class="oneline" style="width:${longestId+5}ex;padding:0.3em;font-size:0.75em">ID</p>
                     <p class="oneline" style="margin-left:6px;width:30%">Title</p>
                     <p class="oneline" style="width:14%">${area.storyAttr1.name}</p>
                     <p class="oneline" style="width:14%">${area.storyAttr2.name}</p>
                     <p class="oneline" style="width:14%">${area.storyAttr3.name}</p>
                     <p class="oneline" style="width:14%">Deadline</p>
-
 </div>
 
             
