@@ -57,8 +57,26 @@ THE SOFTWARE.
         </div>
 
         <div id="main">
+            <div id="theme-placeholder" class="placeholder">
+                <c:set var="theme" value="${placeholderTheme}" />
+                <%@ include file="/WEB-INF/views/placeholders/theme.jsp"%>
+            </div>
+            <div id="epic-placeholder" class="placeholder">
+                <c:set var="epic" value="${placeholderEpic}" />
+                <%@ include file="/WEB-INF/views/placeholders/epic.jsp"%>
+            </div>
+
             <div id="list-container-div">
-                <ul class="parent-child-list" id="list-container"></ul>
+                <ul class="parent-child-list" id="list-container">
+                    <c:forEach var="theme" items="${nonArchivedThemes}">
+                        <c:if test="${filterIds == null || filterIds.contains(theme.id)}">
+                            <%@ include file="/WEB-INF/views/placeholders/theme.jsp" %>
+                            <c:forEach var="epic" items="${theme.children}">
+                                <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
+                            </c:forEach>
+                        </c:if>
+                    </c:forEach>
+                </ul>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
         </div>

@@ -166,7 +166,7 @@ $(document).ready(function () {
         var yyyy = this.getFullYear().toString();
         var mm = (this.getMonth()+1).toString(); // getMonth() is zero-based
         var dd  = this.getDate().toString();
-        return (mm[1]?mm:"0" + mm[0]) + "/" + (dd[1]?dd:"0"+dd[0]) + "/" + yyyy;
+        return yyyy + "-" + (mm[1]?mm:"0" + mm[0]) + "-" + (dd[1]?dd:"0"+dd[0]);
     };
 
     /**
@@ -465,6 +465,10 @@ $(document).ready(function () {
     var sorting = readCookie("backlogtool-orderby");
     if (sorting != null) {
         $("#order-by").val(sorting);
+        if ($("#order-by").val() == null) {
+            //Failed to set the cookievalue, revert to prio
+            $("#order-by").val("prio");
+        }
     }
 
     // Load checkbox-status for the Archived-checkbox
@@ -1205,8 +1209,8 @@ $(document).ready(function () {
             });
 
             //Sets values for all edit fields
-            $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1 });
-            $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1 });
+            $("#deadline"+storyId).datepicker({ showWeek: true, firstDay: 1, dateFormat: "yy-mm-dd" });
+            $("#added"+storyId).datepicker({ showWeek: true, firstDay: 1, dateFormat: "yy-mm-dd" });
 
             if (story.deadline == null) {
                 $("#deadline"+storyId).val("");
@@ -1987,7 +1991,7 @@ $(document).ready(function () {
                             newContainer += '<li class="childLi task ui-state-default editTask" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
                             //TASKTITLE START
                             //TYPE MARK START
-                            +'<p class="marginLeft typeMark">Task</p>'
+	                        +'<p class="marginLeft typeMark">Task ' + currentChild.id + '</p>'
                             //TYPE MARK END
                             +'<div class="taskTitle ' + currentChild.id + '">'
                             +'<p class="taskInfo">'+ addLinksAndLineBreaks(currentChild.title) +'</p>'
@@ -2068,7 +2072,7 @@ $(document).ready(function () {
                             //TITLE FIELDS
                             +'<div class="padding-left titles-epic-story">'
                             //TYPE MARK START
-                            +'<p class="typeMark">Story</p>'
+	                        +'<p class="typeMark">Story ' + currentChild.id + '</p>'
                             //TYPE MARK END
                             //THEME START
                             +'<p class="theme ' + currentChild.id + '">' + replaceNullWithEmpty(currentChild.themeTitle) + '</p>'
@@ -2204,11 +2208,13 @@ $(document).ready(function () {
                         for (var i = 0; i<currentParent.children.length; ++i) {
                             var currentChild = currentParent.children[i];
                             newContainer += '<li class="childLi epic ui-state-default editEpic" parentId="' + currentParent.id + '"' + 'id="' + currentChild.id + '">'
+	                        +'<div id="icons">'
                             +'<a id="' + currentChild.id + '" title="Clone this epic excluding children" class="cloneItem epic icon"><img src="../resources/image/page_white_copy.png"></a>'
+	                        +'</div>'
                             //TITLE FIELDS
                             +'<div class="padding-left titles-theme-epic">'
                             //TYPE MARK START
-                            +'<p class="typeMark">Epic</p>'
+	                        +'<p class="typeMark">Epic ' + currentChild.id + '</p>'
                             //TYPE MARK END
                             +'<br style="clear:both" />'
                             //TITLE START
@@ -2234,6 +2240,8 @@ $(document).ready(function () {
         return newContainer;
     };
 
+    var firstBuild = true;
+
     /**
      * Builds the visible html list using the JSON data
      */
@@ -2241,7 +2249,7 @@ $(document).ready(function () {
         if ($("#archived-checkbox").prop("checked")) {
             $("#archived-list-container").append(generateList(true)).show();
         }
-        if (archived != true) {
+    	if (archived != true && !firstBuild) {
             $('#list-container').append(generateList(false));    	    
         }
         editingItems =  new Array();
@@ -2374,6 +2382,7 @@ $(document).ready(function () {
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
+        firstBuild = false;
     };
 
     var setHeightAndMargin = function (value) {
@@ -2488,14 +2497,6 @@ $(document).ready(function () {
             }
         });
     };
-
-    //Sets the first parent with children as fully visible on start
-    if (parents.length > 0) {
-        var firstParent = parents[0];
-        for (var k = 0; k < firstParent.children.length; ++k) {
-            visible[firstParent.children[k].id] = true;
-        }
-    }
 
     $("#list-container").sortable({
         tolerance: 'pointer',
