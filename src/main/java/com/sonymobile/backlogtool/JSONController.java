@@ -1582,6 +1582,7 @@ public class JSONController {
                             newEpic.setPrioInTheme(prioInTheme);
 
                             session.save(newEpic);
+                            newTheme.getChildren().add(newEpic);
                         }
                         story.getEpic().getChildren().remove(story);
                         story.setEpic(newEpic);
