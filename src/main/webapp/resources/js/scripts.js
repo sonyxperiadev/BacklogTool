@@ -2394,8 +2394,6 @@ $(document).ready(function () {
         setHeightAndMargin($("#header").height());
     });
 
-    setHeightAndMargin($("#header").height());
-
     /*
      * Changing the create parent button based on what view you're on
      * Also changing the view description text and the color of the view links
@@ -2657,5 +2655,7 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
+
+    setHeightAndMargin($("#header").height());
 
 });
