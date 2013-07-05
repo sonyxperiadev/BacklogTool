@@ -21,7 +21,6 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
- 
 html, body {
 	height: 100%;
 }
@@ -61,11 +60,6 @@ body {
 
 h1 {
     margin: 0;
-}
-
-#archived-list-container {
-    border-top: 15px solid #555555;
-    display: none;
 }
 
 #login-out-container {
@@ -122,8 +116,19 @@ p {
     width: 80%;
 }
 
-#list-container > li {
+#archived-list-container > li, #list-container > li {
     width: 100%;
+}
+#archived-list-container > li:first-child {
+    border-top: 15px solid #555555;
+}
+
+#archived-list-container {
+    display: none;
+}
+
+#archived-list-container > li {
+    background: #EDECEC;
 }
 
 #create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button, #settings {
@@ -135,6 +140,7 @@ p {
 .headerText {
     font-size:10px !important;
     text-align: center;
+    vertical-align: sub;
 }
 
 .order-by, .showArchive, .hideShowAll {
@@ -250,10 +256,6 @@ div#icons {
     font-weight: lighter;
     padding-top: 2px;
     padding-bottom: 3px;
-}
-
-#archived-list-container li {
-    background: #EDECEC;
 }
 
 .parentLi {

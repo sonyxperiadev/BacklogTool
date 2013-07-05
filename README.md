@@ -45,12 +45,12 @@ First, make sure you have the following installed:
 
 For users
 ---------
-1. Download the backlogtool.war file from http://developer.sonymobile.com/downloads/tool/binaries-for-backlogtool/ and backlogtool.properties from https://github.com/sonyxperiadev/BacklogTool/raw/master/backlogtool.properties
+1. Download the latest backlogtool.war file from https://github.com/sonyxperiadev/BacklogTool/releases and backlogtool.properties from https://github.com/sonyxperiadev/BacklogTool/raw/master/backlogtool.properties
 2. Copy the .war-file to [Tomcat location]/webapps
 3. Copy the backlog.properties-file to [Tomcat location]/conf and edit it with your own options. The conf folder does not exist by default so you might have to create it.
 4. (Optional) If you want to allow area names with special characters, set URIEncoding like this: http://struts.apache.org/2.0.6/docs/how-to-support-utf-8-uriencoding-with-tomcat.html
 5. Make sure the database and LDAP servers are running and start Tomcat.
-6. Backlogtool should now be available at http://localhost:8080/backlogtool. If you want to run backlogtool as the web root, rename 'backlogtool.war' to 'ROOT.war'
+6. Backlogtool should now be available at http://localhost:8080/backlogtool. If you want to run backlogtool as the web root, rename 'backlogtool.war' to 'ROOT.war' and restart the server
 
 For devs
 --------
@@ -69,10 +69,10 @@ All dependencies should now be downloaded to your client.
 Source code overview
 ====================
 
-Backlog tool is built as a Spring MVC project on the server side. All requests for dynamic content are handled by Ajax technology with JSON data. The ICEPush framework is used for triggering refresh on all clients that have the same area open when an object is modified. All objects are persisted using Hibernate framework which can easily be set to work with an in-memory database by changing the config file "backlogtool.properties" if needed.
+Backlog tool is built as a Spring MVC project on the server side. All requests for dynamic content are handled by Ajax technology with JSON data. The Atmosphere framework is used for triggering refresh on all clients that have the same area open when an object is modified. All objects are persisted using Hibernate framework which can easily be set to work with an in-memory database by changing the config file "backlogtool.properties" if needed.
 
 The java class "JSONController" manages all Ajax requests (except rank updating) with one server side method bound to a URL per request type. HomeController handles all page requests in a similar way, and MoveController takes care of rank updating in lists.
 
 Authentication is handled by Spring Security, which is set to work with a LDAP server. Many of the JSONController methods are annotated with “"hasPermission(isAdmin)" or similar which triggers a check on the user using the backlogtool.permission package before allowing access.
 
-On the client side, most features have been developed with jQuery and plugins like jQuery UI, jQuery blockUI and jQuery autosize. jQuery blockUI is for locking the UI when displaying an "updating" message when asking for server response. jQuery autosize is used for changing size on the text fields on the fly when editing backlog items.
+On the client side, most features have been developed with jQuery and plugins like jQuery UI, jQuery blockUI, jQuery truncator, jQuery dropdown and jQuery autosize. jQuery blockUI is for locking the UI when displaying an "updating" message when asking for server response. jQuery autosize is used for changing size on the text fields on the fly when editing backlog items.

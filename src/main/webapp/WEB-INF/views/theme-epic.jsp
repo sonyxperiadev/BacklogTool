@@ -68,8 +68,8 @@ THE SOFTWARE.
 
             <div id="list-container-div">
                 <ul class="parent-child-list" id="list-container">
-                    <c:forEach var="theme" items="${nonArchivedList}">
-                        <c:if test="${ids == null || ids.contains(theme.id)}">
+                    <c:forEach var="theme" items="${nonArchivedThemes}">
+                        <c:if test="${filterIds == null || filterIds.contains(theme.id)}">
                             <%@ include file="/WEB-INF/views/placeholders/theme.jsp" %>
                             <c:forEach var="epic" items="${theme.children}">
                                 <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
