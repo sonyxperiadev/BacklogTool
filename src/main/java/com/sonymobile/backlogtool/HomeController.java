@@ -389,8 +389,8 @@ public class HomeController {
                 session.close();
             }
             int longestId = 2;
-            if (!nonArchivedList.isEmpty()) {
-                longestId = String.valueOf(Collections.max(nonArchivedList, new Comparator<Story>() {
+            if (!nonArchivedStories.isEmpty()) {
+                longestId = String.valueOf(Collections.max(nonArchivedStories, new Comparator<Story>() {
                     
                     @Override
                     public int compare(Story o1, Story o2) {
