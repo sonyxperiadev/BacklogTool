@@ -9,10 +9,13 @@
                 </c:if>">
             </div>
             <a id="${story.id}" title="Create new task"
-                class="icon createTask add-child-icon"></a><br> 
+                class="icon createTask add-child-icon"></a>
+            <br> 
         </c:if>
         <a id="${story.id}" title="Clone this story excluding tasks"
-            class="cloneItem story"> <img src="../resources/image/page_white_copy.png"></a> 
+            class="cloneItem story"> 
+            <img src="../resources/image/page_white_copy.png">
+        </a> 
         <c:if test='${view.equals("story-task")}'>
             <a id="${story.id}" title="Clone this story including tasks"
                 class="cloneItem-with-children story"> <img src="../resources/image/page_white_stack.png"></a>
@@ -26,29 +29,39 @@
         <div class="padding-left titles-epic-story">
     </c:if>
         <!-- TYPE MARK START -->
-        <p class="typeMark">Story ${story.id}</p>
+        <p class="typeMark">
+            Story ${story.id}
+        </p>
         <!-- TYPE MARK END -->
         <!-- THEME START -->
-        <p class="theme ${story.id}">${story.themeTitle}</p>
+        <p class="theme ${story.id}">
+            ${story.themeTitle}
+        </p>
         <textarea placeholder="Theme" id="theme${story.id}"
             class="bindChange theme hidden-edit ${story.id}" rows="1"
             maxlength="100">${story.themeTitle}</textarea>
         <!-- THEME END -->
         <!-- EPIC START -->
-        <p class="epic ${story.id}">${story.epicTitle}</p>
+        <p class="epic ${story.id}">
+            ${story.epicTitle}
+        </p>
         <textarea placeholder="Epic" id="epic${story.id}"
             class="bindChange epic hidden-edit ${story.id}" rows="1"
             maxlength="100">${story.epicTitle}</textarea>
         <!-- EPIC END -->
         <br style="clear: both" />
         <!-- STORY TITLE START -->
-        <p class="titleText ${story.id}">${story.title}</p>
+        <p class="titleText ${story.id}">
+            ${story.title}
+        </p>
         <textarea placeholder="Title" id="title${story.id}"
             class="bindChange titleText hidden-edit title ${story.id}"
             rows="1" maxlength="100">${story.title}</textarea>
         <!-- STORY TITLE END -->
         <!-- STORYDESCRIPTION START -->
-        <p class="description story-description ${story.id}">${story.descriptionWithLinksAndLineBreaks}</p>
+        <p class="description story-description ${story.id}">
+            ${story.descriptionWithLinksAndLineBreaks}
+        </p>
         <textarea placeholder="Description" id="description${story.id}"
             class="bindChange hidden-edit description ${story.id}"
             rows="2" maxlength="100000">${story.description}</textarea>
@@ -58,7 +71,9 @@
     <!-- STAKEHOLDER DIV START -->
     <div class="stakeholders">
         <!-- CUSTOMER FIELD START -->
-        <p class="title">Customer</p>
+        <p class="title">
+            Customer
+        </p>
         <p class="customerSite ${story.id}">
             <c:if test='${story.customerSite != null && !story.customerSite.equals("NONE")}'>
                 <img
@@ -67,19 +82,24 @@
                     alt="${story.customerSite}" />
             </c:if>
         </p>
-        <p class="${story.id} customer description">${story.customer}&nbsp;</p><!-- &nbsp; Forces p-tag to have a height of one line -->
+        <p class="${story.id} customer description">
+            ${story.customer}&nbsp;<!-- &nbsp; Forces p-tag to have a height of one line -->
+        </p>
         <select id="customerSite${story.id}"
             class="bindChange customerSite hidden-edit ${story.id} text ui-widget-content ui-corner-all">
             <option value="NONE"></option>
             <option value="Beijing">Beijing</option>
             <option value="Tokyo">Tokyo</option>
             <option value="Lund">Lund</option>
-        </select> <input placeholder="Department" id="customer${story.id}"
+        </select> 
+        <input placeholder="Department" id="customer${story.id}"
             class="bindChange customer hidden-edit ${story.id} text ui-widget-content ui-corner-all"
             maxlength="50" value="${story.customer}"></input>
         <!-- CUSTOMER FIELD END -->
         <!-- CONTRIBUTOR FIELD START -->
-        <p class="title">Contributor</p>
+        <p class="title">
+            Contributor
+        </p>
         <p id="${story.id}" class="contributorSite ${story.id}">
             <c:if test='${story.contributorSite != null && !story.contributorSite.equals("NONE")}'>
                 <img
@@ -95,7 +115,8 @@
             <option value="Beijing">Beijing</option>
             <option value="Tokyo">Tokyo</option>
             <option value="Lund">Lund</option>
-        </select> <input placeholder="Department" id="contributor${story.id}"
+        </select> 
+        <input placeholder="Department" id="contributor${story.id}"
             class="bindChange contributor hidden-edit ${story.id} text ui-widget-content ui-corner-all"
             maxlength="50" value="${story.contributor}"></input>
         <!-- CONTRIBUTOR FIELD END -->
@@ -103,7 +124,9 @@
     <!-- STAKEHOLDER DIV END -->
     <!-- TIME FIELDS START -->
     <div class="times">
-        <p class="title">Deadline</p>
+        <p class="title">
+            Deadline
+        </p>
         <p class="deadline description ${story.id}">
             <fmt:formatDate value="${story.deadline}" pattern="yyyy-MM-dd" />
         </p>
@@ -137,7 +160,9 @@
         </select>
         <!-- ATTR1 FIELD END -->
         <!-- ATTR2 FIELD START -->
-        <p class="title">${area.storyAttr2.name}</p>
+        <p class="title">
+            ${area.storyAttr2.name}
+        </p>
         <p class="description story-attr2 ${story.id}">
             <c:if test='${story.storyAttr2 != null && story.storyAttr2.iconEnabled}'>
                 <img src="../resources/image/${story.storyAttr2.icon}"
@@ -171,13 +196,17 @@
             <c:forEach var="option" items="${area.storyAttr3.options}">
                 <option value="${option.id}">${option.name}</option>
             </c:forEach>
-        </select> <input type="checkbox"
+        </select> 
+        <input type="checkbox"
             class="inline bindChange hidden-edit ${story.id}"
             id="archiveStory${story.id}"
-            <c:if test='${story.archived}'>checked="checked"</c:if>>
-        <p class="title inline hidden-edit ${story.id}">Archive
-            story</p>
-        </input>
+            <c:if test='${story.archived}'>
+                checked="checked"
+            </c:if>
+        >
+        <p class="title inline hidden-edit ${story.id}">
+            Archive story
+        </p>
         <button
             class="inline marginTop save-button hidden-edit ${story.id}"
             title="Save">Save</button>
@@ -193,5 +222,6 @@
     </div>
     <!-- ATTR3 FIELD END -->
     <a id="${story.id}" title="Remove story"
-        class="icon deleteItem delete-icon"></a> <br style="clear: both" />
+        class="icon deleteItem delete-icon"></a> 
+    <br style="clear: both" />
 </li>

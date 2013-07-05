@@ -321,7 +321,7 @@ public class HomeController {
             Model model,
             @PathVariable String areaName,
             @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
-            @RequestParam(required = false, value="ids") Set<Integer> filterIds) {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds) {
 
         Area area = Util.getArea(areaName, sessionFactory);
 
@@ -417,7 +417,7 @@ public class HomeController {
             Model model,
             @PathVariable String areaName,
             @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
-            @RequestParam(required = false, value="ids") Set<Integer> filterIds) {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds) {
 
         Area area = Util.getArea(areaName, sessionFactory);
         List<Epic> nonArchivedEpics = null;
@@ -490,7 +490,7 @@ public class HomeController {
             Model model,
             @PathVariable String areaName,
             @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
-            @RequestParam(required = false, value="ids") Set<Integer> filterIds) {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds) {
 
         Area area = Util.getArea(areaName, sessionFactory);
         List<Theme> nonArchivedThemes = null;

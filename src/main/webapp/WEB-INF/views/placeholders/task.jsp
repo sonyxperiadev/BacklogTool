@@ -12,8 +12,12 @@
     <!-- TASKTITLE END -->
     <!-- TASKOWNER START -->
     <div class="taskOwner ${task.id}" id="taskOwner ${task.id}">
-        <p class="taskHeading">Owner:</p>
-        <p class="taskInfo">${task.owner}</p>
+        <p class="taskHeading">
+            Owner:
+        </p>
+        <p class="taskInfo">
+            ${task.owner}
+        </p>
     </div> 
     <textarea id="taskOwner${task.id}"
         class="taskInfo bindChange taskOwner hidden-edit ${task.id}"
@@ -21,7 +25,9 @@
     <!-- TASKOWNER END -->
     <!-- STATUS FIELD START -->
     <div class="taskStatus ${task.id}" id="taskTitle${task.id}">
-        <p class="taskHeading">${area.taskAttr1.name}:</p>
+        <p class="taskHeading">
+            ${area.taskAttr1.name}:
+        </p>
         <p class="taskInfo ${task.id}">
             <c:if test='${task.taskAttr1 != null && task.taskAttr1.iconEnabled}'>
                 <img src="../resources/image/${task.taskAttr1.icon}"
@@ -40,8 +46,12 @@
     <!-- STATUS FIELD END -->
     <!-- CALULATEDTIME START -->
     <div class="calculatedTime ${task.id}" id="calculatedTime${task.id}">
-        <p class="taskHeading">Estimated time:</p>
-        <p class="taskInfo">${task.calculatedTime}</p>
+        <p class="taskHeading">
+            Estimated time:
+        </p>
+        <p class="taskInfo">
+            ${task.calculatedTime}
+        </p>
     </div> 
     <select id="calculatedTime${task.id}"
         class="taskInfo bindChange calculatedTime hidden-edit ${task.id} text ui-widget-content ui-corner-all">

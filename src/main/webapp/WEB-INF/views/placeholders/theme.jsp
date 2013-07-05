@@ -8,25 +8,33 @@
         ">
     </div>
     <a id="${theme.id}" title="Create new epic"
-        class="icon createEpic add-child-icon"></a><br> <a
-        id="${theme.id}" title="Clone this theme excluding children"
+        class="icon createEpic add-child-icon"></a>
+    <br> 
+    <a id="${theme.id}" title="Clone this theme excluding children"
         class="cloneItem theme icon">
-    <img src="../resources/image/page_white_copy.png"></a>
+        <img src="../resources/image/page_white_copy.png">
+    </a>
     </div>
     <!-- TITLE FIELDS -->
     <div class="titles-theme-epic">
         <!-- TYPE MARK START -->
-        <p class="typeMark">Theme ${theme.id}</p>
+        <p class="typeMark">
+            Theme ${theme.id}
+        </p>
         <!-- TYPE MARK END --> 
         <br style="clear: both" /> 
         <!-- TITLE START -->
-        <p class="titleText ${theme.id}">${theme.title}</p>
+        <p class="titleText ${theme.id}">
+            ${theme.title}
+        </p>
         <textarea placeholder="Title" id="themeTitle${theme.id}"
             class="bindChange titleText hidden-edit title ${theme.id}"
             rows="1" maxlength="100">${theme.title}</textarea>
         <!-- TITLE END --> 
         <!-- DESCRIPTION START -->
-        <p class="description theme-description ${theme.id}">${theme.descriptionWithLinksAndLineBreaks}</p>
+        <p class="description theme-description ${theme.id}">
+            ${theme.descriptionWithLinksAndLineBreaks}
+        </p>
         <textarea placeholder="Description"
             id="themeDescription${theme.id}"
             class="bindChange hidden-edit description ${theme.id}"
@@ -43,12 +51,16 @@
             checked="checked"
         </c:if>
     >
-    <p class="title inline hidden-edit ${theme.id}">Archive theme</p>
-    </input><br>
+    <p class="title inline hidden-edit ${theme.id}">
+        Archive theme
+    </p>
+    <br>
     <button class="save-button hidden-edit ${theme.id}" title="Save">Save</button>
     <button class="cancelButton hidden-edit ${theme.id}" title="Cancel">Cancel</button>
     <c:if test='${theme.archived}'>
-        <p class="title ${theme.id}">Archived</p>
+        <p class="title ${theme.id}">
+            Archived
+        </p>
     </c:if>
     <p class="description ${theme.id}">
         <fmt:formatDate value="${theme.dateArchived}" pattern="yyyy-MM-dd" />
