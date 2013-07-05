@@ -1082,7 +1082,7 @@ $(document).ready(function () {
         $("#deleteDescription").html("Are you sure you want to delete this " + item + "?");
         $('#delete-item').dialog({
             resizable: false,
-            height:180,
+            minHeight: 0,
             modal: true,
             buttons: {
                 Delete: function() {
@@ -1775,7 +1775,7 @@ $(document).ready(function () {
                     + ' selected item(s) to ' + newArea + '?</p>');
             $(moveStoryDialog).dialog({
                 resizable : false,
-                height : 180,
+                minHeight : 0,
                 modal : true,
                 buttons : {
                     "Move stories" : function() {
@@ -1808,6 +1808,7 @@ $(document).ready(function () {
             noStoriesDialog.dialog({
                 modal: true,
                 width: 325,
+                minHeight: 0,
                 buttons: {
                     Ok: function() {
                         $( this ).dialog( "close" );
