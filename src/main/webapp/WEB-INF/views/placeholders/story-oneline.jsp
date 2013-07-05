@@ -1,7 +1,7 @@
 <li class="story ui-state-default oneline-li <c:if test='${view.equals("story-task")}'>parentLi</c:if>" 
     id="${story.id}">
 
-        <p class="typeMark oneline">Story ${story.id}</p>
+        <p class="typeMark oneline" style="width:${longestId+2}em;">Story ${story.id}</p>
         <p class="title-text oneline">${story.title}</p>
 
         <p class="oneline attr-text">

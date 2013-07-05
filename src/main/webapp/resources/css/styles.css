@@ -285,6 +285,7 @@ p.theme,p.epic,p.typeMark {
     float: left;
     font-size: 0.75em;
     padding: 0.3em;
+    text-align: center;
 }
 
 .marginLeft {

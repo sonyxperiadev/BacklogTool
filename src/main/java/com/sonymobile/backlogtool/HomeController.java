@@ -26,6 +26,8 @@ package com.sonymobile.backlogtool;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -358,6 +360,16 @@ public class HomeController {
             } finally {
                 session.close();
             }
+            int longestId = 2;
+            if (!nonArchivedList.isEmpty()) {
+                longestId = String.valueOf(Collections.max(nonArchivedList, new Comparator<Story>() {
+                    
+                    @Override
+                    public int compare(Story o1, Story o2) {
+                        return o1.getId()-o2.getId();
+                    }
+                }).getId()).length();
+            }
 
             Story placeholderStory = new Story();
             Task placeholderTask = new Task();
@@ -373,6 +385,7 @@ public class HomeController {
             view.addObject("view", "story-task");
             view.addObject("nonArchivedList", nonArchivedList);
             view.addObject("ids", ids);
+            view.addObject("longestId", longestId);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
