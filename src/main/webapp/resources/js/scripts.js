@@ -354,13 +354,6 @@ $(document).ready(function () {
         createCookie("backlogtool-selectedItems", JSON.stringify(selectedCookie), 1);
     };
 
-    var reload = function reload() {
-        readData();
-        $(".parent-child-list").empty();
-        buildVisibleList();
-        $.unblockUI();
-    };
-
     var ignorePush;
     var socket;
     /**
@@ -379,8 +372,6 @@ $(document).ready(function () {
             if (!ignorePush) {
                 var message = response.responseBody;
                 processPushData(message);
-                // TODO: Let processPushData handle all pushes, i.e. don't reload everything
-                reload();
             }
         };
 
@@ -427,15 +418,31 @@ $(document).ready(function () {
             alert("Error: Invalid JSON-message from the server");
         }
         var data = jsonObj.data;
+        var childData = new Array();
+        if(typeof data.children !== "undefined" && data.children != null) {
+            childData = data.children;
+            data.children = new Array();
+        }
         if(data) {
             if(jsonObj.type == "Story") {
                 updateStoryLi(data);
+                for(var i = 0; i < childData.length; i++) {
+                    updateTaskLi(childData[i]);
+                }
             } else if(jsonObj.type == "Task") {
                 updateTaskLi(data);
             } else if(jsonObj.type == "Epic") {
                 updateEpicLi(data);
+                for(var i = 0; i < childData.length; i++) {
+                    updateStoryLi(childData[i]);
+                }
             } else if(jsonObj.type == "Theme") {
                 updateThemeLi(data);
+                for(var i = 0; i < childData.length; i++) {
+                    updateEpicLi(childData[i]);
+                }
+            } else if(jsonObj.type == "Delete") {
+                removeItem($('li#' + data));
             }
         } else {
             window.console && console.log("No json-data in push-message");
@@ -476,7 +483,253 @@ $(document).ready(function () {
     if(dispArchived != null) {
         $('#archived-checkbox').prop('checked', (dispArchived == "checked"));
     }
+    
+    var parentsMap = new Object();
+    
+    var getParent = function(id) {
+        return parentsMap[id];
+    };
 
+    /**
+     * Get the parent that evaluates to true in the
+     * specified function
+     * 
+     * @param comp
+     *            A function that accepts one argument, the
+     *            parent. The function must evaluate to true
+     *            to indicate that the parent matches
+     * @returns The parent, if found, otherwise null
+     */
+    var getParentBy = function(comp) {
+        for ( var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
+                var p = parentsMap[key];
+                if (comp(p)) {
+                    return p;
+                }
+            }
+        }
+        return null;
+    };
+    
+    var putParent = function(id, parent) {
+        parentsMap[id] = parent;
+    };
+    
+    /**
+     * Sort the parent-list-items in the specified list, and
+     * then append the corresponding children to each parent
+     * @param ulObj The ul-object
+     */
+    var sortList = function(ulObj) {
+        console.log("Sort called");
+        var orderBy = $("#order-by").val();
+        var comp = null;
+        if(orderBy == "prio") {
+            comp = prioComparator;
+        } else {
+            comp = getComparatorFor(orderBy);
+        }
+        
+        ulObj.children('li.parentLi').sort(comp).appendTo(ulObj);
+        
+        iterAllParents(function(parent) {
+            if(typeof parent.children !== "undefined") {
+                var idArr = new Array();
+                for(var i = 0; i < parent.children.length; i++) {
+                    idArr.push('li#' + parent.children[i].id);
+                }
+                
+                if(idArr.length > 0) {
+                    $('li#' + parent.id + '.parentLi').after($(idArr.toString()));
+                }
+            }
+        });
+    };
+    
+    /**
+     * Returns a function func(a, b) that works as a comparator
+     * when e.g. sorting
+     * @param attr The name of the object attribute to compare when sorting
+     * @returns A comparator-function
+     */
+    var getComparatorFor = function(attr) {
+      return function(a, b) {
+          return baseComparator(a, b, attr);
+      };  
+    };
+    
+    var baseComparator = function(a, b, attr) {
+        var p1 = getParent(a.id);
+        var p2 = getParent(b.id);
+        return p1[attr].localeCompare(p2[attr]);
+    };
+    
+    var prioComparator = function(a, b) {
+        var p1 = getParent(a.id);
+        var p2 = getParent(b.id);
+        return p1.prio > p2.prio ? 1 : (p2.prio > p1.prio ? -1 : 0);
+    };
+    
+    /**
+     * Replaces the parent with the specified id with the specified newParent. 
+     * The children of the replaced parent will be set as the the parent's
+     * children
+     * @param id The id of the parent to replace
+     * @param newParent The new parent to replace with
+     */
+    var replaceParent = function(id, newParent) {
+        var p = getParent(id);
+        if(typeof p !== "undefined") {
+            var children = p.children;
+            newParent.children = children;
+            putParent(id, newParent);
+        }
+    };
+
+    /**
+     * Replaces the parent or child with the specified id, with the specified
+     * newObject. 
+     * @param id The id of the parent or child to replace
+     * @param newObject The object to replace with
+     */
+    var replaceParentOrChild = function(id, newObject) {
+        var p = parentsMap[id];
+        if(typeof p !== "undefined") {
+            var children = p.children;
+            newObject.children = children;
+            putParent(id, newObject);
+        } else {
+            findChild(id, function(child, parent, pos) {
+                parent.children[pos] = newObject;
+            });
+        }
+    };
+
+    /**
+     * Get the child with the specified id. Returns null if no child
+     * with that id is found.
+     * @param id The id of the child to get
+     * @returns The child, or null if it wasn't found
+     */
+    var getChild = function (id) {
+        var ch = null;
+        findChild(id, function(child, parent, pos) {
+            ch = child;
+        });
+        return ch;
+    };
+    
+    /**
+     * Searches for a child with the specified id, and when a match is found
+     * the specified function will be called with arguments (childObj, parentObj, posInParent)
+     * @param id The id of the child to find
+     * @param resFunc The callback when a match is found 
+     */
+    var findChild = function(id, resFunc) {
+        for(var key in parentsMap) {
+            if(parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
+                for(var i = 0; i < parentsMap[key].children.length; i++) {
+                    var child = parentsMap[key].children[i];
+                    if(child.id == id) {
+                        resFunc(child, parentsMap[key], i);
+                        return;
+                    }
+                }
+            }
+        }
+    };
+    
+    /**
+     * Remove the parent with the specified id
+     * @param id The id of the parent to find
+     * @returns The removed parent
+     */
+    var removeParent = function(id) {
+        var delItem = parentsMap[id];
+        delete parentsMap[id];
+        return delItem;
+    };
+    
+    /**
+     * Replace the child with the specified id
+     * @param id The id to replace
+     * @param newChild The new child to replace with
+     */
+    var replaceChild = function (id, newChild) {
+        findChild(id, function(child, parent, pos) {
+            parent.children[pos] = newChild;
+        });
+    };
+
+    /**
+     * Increase the prio-attribute by one for all parents whose
+     * current prio is greater or equal to the specified prio
+     * @param fromPrio The lowest prio the parent must have to get it's prio increased
+     */
+    var incrPrioForParents = function(fromPrio) {
+        for(var key in parentsMap) {
+            if(parentsMap.hasOwnProperty(key)) {
+                var p = parentsMap[key];
+                if(p.prio >= fromPrio) {
+                    p.prio++;
+                }
+            }
+        }
+    };
+    
+    /**
+     * Decrease the prio-attribute by one for all parents whose
+     * current prio is greater or equal to the specified prio
+     * @param fromPrio The lowest prio the parent must have to get it's prio decreased
+     */
+    var decrPrioForParents = function(fromPrio) {
+        for(var key in parentsMap) {
+            if(parentsMap.hasOwnProperty(key)) {
+                var p = parentsMap[key];
+                if(p.prio >= fromPrio) {
+                    p.prio--;
+                }
+            }
+        }
+    };
+    
+    /**
+     * Iterate all parents, and for each parent, the the specified
+     * function is called
+     * @param cbForEachParent Function called with (p) for each parent
+     */
+    var iterAllParents = function(cbForEachParent) {
+        for(var key in parentsMap) {
+            if(parentsMap.hasOwnProperty(key)) {
+                cbForEachParent(parentsMap[key]);
+            }
+        }
+    };
+    
+    /**
+     * Add the child to the parent, and update the specified attribute
+     * accordingly (e.g. the prioInTheme)
+     * @param parentObj The parent to add the child to
+     * @param childObj The child to add
+     * @param The name of the child's attribute to update (e.g. prioInTheme)
+     */
+    var addChildToParent = function(parentObj, childObj, attr) {
+        var children = parentObj.children;
+        if(typeof children === "undefined") {
+            children = new Array();
+            parentObj.children = children; 
+        }
+        if(typeof childObj[attr] === "undefined") {
+            childObj[attr] = children.length + 1; // Put it as the last element
+        }
+        /* Insert the child-object (Task/Story/Epic) */ 
+        children.splice(childObj[attr] - 1, 0, childObj);
+        for(var i = 0; i < children.length; i++) { // Update the prio for all children
+            children[i][attr] = i + 1;
+        }
+    };
+    
     var readData = function readData() {
         $.ajax({
             url: "../json/read" + view + "/" + areaName + "?order=" + $("#order-by").val(),
@@ -484,6 +737,9 @@ $(document).ready(function () {
             async: false,
             success: function (data) {
                 parents = data;
+                for(var i = 0; i < parents.length; i++) {
+                    putParent(parents[i].id, parents[i]);
+                }
             }
         });
         $.ajax({
@@ -544,44 +800,6 @@ $(document).ready(function () {
 
     var visible = new Object();
 
-    var getParent = function (id) {
-        for (var i = 0; i < parents.length; ++i) {
-            if (parents[i].id == id) {
-                return parents[i];
-            }
-        }
-    };
-
-    var replaceParent = function (id, newParent) {
-        for (var i = 0; i < parents.length; ++i) {
-            if (parents[i].id == id) {
-                parents[i] = newParent;
-                break;
-            }
-        }
-    };
-
-    var getChild = function (id) {
-        for (var i = 0; i < parents.length; ++i) {
-            for (var k = 0; k < parents[i].children.length; ++k) {
-                if (parents[i].children[k].id == id) {
-                    return parents[i].children[k];
-                };
-            }
-        }
-    };
-
-    var replaceChild = function (id, newChild) {
-        for (var i = 0; i < parents.length; ++i) {
-            for (var k = 0; k < parents[i].children.length; ++k) {
-                if (parents[i].children[k].id == id) {
-                    parents[i].children[k] = newChild;
-                    break;
-                };
-            }
-        }
-    };
-
     /**
      * Function to trigger when a long description is expanded.
      */
@@ -624,8 +842,11 @@ $(document).ready(function () {
 
     $('#order-by').bind('change', function() {
         displayUpdateMsg();
-        reload();
+        
         var orderBy = $("#order-by").val();
+        sortList($('ul#list-container'));
+        $.unblockUI();        
+        
         if (orderBy == "prio") {
             $("#list-container").sortable("option", "disabled", false);
         } else {
@@ -695,28 +916,28 @@ $(document).ready(function () {
                         }
                     } else if (cookieItem.type == "theme") {
                         //Add all stories that are in this theme
-                        for (var k=0; k<parents.length; ++k) {
-                            var parent = parents[k];
-                            if (parent.themeId == cookieItem.id) {
-                                var selectedItem = new Object();
-                                selectedItem.id = parent.id;
-                                selectedItem.type = "parent";
-                                if (!contains(selectedItems, selectedItem)) {
-                                    selectedItems.push(selectedItem);
-                                }
+                        var parent = getParentBy(function(p) {
+                            return p.themeId == cookieItem.id;
+                        });
+                        if(parent != null) {
+                            var selectedItem = new Object();
+                            selectedItem.id = parent.id;
+                            selectedItem.type = "parent";
+                            if (!contains(selectedItems, selectedItem)) {
+                                selectedItems.push(selectedItem);
                             }
                         }
                     } else if (cookieItem.type == "epic") {
                         //Add all stories that are in this epic
-                        for (var k=0; k<parents.length; ++k) {
-                            var parent = parents[k];
-                            if (parent.epicId == cookieItem.id) {
-                                var selectedItem = new Object();
-                                selectedItem.id = parent.id;
-                                selectedItem.type = "parent";
-                                if (!contains(selectedItems, selectedItem)) {
-                                    selectedItems.push(selectedItem);
-                                }
+                        var parent = getParentBy(function(p) {
+                            return p.epicId == cookieItem.id;
+                        });
+                        if(parent != null) {
+                            var selectedItem = new Object();
+                            selectedItem.id = parent.id;
+                            selectedItem.type = "parent";
+                            if (!contains(selectedItems, selectedItem)) {
+                                selectedItems.push(selectedItem);
                             }
                         }
                     }
@@ -737,15 +958,15 @@ $(document).ready(function () {
                         }
                     } else if (cookieItem.type == "theme") {
                         //Add all epics that are in this theme
-                        for (var k=0; k<parents.length; ++k) {
-                            var parent = parents[k];
-                            if (parent.themeId == cookieItem.id) {
-                                var selectedItem = new Object();
-                                selectedItem.id = parent.id;
-                                selectedItem.type = "parent";
-                                if (!contains(selectedItems, selectedItem)) {
-                                    selectedItems.push(selectedItem);
-                                }
+                        var parent = getParentBy(function(p) {
+                            return p.themeId == cookieItem.id;
+                        });
+                        if(parent != null) {
+                            var selectedItem = new Object();
+                            selectedItem.id = parent.id;
+                            selectedItem.type = "parent";
+                            if (!contains(selectedItems, selectedItem)) {
+                                selectedItems.push(selectedItem);
                             }
                         }
                     }
@@ -789,7 +1010,8 @@ $(document).ready(function () {
             //If Ctrl was not held down or the type pressed was not same as last time,
             //then reset all selected items.
             deleteCookie("backlogtool-selectedItems");
-            selectedItems = new Array();
+            unselectAll();
+//            selectedItems = new Array();
             $(".parent-child-list").children("li").removeClass("ui-selected");
         }
 
@@ -838,7 +1060,16 @@ $(document).ready(function () {
         }
         return null;
     };
-
+    
+    var unselectAll = function() {
+        for(var i = 0; i < selectedItems.length; i++) {
+            $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected");
+        }
+        selectedItems = new Array();
+    };
+    
+    
+    
     /**
      * Gets the last selected item and returns it directly if it's a parent.
      * If it's a child, then it returns the parent of that item.
@@ -861,7 +1092,7 @@ $(document).ready(function () {
 
     var createTask = function(event) {
         displayUpdateMsg();
-        ignorePush = true;
+//        ignorePush = true;
         var task = new Object();
         task.parentId = event.target.id;
         task.lastItem = getLastSelected("child");
@@ -872,21 +1103,25 @@ $(document).ready(function () {
             dataType : 'json',
             data : JSON.stringify(task),
             contentType : "application/json; charset=utf-8",
-            success : function(newId) {
-                if (newId != null) {
-                    visible[newId] = true;
-                    selectedItems = new Array();
-                    selectedItems.push({id : newId, type : "child"});
+            success : function(newTask) {
+                if (newTask != null) {
+                    visible[newTask.id] = true;
+//                    selectedItems = new Array();
+                    unselectAll();
+                    selectedItems.push({id : newTask.id, type : "child"});
                     updateCookie();
                 }
-                reload();
-                editTask(newId);
-                scrollTo(newId);
-                focusAndSelectText("taskTitle"+newId);
+                $.unblockUI();
+                newTask.lastItem = task.lastItem;
+                updateTaskLi(newTask);
+//                reload();
+                editTask(newTask.id);
+                scrollTo(newTask.id);
+                focusAndSelectText("taskTitle"+newTask.id);
             },
             error : function(request, status, error) {
                 alert(error);
-                reload();
+//                reload();
             }
         });
         event.stopPropagation();
@@ -894,13 +1129,14 @@ $(document).ready(function () {
 
     var createStory = function(event) {
         displayUpdateMsg();
-        ignorePush = true;
+//        ignorePush = true;
         var storyContainer = new Object();
         storyContainer.added = new Date();
-
+        
+        var epic = null;
         if (view == "epic-story") {
             newStoryEpicID = event.target.id;
-            var epic = getParent(newStoryEpicID);
+            epic = getParent(newStoryEpicID);
             storyContainer.epicTitle = epic.title;
             storyContainer.themeTitle = epic.themeTitle;
             storyContainer.lastItem = getLastSelected("child");
@@ -913,25 +1149,28 @@ $(document).ready(function () {
             dataType : 'json',
             data : JSON.stringify(storyContainer),
             contentType : "application/json; charset=utf-8",
-            success : function(newId) {
-                if (newId != null) {
-                    visible[newId] = true;
-                    selectedItems = new Array();
+            success : function(newStory) {
+                if (newStory != null) {
+                    visible[newStory.id] = true;
+                    unselectAll();
                     if (view == "story-task") {
-                        selectedItems.push({id : newId, type : "parent"});
+                        selectedItems.push({id : newStory.id, type : "parent"});
                     } else if (view == "epic-story") {
-                        selectedItems.push({id : newId, type : "child"});
+                        selectedItems.push({id : newStory.id, type : "child"});
                     }
                     updateCookie();
                 }
-                reload();
-                editStory(newId);
-                scrollTo(newId);
-                focusAndSelectText("title"+newId);
+//                reload();
+                $.unblockUI();
+                newStory.lastItem = storyContainer.lastItem;
+                updateStoryLi(newStory);
+                editStory(newStory.id);
+                scrollTo(newStory.id);
+                focusAndSelectText("title"+newStory.id);
             },
             error : function(error) {
                 alert(error);
-                reload();
+//                reload();
             }
         });
         if (event != null) {
@@ -941,12 +1180,13 @@ $(document).ready(function () {
 
     var createEpic = function(event) {
         displayUpdateMsg();
-        ignorePush = true;
+//        ignorePush = true;
         var epicContainer = new Object();
-
+        
+        var theme = null;
         if (view == "theme-epic") {
             newEpicThemeID = event.target.id;
-            var theme = getParent(newEpicThemeID);
+            theme = getParent(newEpicThemeID);
             epicContainer.themeTitle = theme.title;
             epicContainer.lastItem = getLastSelected("child");
         } else {
@@ -959,25 +1199,28 @@ $(document).ready(function () {
             dataType : 'json',
             data : JSON.stringify(epicContainer),
             contentType : "application/json; charset=utf-8",
-            success : function(newId) {
-                if (newId != null) {
-                    visible[newId] = true;
-                    selectedItems = new Array();
+            success : function(newEpic) {
+                if (newEpic != null) {
+                    visible[newEpic.id] = true;
+                    unselectAll();
                     if (view == "epic-story") {
-                        selectedItems.push({id : newId, type : "parent"});
+                        selectedItems.push({id : newEpic.id, type : "parent"});
                     } else if (view == "theme-epic") {
-                        selectedItems.push({id : newId, type : "child"});
+                        selectedItems.push({id : newEpic.id, type : "child"});
                     }
                     updateCookie();
                 }
-                reload();
-                editEpic(newId);
-                scrollTo(newId);
-                focusAndSelectText("epicTitle" + newId);
+//                reload();
+                $.unblockUI();
+                newEpic.lastItem = epicContainer.lastItem;
+                updateEpicLi(newEpic);
+                editEpic(newEpic.id);
+                scrollTo(newEpic.id);
+                focusAndSelectText("epicTitle" + newEpic.id);
             },
             error : function(error) {
                 alert(error);
-                reload();
+//                reload();
             }
         });
         if (event != null) {
@@ -987,7 +1230,7 @@ $(document).ready(function () {
 
     var createTheme = function(event) {
         displayUpdateMsg();
-        ignorePush = true;
+//        ignorePush = true;
         var themeContainer = new Object();
         themeContainer.lastItem = getParentOfLastSelected();
 
@@ -997,21 +1240,24 @@ $(document).ready(function () {
             dataType : 'json',
             data : JSON.stringify(themeContainer),
             contentType : "application/json; charset=utf-8",
-            success : function(newId) {
-                if (newId != null) {
-                    visible[newId] = true;
-                    selectedItems = new Array();
-                    selectedItems.push({id : newId, type : "parent"});
+            success : function(newTheme) {
+                if (newTheme != null) {
+                    visible[newTheme.id] = true;
+                    unselectAll();
+                    selectedItems.push({id : newTheme.id, type : "parent"});
                     updateCookie();
                 }
-                reload();
-                editTheme(newId);
-                scrollTo(newId);
-                focusAndSelectText("themeTitle" + newId);
+                $.unblockUI();
+//                reload();
+                newTheme.lastItem = themeContainer.lastItem;
+                updateThemeLi(newTheme);
+                editTheme(newTheme.id);
+                scrollTo(newTheme.id);
+                focusAndSelectText("themeTitle" + newTheme.id);
             },
             error : function(error) {
                 alert(error);
-                reload();
+//                reload();
             }
         });
     };
@@ -1047,20 +1293,53 @@ $(document).ready(function () {
             url : "../json/clone" + type + "/" + areaName,
             type : 'POST',
             data: clonedItem,
-            success : function(newId) {
-                if (newId != null) {
-                    visible[newId] = true;
-                    selectedItems = new Array();
-                    selectedItems.push({id : newId, type : familyMember});
+            success : function(newObj) {
+                if (newObj != null) {
+                    newObj = JSON.parse(newObj);
+                    visible[newObj.id] = true;
+                    unselectAll();
+                    selectedItems.push({id : newObj.id, type : familyMember});
                     updateCookie();
                 }
-                reload();
-                editStory(newId);
-                scrollTo(newId);
+//                reload();
+                $.unblockUI();
+                
+                var children = newObj.children;
+                if(type == "Story") {
+                    updateStoryLi(newObj);
+                    if(children.length > 0) {
+                        for(var i = 0; i < children.length; i++) {
+                            updateTaskLi(children[i]);
+                        }
+                    }
+                    editStory(newObj.id);
+                    scrollTo(newObj.id);
+                    focusAndSelectText("title"+newObj.id);
+                } else if(type == "Epic") {
+                    updateEpicLi(newObj);
+                    if(children.length > 0) {
+                        for(var i = 0; i < children.length; i++) {
+                            updateStoryLi(children[i]);
+                        }
+                    }
+                    editEpic(newObj.id);
+                    scrollTo(newObj.id);
+                    focusAndSelectText("epicTitle" + newObj.id);
+                } else if(type == "Theme") {
+                    updateThemeLi(newObj);
+                    if(children.length > 0) {
+                        for(var i = 0; i < children.length; i++) {
+                            updateEpicLi(children[i]);
+                        }
+                    }
+                    editTheme(newObj.id);
+                    scrollTo(newObj.id);
+                    focusAndSelectText("themeTitle" + newObj.id);
+                }
             },
             error : function(error) {
                 alert(error);
-                reload();
+//                reload();
             }
         });
     };
@@ -1068,18 +1347,19 @@ $(document).ready(function () {
     var deleteItem = function (event) {
         itemId = event.target.id;
         var item = $(event.target).closest('li');
+        var itemType = null;
         if (item.hasClass("task")) {
-            item = "task";
+            itemType = "task";
         } else if (item.hasClass("story")) {
-            item = "story";
+            itemType = "story";
         } else if (item.hasClass("epic")) {
-            item = "epic";
+            itemType = "epic";
         } else if (item.hasClass("theme")) {
-            item = "theme";
+            itemType = "theme";
         };
 
-        $('#delete-item').attr("title","Delete "+item);
-        $("#deleteDescription").html("Are you sure you want to delete this " + item + "?");
+        $('#delete-item').attr("title","Delete "+itemType);
+        $("#deleteDescription").html("Are you sure you want to delete this " + itemType + "?");
         $('#delete-item').dialog({
             resizable: false,
             height:180,
@@ -1088,17 +1368,20 @@ $(document).ready(function () {
                 Delete: function() {
                     displayUpdateMsg();
                     $.ajax({
-                        url: "../json/delete" + item + "/" + areaName,
+                        url: "../json/delete" + itemType + "/" + areaName,
                         type: 'POST',
                         dataType: 'json',
                         data: JSON.stringify(parseInt(itemId)),
                         contentType: "application/json; charset=utf-8",
                         success: function (data) {
-                            reload();
+                            $.unblockUI();
+                            removeItem(item);
+                            unselectAll();
+//                            reload();
                         },
                         error: function (request, status, error) {
                             alert(error);
-                            reload();
+//                            reload();
                         }
                     });
                     $(this).dialog("close");
@@ -1110,7 +1393,22 @@ $(document).ready(function () {
         });
         event.stopPropagation();
     };
-
+    
+    /**
+     * Remove the li-object, and if a parent, all the corresponding li-children
+     * from the page
+     */
+    var removeItem = function(itemLi) {
+        if(itemLi.hasClass('parentLi')) {
+            var obj = removeParent(itemLi.attr('id'));
+            $('li[parentid="' + itemLi.attr('id') + '"]').remove();
+            itemLi.remove();
+            decrPrioForParents(obj.prio);
+        } else {
+            itemLi.remove();
+        }
+    };
+    
     /**
      * Cancel current editing of parents/children.
      */
@@ -1136,7 +1434,22 @@ $(document).ready(function () {
     /**
      * Cancel current editing of parents/children.
      */
-    var bulkCancel = function() {            
+    var bulkCancel = function() {
+        for(var i = 0; i < editingItems.length; i++) {
+            $("." + editingItems[i].id).toggleClass('hidden-edit');
+            $("textarea." + editingItems[i].id).html("");
+            var bindEvent = null;
+            if(editingItems[i].type == "story") {
+                bindEvent = editStory;
+            } else if(editingItems[i].type == "task") {
+                bindEvent = editTask;
+            } else if(editingItems[i].type == "epic") {
+                bindEvent = editEpic;
+            } else if(editingItems[i].type == "theme") {
+                bindEvent = editTheme;
+            }
+            $('li#'+editingItems[i].id).dblclick(bindEvent);
+        }
         editingItems = new Array();
         updateWhenItemsClosed();
     };
@@ -1149,9 +1462,9 @@ $(document).ready(function () {
         var pushUpdate = false;
         while (editingItems.length > 0) {
             //If last item, we want to trigger a push update
-            if (editingItems.length == 1) {               
-                pushUpdate = true;
-            }
+//            if (editingItems.length == 1) {               
+                pushUpdate = true; // We want to always push
+//            }
             var lastElement = $(editingItems).last()[0];
             var id = eval(lastElement.id);
 
@@ -1167,8 +1480,9 @@ $(document).ready(function () {
 
         }
         editingItems = new Array();
-        reload();
-        ignorePush = false;
+        $.unblockUI();
+//        reload();
+//        ignorePush = false;
     };
 
     /**
@@ -1196,9 +1510,10 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
+            $("li#" + storyId).addClass("ui-selected");
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
-            ignorePush = true;
+//            ignorePush = true;
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
             //$('.save-button.'+storyId).button( "option", "disabled", true );
@@ -1237,7 +1552,10 @@ $(document).ready(function () {
             $("select#customerSite"+storyId).val(story.customerSite);
             $("select#contributorSite"+storyId).val(story.contributorSite);
             $("archiveStory"+storyId).val(story.archived);
-
+            
+            $("textarea#title" + storyId).html(story.title);
+            $("textarea#description" + storyId).html(story.description);
+            
             $("textarea#theme"+storyId).autocomplete({
                 minLength: 0,
                 source: "../json/autocompletethemes/" + areaName,
@@ -1276,6 +1594,9 @@ $(document).ready(function () {
                 $("textarea#epic"+storyId).autocomplete("search", $("textarea#epic"+storyId).val());
             });
 
+            $("textarea#epic"+storyId).html(story.epicTitle);
+            $("textarea#theme"+storyId).html(story.themeTitle);
+            
             //auto resize the textareas to fit the text
             $('textarea'+"."+storyId).autosize('');
         } else {
@@ -1360,18 +1681,117 @@ $(document).ready(function () {
         });
         li.dblclick(editStory);
     };
+    
+    /**
+     * Adds the specified parent to the list of parents, as well as
+     * puts it in the correct position in the specified list
+     * @param lastItemObj An object with the id of the last selected element
+     * @param newItemLi The new li-object to put in the list
+     * @param newItemObj The object corresponding to the li-object
+     */
+    var handleNewParentItem = function(lastItemObj, newItemLi, newItemObj) {
+        incrPrioForParents(newItemObj.prio);
+        putParent(newItemObj.id, newItemObj);
 
+        var ulObj = null;
+        if(newItemObj.archived) {
+            ulObj = $('ul#archived-list-container');
+        } else {
+            ulObj = $('ul#list-container');
+        }
+        
+        putInCorrPrioPos(ulObj, lastItemObj, newItemLi);
+        
+        if($('#order-by').val() != "prio") {
+            sortList(ulObj);
+        } 
+    };
+    
+    var putInCorrPrioPos = function(ulObj, lastItemObj, liObj) {
+        var items = $('li#' + liObj.attr("id") + ', [parentId="'+ liObj.attr("id") +'"]');
+        if(items.length == 0) {
+            items = liObj;
+        }
+        if(typeof lastItemObj !== "undefined" && lastItemObj != null) {
+            var putAfter = getParentOrLastChildElement(lastItemObj);
+            
+            if(putAfter != null) {
+                putAfter.after(items);
+            } else {
+                ulObj.append(items);
+            }
+        } else {
+            ulObj.append(items);
+        } 
+    };
+    
+    var getParentOrLastChildElement = function(itemObj) {
+        var elem = getParent(itemObj.id);
+        if(elem != null) {
+            var children = elem.children;
+            if(typeof children !== "undefined" && children.length > 0) {
+                return $('li#' + children[children.length - 1].id);
+            } else {
+                return $('li#' + elem.id);
+            }
+        }
+        return null;
+    };
+    
     /**
      * Finds and updates a story li-element with new values.
      */
     var updateStoryLi = function(updatedStory) {
         var storyId = updatedStory.id;
         
-        var storyLi = $('li#' + storyId + ".story");
-        if(storyLi.length == 0) {
-            window.console && console.log("Clone up a new story-li");
-            // clone up placeholder
+        var ulObj = null;
+        if(updatedStory.archived) {
+            ulObj = $('ul#archived-list-container');
+        } else {
+            ulObj = $('ul#list-container');
         }
+        
+        if($('li#' + storyId + '.story').length == 0) {
+            var divItem = $('div#story-placeholder').clone();
+            var htmlStr = divItem.html();
+            htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
+            
+            var newItem = $(htmlStr);            
+            newItem.attr('id', storyId);
+            
+            if(view == "story-task") {
+                handleNewParentItem(updatedStory.lastItem, newItem, updatedStory);
+            } else {
+                var parent = getParent(updatedStory.epicId);
+                var attr = 'prioInEpic';
+                if(typeof parent === "undefined") {
+                    parent = getParent(updatedStory.themeId);
+                    attr = 'prioInEpic'; // Should be theme?
+                }
+                if(typeof parent !== "undefined") {
+                    addChildToParent(parent, updatedStory, attr);
+                    
+                    if(updatedStory[attr] > 1) {
+                        $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
+                    } else {
+                        $('li#' + parent.id).after(newItem);
+                    }
+                    addExpandBtn($('li#' + parent.id), newItem, parent.children);
+                }
+            }
+            
+            bindEventsToItem(newItem);
+        } else {
+            replaceParentOrChild(storyId, updatedStory);
+            
+            var lioo = $('li#' + storyId + '.story');
+            putInCorrPrioPos(ulObj, updatedStory.lastItem, lioo);
+            
+//            if($("#order-by").val() != "prio") {
+                sortList(ulObj);
+//            }
+        }
+        
         
         $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
         $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
@@ -1449,12 +1869,56 @@ $(document).ready(function () {
         });
         li.dblclick(editTask);
     };
-
+    
+    var addExpandBtn = function(parentLi, childLi, childrenArr) {
+        var iconDiv = parentLi.find('div.icon');
+        iconDiv.removeClass('ui-icon-triangle-1-s ui-icon-triangle-1-e');
+        iconDiv.addClass('expand-icon ui-icon');
+        
+        if(childrenArr.length > 1 && $('li#' + childrenArr[0].id).css('display') == 'none') {
+            childLi.css('display', 'none');
+            iconDiv.addClass('ui-icon-triangle-1-e');
+        } else {
+            childLi.css('display', 'list-item');
+            iconDiv.addClass('ui-icon-triangle-1-s');
+        }
+        
+        $('.expand-icon', parentLi).unbind('click', expandClick);
+        $('.expand-icon', parentLi).bind('click', expandClick);
+    };
+    
     /**
      * Finds and updates a task li-element with new values.
      */
     var updateTaskLi = function(updatedTask) {
         var taskId = updatedTask.id;
+        
+        if($('li#' + taskId + '.task').length == 0) {
+            var divItem = $('div#task-placeholder').clone();
+            var htmlStr = divItem.html();
+            var parentLi = $('li#' + updatedTask.parentId + '.story');
+            htmlStr = htmlStr.replace(/-1/g, taskId); // Replace all occurences of -1
+            
+            newItem = $(htmlStr);            
+            newItem.attr('id', taskId);
+            newItem.attr('parentid', updatedTask.parentId);
+            
+            var parent = getParent(updatedTask.parentId);
+            addChildToParent(parent, updatedTask, 'prioInStory');
+            var children = parent.children;
+            addExpandBtn(parentLi, newItem, children);
+            
+            if(updatedTask.prioInStory > 1) {
+                $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
+            } else {
+                $('li#' + updatedTask.parentId + '.story').after(newItem);
+            }
+            
+            bindEventsToItem(newItem);
+        } else {
+            replaceChild(taskId, updatedTask);
+        }
+        
         $(".taskOwner."+taskId).find("p.taskInfo").html(updatedTask.owner);
         $(".calculatedTime."+taskId).find("p.taskInfo").html(updatedTask.calculatedTime);
         $(".taskStatus."+taskId).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
@@ -1480,9 +1944,10 @@ $(document).ready(function () {
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
+            $("li#" + taskId).addClass("ui-selected");
             $("li#"+taskId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:taskId, type:"task"});
-            ignorePush = true;
+//            ignorePush = true;
             $('button.'+taskId).button();
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
@@ -1582,6 +2047,37 @@ $(document).ready(function () {
      */
     var updateEpicLi = function(updatedEpic) {
         var epicId = updatedEpic.id;
+        
+        if($('li#' + epicId + '.epic').length == 0) {
+            var divItem = $('div#epic-placeholder').clone();
+            var htmlStr = divItem.html();
+            htmlStr = htmlStr.replace(/-1/g, epicId); // Replace all occurences of -1
+            
+            newItem = $(htmlStr);            
+            newItem.attr('id', epicId);
+            
+            if(view == "epic-story") {
+                handleNewParentItem(updatedEpic.lastItem, newItem, updatedEpic);
+            } else {
+                var parent = getParent(updatedEpic.themeId);
+                var attr = 'prioInTheme';
+                if(typeof parent !== "undefined") {
+                    addChildToParent(parent, updatedEpic, attr);
+                    
+                    if(updatedEpic[attr] > 1) {
+                        $('li#' + (parent.children[updatedEpic[attr] - 2].id)).after(newItem);
+                    } else {
+                        $('li#' + parent.id).after(newItem);
+                    }
+                    
+                    addExpandBtn($('li#' + parent.id), newItem, parent.children);
+                }
+            }
+            bindEventsToItem(newItem);
+        } else {
+            replaceParentOrChild(epicId, updatedEpic);
+        }
+        
         $('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
         $('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
 
@@ -1611,9 +2107,10 @@ $(document).ready(function () {
         }
 
         if (isGoingIntoEdit(epicId)) {
+            $("li#" + epicId).addClass("ui-selected");
             $("li#"+epicId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:epicId, type:"epic"});
-            ignorePush = true;
+//            ignorePush = true;
 
             $('button.'+epicId).button();
             $('button.'+epicId).unbind();
@@ -1633,11 +2130,15 @@ $(document).ready(function () {
                     $(this).autocomplete('enable');
                 }
             });
-
+            
             $("textarea#epicTheme"+epicId).focus(function() {
                 $("textarea#epicTheme"+epicId).autocomplete("search", $("textarea#epicTheme"+epicId).val());
             });
-
+            
+            $("textarea#epicTitle" + epicId).html(epic.title);
+            $("textarea#epicTheme"+epicId).html(epic.themeTitle);
+            $("textarea#epicDescription" + epicId).html(epic.description);
+            
             //auto resize the textareas to fit the text
             $('textarea'+"."+epicId).autosize('');
         } else {
@@ -1708,6 +2209,20 @@ $(document).ready(function () {
      */
     var updateThemeLi = function(updatedTheme) {
         var themeId = updatedTheme.id;
+        
+        if($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
+            var divItem = $('div#theme-placeholder').clone();
+            var htmlStr = divItem.html();
+            htmlStr = htmlStr.replace(/-1/g, themeId); // Replace all occurences of -1
+            
+            newItem = $(htmlStr);            
+            newItem.attr('id', themeId);
+            handleNewParentItem(updatedTheme.lastItem, newItem, updatedTheme);
+            bindEventsToItem(newItem);
+        } else {
+            replaceParentOrChild(themeId, updatedTheme);
+        }
+        
         $('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
 
         //Re-add truncate on the description paragraph
@@ -1734,9 +2249,10 @@ $(document).ready(function () {
             theme = getChild(themeId);
         }
         if (isGoingIntoEdit(themeId)) {
+            $("li#" + themeId).addClass("ui-selected");
             $("li#"+themeId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:themeId, type:"theme"});
-            ignorePush = true;
+//            ignorePush = true;
 
             $('button.'+themeId).button();
             $('button.'+themeId).unbind();
@@ -1745,7 +2261,10 @@ $(document).ready(function () {
                 saveTheme(parseInt(themeId), true);
             });
             $("."+themeId).toggleClass('hidden-edit');
-
+            
+            $('textarea#themeTitle' + themeId).html(theme.title);
+            $('textarea#themeDescription' + themeId).html(theme.description);
+            
             //auto resize the textareas to fit the text
             $('textarea'+"."+themeId).autosize('');
         } else {
@@ -1786,12 +2305,15 @@ $(document).ready(function () {
                             data: JSON.stringify(storiesToMove),
                             contentType: "application/json; charset=utf-8",
                             success: function (data) {
-                                reload();
-                                selectedItems = new Array();
+//                                reload();
+                                unselectAll();
+                                $.unblockUI();
+//                                selectedItems = new Array();
                             },
                             error: function (request, status, error) {
+                                $.unblockUI();
                                 alert(error);
-                                reload();
+//                                reload();
                             }
                         });
                         $(this).dialog("close");
@@ -1822,11 +2344,17 @@ $(document).ready(function () {
      */
     var updateWhenItemsClosed = function() {
         if (editingItems.length == 0) {
-            displayUpdateMsg();
+//            displayUpdateMsg();
             $("#list-container").sortable( "option", "disabled", false );
+            sortList($("ul#list-container"));
+            sortList($("ul#archived-list-container"));
             //$('.save-button').button( "option", "disabled", true );
-            reload();
-            ignorePush = false;
+//            reload();
+//            $.unblockUI();
+//            ignorePush = false;
+            
+            
+            
         }
     };
 
@@ -2384,7 +2912,108 @@ $(document).ready(function () {
         }
         firstBuild = false;
     };
+    
+    bindEventsToItem = function (elem) {
+        editingItems =  new Array();
+        for (var i = 0; i < selectedItems.length; ++i) {
+            $('li[id|=' + selectedItems[i].id + ']', elem).addClass("ui-selected");
+        }
+        $( "#list-container" ).sortable("refresh");
+        
+        //Make sure all items that should be invisible are invisible
+        $(".childLi", elem).each(function () {
+            var currentId = $(this).attr("id");
+            if (visible[currentId] != true) {
+                $(this).addClass("ui-hidden");
+            }
+        });
+      
+//        $('.expand-icon', elem).click(expandClick);
+        
+        elem.click(liClick);
+        elem.mousedown(function () {
+            $(this).addClass("over");
+        });
+        elem.mouseup(function () {
+            $(".parent-child-list", elem).children("li").removeClass("over");
+        });
+        
+        $("a.createEpic", elem).click(createEpic);
+        $("a.createStory", elem).click(createStory);
+        $("a.createTask", elem).click(createTask);
+        $("a.deleteItem", elem).click(deleteItem);
+        $("a.cloneItem", elem).click(function() {
+            cloneItem($(this), false);
+        });
 
+        $("a.cloneItem-with-children", elem).click(function() {
+            cloneItem($(this), true);
+        });
+
+        $(".editTheme").unbind("dblclick");
+        $(".editEpic").unbind("dblclick");
+        $(".editStory").unbind("dblclick");
+        $(".editTask").unbind("dblclick");
+        enableEdits();
+
+        //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
+        $(".bindChange", elem).dblclick(function(event) {
+            event.stopPropagation();
+        });
+
+        $( "#storyTheme,#epicTheme", elem ).autocomplete({
+            minLength: 0,
+            source: "../json/autocompletethemes/" + areaName,
+            change: function() {
+                $( "#storyEpic", elem ).attr("value", "");
+            },
+            select: function (event, data) {
+                $( "#storyEpic", elem ).attr("value", "");
+                //Used for deselecting the input field.
+                $(this).autocomplete('disable');
+                $(this).autocomplete('enable');
+            }
+        });
+
+        $("#storyTheme", elem).focus(function() {
+            $("#storyTheme", elem).autocomplete("search", $("#storyTheme", elem).val());
+        });
+
+        $("textarea#epicTheme", elem).focus(function() {
+            $("textarea#epicTheme", elem).autocomplete("search", $("#epicTheme", elem).val());
+        });
+
+        $( "#storyEpic", elem ).autocomplete({
+            minLength: 0,
+            select: function (event, data) {
+                //Used for deselecting the input field.
+                $(this).autocomplete('disable');
+                $(this).autocomplete('enable');
+            },
+            search: function() {
+                var themeName = $("#storyTheme", elem).val();
+                $( "#storyEpic", elem ).autocomplete({
+                    source: "../json/autocompleteepics/" + areaName + "?theme=" + themeName
+                });
+            }
+        }).focus(function() {
+            $(this).autocomplete("search", "");
+        }).blur(function(){
+            $(this).autocomplete('enable');
+        });
+
+        //Stops textarea from making a new line when trying to save changes.
+        $("textarea", elem).keydown(function(e){
+            if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
+                e.preventDefault();
+            }
+        });
+
+        if (disableEditsBoolean) {
+            disableEdits();
+        }
+    };
+    
     var setHeightAndMargin = function (value) {
         $("#list-container-div").css("margin", value+"px auto");
     };
@@ -2489,11 +3118,13 @@ $(document).ready(function () {
             data: JSON.stringify(moveContainer),
             contentType: "application/json; charset=utf-8",
             success: function (data) {
-                reload();
+                $.unblockUI();
+//                reload();
             },
             error: function (request, status, error) {
+                $.unblockUI();
                 alert(error);
-                reload();
+//                reload();
             }
         });
     };
@@ -2520,7 +3151,7 @@ $(document).ready(function () {
             return container;
         },
         start: function (event, ui) {
-            ignorePush = true;
+//            ignorePush = true;
             var pressed = $(ui.item);
             pressed.addClass("moving");
 
@@ -2542,7 +3173,7 @@ $(document).ready(function () {
             pressed.removeClass("moving");
 
             lastPressed = null;
-            ignorePush = false;
+//            ignorePush = false;
         }
 
     });
@@ -2561,22 +3192,22 @@ $(document).ready(function () {
         }
     }).click(bulkSave);
     $("#expand-all").click(function() {
-        for (var i=0; i<parents.length; ++i) {
-            for (var j=0; j<parents[i].children.length; ++j) {
-                var currentChildId = parents[i].children[j].id;
-                visible[currentChildId] = true;
-            }
-        }
+        iterAllParents(function(parent) {
+            for (var j = 0; j < parent.children.length; ++j) {
+              var currentChildId = parent.children[j].id;
+              visible[currentChildId] = true;
+          }
+        });
         $(".parent-child-list").empty();
         buildVisibleList();
     });
     $("#collapse-all").click(function() {
-        for (var i=0; i<parents.length; ++i) {
-            for (var j=0; j<parents[i].children.length; ++j) {
-                var currentChildId = parents[i].children[j].id;
+        iterAllParents(function(parent) {
+            for (var j=0; j < parent.children.length; ++j) {
+                var currentChildId = parent.children[j].id;
                 visible[currentChildId] = false;
             }
-        }
+        });
         $(".parent-child-list").empty();
         buildVisibleList();
     });

@@ -363,7 +363,7 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtask/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createTask(@PathVariable String areaName, @RequestBody NewTaskContainer newTask) {
+    public @ResponseBody String createTask(@PathVariable String areaName, @RequestBody NewTaskContainer newTask) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -403,6 +403,7 @@ public class JSONController {
             story.addTask(newTask);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString(Task.class, newTask));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -412,14 +413,15 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return newTask.getId();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(Task.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(newTask);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createstory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createStory(@PathVariable String areaName, @RequestBody NewStoryContainer newStory) throws Exception {
+    public @ResponseBody String createStory(@PathVariable String areaName, @RequestBody NewStoryContainer newStory) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -506,15 +508,16 @@ public class JSONController {
         } finally {
             session.close();
         }
-
-
-        return newStory.getId();
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(newStory);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createepic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
+    public @ResponseBody String createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -586,7 +589,7 @@ public class JSONController {
             newEpic.setTitle("New epic " + newEpic.getId());
             tx.commit();
 
-            AtmosphereHandler.push(areaName);
+            AtmosphereHandler.push(areaName, getJsonString(Epic.class, newEpic));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -596,13 +599,16 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return newEpic.getId();
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(newEpic);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
+    public @ResponseBody String createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -649,7 +655,7 @@ public class JSONController {
             newTheme.setTitle("New theme " + newTheme.getId());
             tx.commit();
 
-            AtmosphereHandler.push(areaName);
+            AtmosphereHandler.push(areaName, getJsonString(Theme.class, newTheme));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -658,7 +664,10 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return newTheme.getId();
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(Theme.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(newTheme);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
@@ -810,6 +819,9 @@ public class JSONController {
             }
 
             tx.commit();
+            if (pushUpdate) {
+                AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
+            }
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -817,9 +829,6 @@ public class JSONController {
             }
         } finally {
             session.close();
-        }
-        if (pushUpdate) {
-            AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
         }
 
         return story;
@@ -1101,10 +1110,11 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneStory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody int cloneStory(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) {
+    public @ResponseBody String cloneStory(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Story clone = null;
         try {
             tx = session.beginTransaction();
 
@@ -1113,7 +1123,7 @@ public class JSONController {
                 throw new Error("Trying to modify unauthorized object");
             }
 
-            Story clone = storyToClone.copy(withChildren);
+            clone = storyToClone.copy(withChildren);
             clone.setPrio(storyToClone.getPrio() + 1);
 
             //Move down all stories in the current epic
@@ -1146,6 +1156,7 @@ public class JSONController {
             }
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString(Story.class.getSimpleName(), clone));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1154,18 +1165,20 @@ public class JSONController {
         } finally {
             session.close();
         }
-
-        AtmosphereHandler.push(areaName);
-        return clonedId;
+        
+        ObjectMapper mapper = new ObjectMapper();
+//        mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(clone);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneEpic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody int cloneEpic(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) {
+    public @ResponseBody String cloneEpic(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Epic clone = null;
         try {
             tx = session.beginTransaction();
 
@@ -1174,7 +1187,7 @@ public class JSONController {
                 throw new Error("Trying to modify unauthorized object");
             }
 
-            Epic clone = epicToClone.copy(withChildren);
+            clone = epicToClone.copy(withChildren);
             clone.setPrio(epicToClone.getPrio() + 1);
 
             //Move down all epics in the current theme
@@ -1207,6 +1220,7 @@ public class JSONController {
             }
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString(Epic.class.getSimpleName(), clone));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1216,17 +1230,19 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return clonedId;
+        ObjectMapper mapper = new ObjectMapper();
+//        mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(clone);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneTheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody int cloneTheme(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) {
+    public @ResponseBody String cloneTheme(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Theme clone = null;
         try {
             tx = session.beginTransaction();
 
@@ -1235,7 +1251,7 @@ public class JSONController {
                 throw new Error("Trying to modify unauthorized object");
             }
 
-            Theme clone = themeToClone.copy(withChildren);
+            clone = themeToClone.copy(withChildren);
             clone.setPrio(themeToClone.getPrio() + 1);
 
             //Move down all themes under this theme
@@ -1257,6 +1273,7 @@ public class JSONController {
             }
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString(Theme.class.getSimpleName(), clone));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1266,8 +1283,9 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return clonedId;
+        ObjectMapper mapper = new ObjectMapper();
+//        mapper.getSerializationConfig().addMixInAnnotations(Theme.class, ChildrenExcluder.class);
+        return mapper.writeValueAsString(clone);
     }
 
 
@@ -1275,11 +1293,14 @@ public class JSONController {
      * Used when deleting a story.
      * @param storyId id of the story to remove
      * @return true if everything was ok
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonGenerationException 
      */
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/deletestory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean deleteStory(@PathVariable String areaName, @RequestBody int storyId) {
+    public @ResponseBody boolean deleteStory(@PathVariable String areaName, @RequestBody int storyId) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -1312,6 +1333,7 @@ public class JSONController {
             session.delete(storyToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString("Delete", storyId));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1321,7 +1343,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1360,6 +1381,7 @@ public class JSONController {
             session.delete(epicToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString("Delete", epicId));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1369,7 +1391,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1421,6 +1442,7 @@ public class JSONController {
             session.delete(themeToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString("Delete", themeId));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1430,7 +1452,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1467,6 +1488,7 @@ public class JSONController {
             session.delete(taskToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonString("Delete", taskId));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1476,7 +1498,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -2196,8 +2217,26 @@ public class JSONController {
     private <T> String getJsonString(Class<T> clazz, Object data) throws JsonGenerationException, JsonMappingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(clazz, ChildrenExcluder.class);
+        return generateJsonString(mapper, clazz.getSimpleName(), data);
+    }
+    
+    /**
+     * Generates a JSON-string from the specified data
+     * @param type The type of event (e.g. "Delete")
+     * @param data The object-data
+     * @return A String in JSON-format
+     * @throws JsonGenerationException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
+    private <T> String getJsonString(String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return generateJsonString(mapper, type, data);
+    }
+    
+    private <T> String generateJsonString(ObjectMapper mapper, String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
         HashMap<String, Object> typeMapper = new HashMap<String, Object>();
-        typeMapper.put("type", clazz.getSimpleName());
+        typeMapper.put("type", type);
         typeMapper.put("data", data);
         return mapper.writeValueAsString(typeMapper);
     }
