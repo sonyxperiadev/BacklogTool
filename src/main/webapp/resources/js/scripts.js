@@ -539,7 +539,7 @@ $(document).ready(function () {
         $('#archived-checkbox').prop('checked', (dispArchived == "checked"));
     }
     
-    var parentsMap = new Object();
+//    var parentsMap = new Object();
     
     var getParent = function(id) {
         var p = parentsMap[id];
@@ -805,10 +805,10 @@ $(document).ready(function () {
             dataType: 'json',
             async: false,
             success: function (data) {
-                parents = data;
-                for(var i = 0; i < parents.length; i++) {
-                    putParent(parents[i].id, parents[i]);
-                }
+//                parents = data;
+//                for(var i = 0; i < parents.length; i++) {
+//                    putParent(parents[i].id, parents[i]);
+//                }
             }
         });
         $.ajax({
@@ -2992,7 +2992,7 @@ $(document).ready(function () {
     };
     
     bindEventsToItem = function (elem) {
-        editingItems =  new Array();
+//        editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']', elem).addClass("ui-selected");
         }

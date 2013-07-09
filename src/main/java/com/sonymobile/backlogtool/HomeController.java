@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -394,6 +395,19 @@ public class HomeController {
             //Prevents NPE from task.getStory().getId():
             placeholderTask.setStory(placeholderStory);
 
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonNonArchivedStories = "";
+
+            HashMap<Integer, Story> map = new HashMap<Integer, Story>();
+            for(Story s : nonArchivedStories) {
+                map.put(s.getId(), s);
+            }
+            try {
+                jsonNonArchivedStories = mapper.writeValueAsString(map);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("placeholderTask", placeholderTask);
             view.addObject("area", area);
@@ -402,6 +416,7 @@ public class HomeController {
             view.addObject("view", "story-task");
             view.addObject("nonArchivedStories", nonArchivedStories);
             view.addObject("filterIds", filterIds);
+            view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
