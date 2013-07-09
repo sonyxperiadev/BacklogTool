@@ -781,9 +781,16 @@ $(document).ready(function () {
     };
 
     var baseComparator = function(a, b, attr) {
-        var p1 = getParent(a.id);
-        var p2 = getParent(b.id);
-        return p1[attr].localeCompare(p2[attr]);
+        var v1 = getParent(a.id)[attr];
+        var v2 = getParent(b.id)[attr];
+
+        if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr2") {
+            v1 = (v1 !== null) ? v1.compareValue + '' : null;
+            v2 = (v2 !== null) ? v2.compareValue + '' : null;
+        }
+
+        // Null-values should be further back in the list
+        return v1 === null ? 1 : (v2 === null ? -1 : v1.localeCompare(v2));
     };
 
     var prioComparator = function(a, b) {
