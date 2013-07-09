@@ -2379,6 +2379,9 @@ $(document).ready(function () {
                             data: JSON.stringify(storiesToMove),
                             contentType: "application/json; charset=utf-8",
                             success: function (data) {
+                                for(var i = 0; i < storiesToMove.length; i++) {
+                                    removeItem($("li#" + storiesToMove[i]));
+                                }
                                 unselectAll();
                                 $.unblockUI();
                             },
