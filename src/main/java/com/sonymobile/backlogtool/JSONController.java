@@ -1603,6 +1603,7 @@ public class JSONController {
                             newEpic.setPrioInTheme(prioInTheme);
 
                             session.save(newEpic);
+                            newTheme.getChildren().add(newEpic);
                         }
                         story.getEpic().getChildren().remove(story);
                         story.setEpic(newEpic);
@@ -1694,7 +1695,7 @@ public class JSONController {
     private Theme getThemeAfterMove(Story storyToMove, Area newArea, Session session) {
         Query themeQuery = session.createQuery("from Theme where area like ? and title like ?");
         themeQuery.setParameter(0, newArea);
-        themeQuery.setParameter(1, storyToMove.getTitle());
+        themeQuery.setParameter(1, storyToMove.getTheme().getTitle());
         Theme newTheme = (Theme) themeQuery.uniqueResult();
         if (newTheme == null) {
             //Create new theme

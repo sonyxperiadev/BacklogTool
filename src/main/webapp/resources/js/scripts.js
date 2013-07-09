@@ -1418,7 +1418,7 @@ $(document).ready(function () {
         $("#deleteDescription").html("Are you sure you want to delete this " + itemType + "?");
         $('#delete-item').dialog({
             resizable: false,
-            height:180,
+            minHeight: 0,
             modal: true,
             buttons: {
                 Delete: function() {
@@ -2368,7 +2368,7 @@ $(document).ready(function () {
                     + ' selected item(s) to ' + newArea + '?</p>');
             $(moveStoryDialog).dialog({
                 resizable : false,
-                height : 180,
+                minHeight : 0,
                 modal : true,
                 buttons : {
                     "Move stories" : function() {
@@ -2401,6 +2401,7 @@ $(document).ready(function () {
             noStoriesDialog.dialog({
                 modal: true,
                 width: 325,
+                minHeight: 0,
                 buttons: {
                     Ok: function() {
                         $( this ).dialog( "close" );
@@ -3087,8 +3088,6 @@ $(document).ready(function () {
         setHeightAndMargin($("#header").height());
     });
 
-    setHeightAndMargin($("#header").height());
-
     /*
      * Changing the create parent button based on what view you're on
      * Also changing the view description text and the color of the view links
@@ -3357,5 +3356,7 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
+
+    setHeightAndMargin($("#header").height());
 
 });
