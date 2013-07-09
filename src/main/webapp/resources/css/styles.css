@@ -68,9 +68,14 @@ h1 {
 }
 
 
-.story p {
-    min-height: 15px;
-    margin: 1px 0 1px 0;
+/* .story p { */
+/*     min-height: 15px; */
+/*     margin: 1px 0 1px 0; */
+/* } */
+
+p.story {
+	min-height: 15px;
+	margin: 1px 0 1px 0;
 }
 
 form {
@@ -282,6 +287,7 @@ p.theme,p.epic,p.typeMark {
     float: left;
     font-size: 0.75em;
     padding: 0.3em;
+    text-align: center;
 }
 
 .marginLeft {
@@ -679,4 +685,44 @@ p.addOptionSeries, p.addOption {
 
 .placeholder {
 	display: none;
+}
+
+.oneline {
+	display: inline-block;
+}
+
+.oneline.title-text {
+	white-space:nowrap;
+	width: 30%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-left: 6px;
+	font-size: 1em;
+}
+
+.oneline.attr-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 12%;
+	white-space:nowrap;
+	height: 100%;
+}
+
+.oneline-li {
+	padding-top: 2px;
+	padding-bottom: 4px;
+	border: 0;
+	background: none;
+}
+
+.oneline.date-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 12%;
+	white-space:nowrap;
+	height: 100%;
+}
+
+.attr-icon {
+	vertical-align: sub;
 }
