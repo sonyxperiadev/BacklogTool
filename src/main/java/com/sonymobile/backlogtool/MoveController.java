@@ -24,6 +24,7 @@
 package com.sonymobile.backlogtool;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -90,6 +91,8 @@ public class MoveController {
                 }
             }
 
+            Set<Story> parentsToPush = new HashSet<Story>();
+            HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
@@ -136,7 +139,7 @@ public class MoveController {
                 }
 
                 Set<Story> oldParents = new HashSet<Story>();
-
+                parentsToPush.add(lastParent);
                 //Move all tasks to the new parent
                 for (Task child : movedChildren) {
                     Story oldParent = child.getStory();
@@ -144,6 +147,7 @@ public class MoveController {
                     lastParent.getChildren().add(child);
                     child.setStory(lastParent);
                     oldParents.add(oldParent);
+                    parentsToPush.add(oldParent);
                 }
 
                 for (Story oldStory : oldParents) {
@@ -191,9 +195,22 @@ public class MoveController {
                         }
                     }
                 }
+
+                for(Story parent : allParents) {
+                    movedParentsPrio.put(parent.getId(), parent.getPrio());
+                }
+
             }
 
             tx.commit();
+            HashMap<String, Object> hm = new HashMap<String, Object>();
+            hm.put("lastItem", lastItem);
+            if(itemTypes.equals("child")) {
+                hm.put("objects", parentsToPush);
+            } else {
+                hm.put("objects", movedParentsPrio);
+            }
+            AtmosphereHandler.push(areaName, JSONController.getJsonString(itemTypes + "Move", hm));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -203,8 +220,6 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        
         return true;
     }
 
@@ -238,6 +253,8 @@ public class MoveController {
                 }
             }
 
+            Set<Epic> parentsToPush = new HashSet<Epic>();
+            HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
@@ -284,7 +301,7 @@ public class MoveController {
                 }
 
                 Set<Epic> oldParents = new HashSet<Epic>();
-
+                parentsToPush.add(lastParent);
                 //Move all tasks to the new parent
                 for (Story child : movedChildren) {
                     Epic oldParent = child.getEpic();
@@ -292,6 +309,7 @@ public class MoveController {
                     lastParent.getChildren().add(child);
                     child.setEpic(lastParent);
                     oldParents.add(oldParent);
+                    parentsToPush.add(oldParent);
                 }
 
                 for (Epic oldEpic : oldParents) {
@@ -339,9 +357,22 @@ public class MoveController {
                         }
                     }
                 }
+
+                for(Epic parent : allParents) {
+                    movedParentsPrio.put(parent.getId(), parent.getPrio());
+                }
             }
 
             tx.commit();
+            
+            HashMap<String, Object> hm = new HashMap<String, Object>();
+            hm.put("lastItem", lastItem);
+            if(itemTypes.equals("child")) {
+                hm.put("objects", parentsToPush);
+            } else {
+                hm.put("objects", movedParentsPrio);
+            }
+            AtmosphereHandler.push(areaName, JSONController.getJsonString(itemTypes + "Move", hm));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -351,8 +382,6 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        
         return true;
     }
 
@@ -386,6 +415,8 @@ public class MoveController {
                 }
             }
 
+            Set<Theme> parentsToPush = new HashSet<Theme>();
+            HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
@@ -432,7 +463,7 @@ public class MoveController {
                 }
 
                 Set<Theme> oldParents = new HashSet<Theme>();
-
+                parentsToPush.add(lastParent);
                 //Move all children to the new parent
                 for (Epic child : movedChildren) {
                     Theme oldParent = child.getTheme();
@@ -443,6 +474,7 @@ public class MoveController {
                         grandChild.setTheme(lastParent);
                     }
                     oldParents.add(oldParent);
+                    parentsToPush.add(oldParent);
                 }
 
                 for (Theme oldTheme : oldParents) {
@@ -490,9 +522,21 @@ public class MoveController {
                         }
                     }
                 }
+
+                for(Theme parent : allParents) {
+                    movedParentsPrio.put(parent.getId(), parent.getPrio());
+                }
             }
 
             tx.commit();
+            HashMap<String, Object> hm = new HashMap<String, Object>();
+            hm.put("lastItem", lastItem);
+            if(itemTypes.equals("child")) {
+                hm.put("objects", parentsToPush);
+            } else {
+                hm.put("objects", movedParentsPrio);
+            }
+            AtmosphereHandler.push(areaName, JSONController.getJsonString(itemTypes + "Move", hm));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -502,7 +546,6 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 

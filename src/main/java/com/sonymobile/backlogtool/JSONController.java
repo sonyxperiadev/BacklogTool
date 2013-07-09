@@ -2214,7 +2214,7 @@ public class JSONController {
      * @throws JsonMappingException
      * @throws IOException
      */
-    private <T> String getJsonString(Class<T> clazz, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+    public static <T> String getJsonString(Class<T> clazz, Object data) throws JsonGenerationException, JsonMappingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(clazz, ChildrenExcluder.class);
         return generateJsonString(mapper, clazz.getSimpleName(), data);
@@ -2229,12 +2229,12 @@ public class JSONController {
      * @throws JsonMappingException
      * @throws IOException
      */
-    private <T> String getJsonString(String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+    public static <T> String getJsonString(String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         return generateJsonString(mapper, type, data);
     }
     
-    private <T> String generateJsonString(ObjectMapper mapper, String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+    private static <T> String generateJsonString(ObjectMapper mapper, String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
         HashMap<String, Object> typeMapper = new HashMap<String, Object>();
         typeMapper.put("type", type);
         typeMapper.put("data", data);
