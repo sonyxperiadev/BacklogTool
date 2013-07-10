@@ -496,6 +496,19 @@ public class HomeController {
             //Prevents NPE from story.getEpic().getId():
             placeholderStory.setEpic(placeholderEpic);
 
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonNonArchivedEpics = "";
+
+            HashMap<Integer, Epic> map = new HashMap<Integer, Epic>();
+            for(Epic e : nonArchivedEpics) {
+                map.put(e.getId(), e);
+            }
+            try {
+                jsonNonArchivedEpics = mapper.writeValueAsString(map);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("nonArchivedEpics", nonArchivedEpics);
@@ -503,6 +516,7 @@ public class HomeController {
             view.addObject("area", area);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "epic-story");
+            view.addObject("jsonDataNonArchivedEpics", jsonNonArchivedEpics);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
@@ -567,6 +581,19 @@ public class HomeController {
             //Prevents NPE from epic.getTheme().getId():
             placeholderEpic.setTheme(placeholderTheme);
 
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonNonArchivedThemes = "";
+
+            HashMap<Integer, Theme> map = new HashMap<Integer, Theme>();
+            for(Theme t : nonArchivedThemes) {
+                map.put(t.getId(), t);
+            }
+            try {
+                jsonNonArchivedThemes = mapper.writeValueAsString(map);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             view.addObject("placeholderTheme", placeholderTheme);
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("nonArchivedThemes", nonArchivedThemes);
@@ -574,6 +601,7 @@ public class HomeController {
             view.addObject("area", area);
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "theme-epic");
+            view.addObject("jsonDataNonArchivedThemes", jsonNonArchivedThemes);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));

@@ -80,7 +80,7 @@ THE SOFTWARE.
                 <ul class="parent-child-list" id="list-container">
                     <c:forEach var="story" items="${nonArchivedStories}">
                         <c:if test="${filterIds == null || filterIds.contains(story.id)}">
-                            <%@ include file="/WEB-INF/views/placeholders/story-oneline.jsp" %>
+                            <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
                             <c:forEach var="task" items="${story.children}">
                                 <%@ include file="/WEB-INF/views/placeholders/task.jsp" %>
                             </c:forEach>

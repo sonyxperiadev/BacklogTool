@@ -47,6 +47,7 @@ THE SOFTWARE.
         var areaName = "${area.name}";
         var view = "${view}";
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
+        var parentsMap = ${jsonDataNonArchivedThemes};
     </script>
 </head>
 
