@@ -266,6 +266,8 @@ $(document).ready(function () {
             if (!disableEditsBoolean) {
                 enableEdits();
             }
+        } else {
+        	$("#list-divider").hide();
         }
         var cookieStr = (dispArchived) ? "checked" : "unchecked";
         createCookie("backlogtool-disparchived", cookieStr, 60);
@@ -359,6 +361,7 @@ $(document).ready(function () {
         $(".parent-child-list").empty();
         buildVisibleList();
         $.unblockUI();
+        addZebraStripesToLi();
     };
 
     var ignorePush;
@@ -2248,6 +2251,7 @@ $(document).ready(function () {
      */
     buildVisibleList = function (archived) {
         if ($("#archived-checkbox").prop("checked")) {
+        	$("#list-divider").show();
             $("#archived-list-container").append(generateList(true)).show();
         }
     	if (archived != true && !firstBuild) {
@@ -2655,6 +2659,20 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
+    
+    /**
+     * This method alternate the color of parent li's.
+     * For a readability purpose
+     */
+    var addZebraStripesToLi = function() { 
+    	$( "#list-container .parentLi" ).each(function(index) {
+	       if(index % 2 == 0) {
+	    	   $(this).css("background","#f9f9f9");
+	       }  
+    	});
+    };
+    
+    addZebraStripesToLi();
 
     setHeightAndMargin($("#header").height());
 
