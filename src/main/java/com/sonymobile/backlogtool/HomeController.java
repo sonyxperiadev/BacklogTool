@@ -340,6 +340,10 @@ public class HomeController {
             view.setViewName("area-noexist");
         } else {
             view.setViewName("story-task");
+
+            String jsonNonArchivedStories = "";
+            String jsonAreaData = "";
+            HashMap<Integer, Story> map = new HashMap<Integer, Story>();
             Session session = sessionFactory.openSession();
             Transaction tx = null;
             try {
@@ -380,6 +384,18 @@ public class HomeController {
                 query.setParameter(0, area);
                 nonArchivedStories = Util.castList(Story.class, query.list());
 
+                ObjectMapper mapper = new ObjectMapper();
+
+                for(Story s : nonArchivedStories) {
+                    map.put(s.getId(), s);
+                }
+                try {
+                    jsonNonArchivedStories = mapper.writeValueAsString(map);
+                    jsonAreaData = mapper.writeValueAsString(area);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 tx.commit();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -407,19 +423,6 @@ public class HomeController {
             //Prevents NPE from task.getStory().getId():
             placeholderTask.setStory(placeholderStory);
 
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonNonArchivedStories = "";
-
-            HashMap<Integer, Story> map = new HashMap<Integer, Story>();
-            for(Story s : nonArchivedStories) {
-                map.put(s.getId(), s);
-            }
-            try {
-                jsonNonArchivedStories = mapper.writeValueAsString(map);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("placeholderTask", placeholderTask);
             view.addObject("area", area);
@@ -430,6 +433,7 @@ public class HomeController {
             view.addObject("filterIds", filterIds);
             view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
             view.addObject("longestId", longestId);
+            view.addObject("jsonAreaData", jsonAreaData);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
@@ -457,6 +461,9 @@ public class HomeController {
         } else {
             view.setViewName("epic-story");
 
+            String jsonNonArchivedEpics = "";
+            String jsonAreaData = "";
+            HashMap<Integer, Epic> map = new HashMap<Integer, Epic>();
             Session session = sessionFactory.openSession();
             Transaction tx = null;
             try {
@@ -479,6 +486,18 @@ public class HomeController {
                 query.setParameter(0, area);
                 nonArchivedEpics = Util.castList(Epic.class, query.list());
 
+                ObjectMapper mapper = new ObjectMapper();
+
+                for(Epic e : nonArchivedEpics) {
+                    map.put(e.getId(), e);
+                }
+                try {
+                    jsonNonArchivedEpics = mapper.writeValueAsString(map);
+                    jsonAreaData = mapper.writeValueAsString(area);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 tx.commit();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -496,19 +515,6 @@ public class HomeController {
             //Prevents NPE from story.getEpic().getId():
             placeholderStory.setEpic(placeholderEpic);
 
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonNonArchivedEpics = "";
-
-            HashMap<Integer, Epic> map = new HashMap<Integer, Epic>();
-            for(Epic e : nonArchivedEpics) {
-                map.put(e.getId(), e);
-            }
-            try {
-                jsonNonArchivedEpics = mapper.writeValueAsString(map);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("nonArchivedEpics", nonArchivedEpics);
@@ -517,6 +523,7 @@ public class HomeController {
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "epic-story");
             view.addObject("jsonDataNonArchivedEpics", jsonNonArchivedEpics);
+            view.addObject("jsonAreaData", jsonAreaData);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
@@ -544,6 +551,9 @@ public class HomeController {
         } else {
             view.setViewName("theme-epic");
 
+            HashMap<Integer, Theme> map = new HashMap<Integer, Theme>();
+            String jsonNonArchivedThemes = "";
+            String jsonAreaData = "";
             Session session = sessionFactory.openSession();
             Transaction tx = null;
             try {
@@ -565,6 +575,18 @@ public class HomeController {
 
                 nonArchivedThemes = Util.castList(Theme.class, query.list());
 
+                for(Theme t : nonArchivedThemes) {
+                    map.put(t.getId(), t);
+                }
+                ObjectMapper mapper = new ObjectMapper();
+
+                try {
+                    jsonNonArchivedThemes = mapper.writeValueAsString(map);
+                    jsonAreaData = mapper.writeValueAsString(area);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 tx.commit();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -581,19 +603,6 @@ public class HomeController {
             //Prevents NPE from epic.getTheme().getId():
             placeholderEpic.setTheme(placeholderTheme);
 
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonNonArchivedThemes = "";
-
-            HashMap<Integer, Theme> map = new HashMap<Integer, Theme>();
-            for(Theme t : nonArchivedThemes) {
-                map.put(t.getId(), t);
-            }
-            try {
-                jsonNonArchivedThemes = mapper.writeValueAsString(map);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
             view.addObject("placeholderTheme", placeholderTheme);
             view.addObject("placeholderEpic", placeholderEpic);
             view.addObject("nonArchivedThemes", nonArchivedThemes);
@@ -602,6 +611,7 @@ public class HomeController {
             view.addObject("disableEdits", isDisableEdits(areaName));
             view.addObject("view", "theme-epic");
             view.addObject("jsonDataNonArchivedThemes", jsonNonArchivedThemes);
+            view.addObject("jsonAreaData", jsonAreaData);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
