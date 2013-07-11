@@ -128,7 +128,9 @@ p {
 
 #list-divider {
     border-bottom: 9px solid #494949;
-    width: 100.7%;
+    width: -moz-calc(100% + 8px);
+    width: -webkit-calc(100% + 8px);
+    width: calc(100% + 8px);
 }
 
 #create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button, #settings {

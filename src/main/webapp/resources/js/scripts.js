@@ -361,7 +361,7 @@ $(document).ready(function () {
         $(".parent-child-list").empty();
         buildVisibleList();
         $.unblockUI();
-        addZebraStripesToLi();
+        addZebraStripesToParents();
     };
 
     var ignorePush;
@@ -2664,7 +2664,7 @@ $(document).ready(function () {
      * This method alternate the color of parent li's.
      * For a readability purpose
      */
-    var addZebraStripesToLi = function() { 
+    var addZebraStripesToParents = function() { 
     	$( "#list-container .parentLi" ).each(function(index) {
 	       if(index % 2 == 0) {
 	    	   $(this).css("background","#f9f9f9");
@@ -2672,7 +2672,7 @@ $(document).ready(function () {
     	});
     };
     
-    addZebraStripesToLi();
+    addZebraStripesToParents();
 
     setHeightAndMargin($("#header").height());
 
