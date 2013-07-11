@@ -424,6 +424,12 @@ $(document).ready(function () {
             data.children = new Array();
         }
         if(data) {
+            var offset = null, offsetObj = null, inputFocus = null;
+            if(editingItems.length > 0) {
+                inputFocus = $(document.activeElement);
+                offsetObj = editingItems[0];
+                offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+            }
             if(jsonObj.type == "Story") {
                 updateStoryLi(data);
                 for(var i = 0; i < childData.length; i++) {
@@ -445,6 +451,15 @@ $(document).ready(function () {
                 removeItem($('li#' + data));
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
+            }
+            if(offset !== null) {
+                var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+                if(newOffset.top != offset.top) {
+                    var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
+                    $(window).scrollTop(newPos);
+                    inputFocus[0].focus();
+                }
+                offset = null;
             }
         } else {
             window.console && console.log("No json-data in push-message");
@@ -733,7 +748,7 @@ $(document).ready(function () {
             children[i][attr] = i + 1;
         }
     };
-    
+
     /**
      * Sort the parent-list-items in the specified list, and
      * then append the corresponding children to each parent
@@ -741,6 +756,14 @@ $(document).ready(function () {
      */
     var sortList = function(ulObj) {
         console.log("Sort called");
+
+        var offset = null, offsetObj = null, inputFocus = null;
+        if(editingItems.length > 0) {
+            inputFocus = $(document.activeElement);
+            offsetObj = editingItems[0];
+            offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+        }
+
         var orderBy = $("#order-by").val();
         var comp = null;
         if(orderBy == "prio") {
@@ -764,6 +787,16 @@ $(document).ready(function () {
             }
         });
         $( "#list-container" ).sortable("refresh");
+
+        if(offset !== null) {
+            var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+            if(newOffset.top != offset.top) {
+                var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
+                $(window).scrollTop(newPos);
+            }
+            inputFocus[0].focus();
+            offset = null;
+        }
     };
 
     /**
@@ -2420,9 +2453,14 @@ $(document).ready(function () {
     var updateWhenItemsClosed = function() {
         if (editingItems.length == 0) {
             displayUpdateMsg();
-            $("#list-container").sortable( "option", "disabled", false );
+//            $("#list-container").sortable( "option", "disabled", false );
             sortList($("ul#list-container"));
             sortList($("ul#archived-list-container"));
+            if (orderBy == "prio") {
+                $("#list-container").sortable("option", "disabled", false);
+            } else {
+                $("#list-container").sortable("option", "disabled", true);
+            }
             //$('.save-button').button( "option", "disabled", true );
             $.unblockUI();
 //            ignorePush = false;
@@ -2576,6 +2614,7 @@ $(document).ready(function () {
     };
     
     bindEventsToItem = function (elem) {
+        var elemId = elem.attr("id");
         $( "#list-container" ).sortable("refresh");
 
         elem.click(liClick);
@@ -2598,12 +2637,15 @@ $(document).ready(function () {
             cloneItem($(this), true);
         });
 
-        $(".editTheme").unbind("dblclick");
-        $(".editEpic").unbind("dblclick");
-        $(".editStory").unbind("dblclick");
-        $(".editTask").unbind("dblclick");
-        enableEdits();
+        $("#" + elemId + ".editTheme").unbind("dblclick");
+        $("#" + elemId + ".editEpic").unbind("dblclick");
+        $("#" + elemId + ".editStory").unbind("dblclick");
+        $("#" + elemId + ".editTask").unbind("dblclick");
 
+        $("#" + elemId + ".editTheme").dblclick(editTheme);
+        $("#" + elemId + ".editEpic").dblclick(editEpic);
+        $("#" + elemId + ".editStory").dblclick(editStory);
+        $("#" + elemId + ".editTask").dblclick(editTask);
         //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
         $(".bindChange", elem).dblclick(function(event) {
             event.stopPropagation();
