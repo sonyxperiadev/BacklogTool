@@ -137,17 +137,17 @@ public class JSONController {
                 list = Util.castList(Story.class, query1.list());
             } else if (order.equals("prio")) {
                 String nonArchivedQueryString = "select distinct s from Story s " +
-                		"left join fetch s.children " +
-                		"where s.area.name like ? and " +
-                		"s.archived=false " +
-                		"order by s.prio";
+                        "left join fetch s.children " +
+                        "where s.area.name like ? and " +
+                        "s.archived=false " +
+                        "order by s.prio";
                 
                 //Since the archived stories don't have any prio, we order them by their date archived.
                 String archivedQueryString = "select distinct s from Story s " +
-                		"left join fetch s.children " +
-                		"where s.area.name like ? " +
-                		"and s.archived=true " +
-                		"order by s.dateArchived desc";
+                        "left join fetch s.children " +
+                        "where s.area.name like ? " +
+                        "and s.archived=true " +
+                        "order by s.dateArchived desc";
 
                 Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
                 Query archivedQuery = session.createQuery(archivedQueryString);
@@ -159,9 +159,9 @@ public class JSONController {
                 list.addAll(Util.castList(Story.class, archivedQuery.list()));
             } else {
                 String queryString = "select distinct s from Story s " +
-                		"left join fetch s.children " +
-                		"where s.area.name like ? " +
-                		"order by s." + order;
+                        "left join fetch s.children " +
+                        "where s.area.name like ? " +
+                        "order by s." + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
 
@@ -734,6 +734,7 @@ public class JSONController {
             Theme theme = getTheme(updatedStory.getThemeTitle(), story.getArea(), session, createIfDoesNotExist);
             Epic newEpic = getEpic(updatedStory.getEpicTitle(), theme, story.getArea(), session, createIfDoesNotExist);
 
+            Set<Epic> parentsToPush = new HashSet<Epic>();
             //Move story from old epic if it was changed
             if (updatedStory.getEpicTitle() != null) {
                 Epic oldEpic = story.getEpic();
@@ -741,11 +742,13 @@ public class JSONController {
                     if (oldEpic != null) {
                         oldEpic.getChildren().remove(story);
                         oldEpic.rebuildChildrenOrder();
+                        parentsToPush.add(oldEpic);
                     }
                     if (newEpic != null) {
                         newEpic.getChildren().add(story);
                         story.setPrioInEpic(Integer.MAX_VALUE); //The prio gets rebuilt on newEpic.rebuildChildrenOrder().
                         newEpic.rebuildChildrenOrder();
+                        parentsToPush.add(newEpic);
                     }
                 }
             }
@@ -821,6 +824,13 @@ public class JSONController {
             tx.commit();
             if (pushUpdate) {
                 AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
+                if(parentsToPush.size() > 0) {
+                    HashMap<String, Object> hm = new HashMap<String, Object>();
+                    hm.put("lastItem", null);
+                    hm.put("objects", parentsToPush);
+                    hm.put("view", "epic-story"); // It is only considered a move in "epic-story"-view
+                    AtmosphereHandler.push(areaName, JSONController.getJsonString("childMove", hm));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

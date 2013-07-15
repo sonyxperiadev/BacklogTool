@@ -470,53 +470,63 @@ $(document).ready(function () {
      * Process and handle a move-push-event
      */
     var handleMovePush = function(moveType, dataObj) {
-        var objList = dataObj.objects;
-        var childAttr = "prioInStory";
-        if(view == "epic-story") {
-            childAttr = "prioInEpic";
-        } else if(view == "theme-epic") {
-            childAttr = "prioInTheme";
-        }
-
-        var ulObj = $('ul#list-container');
-        if(moveType == "parentMove") {
-            for(var key in objList) {
-                var p = getParent(key);
-                p.prio = objList[key];
-                if(p.archived) {
-                    ulObj = $('ul#archived-list-container');
-                }
+        if(dataObj.view == view) { // To prevent handling move-data that is not intended for us
+            var objList = dataObj.objects;
+            var childAttr = "prioInStory";
+            if(view == "epic-story") {
+                childAttr = "prioInEpic";
+            } else if(view == "theme-epic") {
+                childAttr = "prioInTheme";
             }
-        } else {
-            for(var i = 0; i < objList.length; i++) {
-                var p = objList[i];
-                var children = p.children;
-                // The children should be sorted in correct prio-order in the parent
-                children.sort(function(a, b) {
-                    return a[childAttr] > b[childAttr] ? 1 : (a[childAttr] < b[childAttr] ? -1 : 0);
-                });
-                getParent(p.id).children = children;
 
-                var childIdArr = new Array();
-                var parentLi = $("li#" + p.id + ".parentLi");
-                for(var j = 0; j < children.length; j++) {
-                    var childId = children[j].id;
-                    var childLi = $("li#" + childId + ".childLi");
-                    childLi.attr('parentid', p.id);
-
-                    // If the prio* is 1, it should be placed immediately after it's parent
-                    if(children[j][childAttr] == 1) {
-                        parentLi.after(childLi);
-                    } else {
-                        $("li#" + children[j-1].id + ".childLi").after(childLi);
+            var ulObj = $('ul#list-container');
+            if(moveType == "parentMove") {
+                for(var key in objList) {
+                    var p = getParent(key);
+                    p.prio = objList[key];
+                    if(p.archived) {
+                        ulObj = $('ul#archived-list-container');
                     }
-                    childIdArr.push("li#" + childId);
                 }
-                var childrenLis = $(childIdArr.toString());
-                toggleExpandBtn(parentLi, childrenLis, children);
+            } else {
+                for(var i = 0; i < objList.length; i++) {
+                    var p = objList[i];
+                    var children = p.children;
+                    // The children should be sorted in correct prio-order in the parent
+                    children.sort(function(a, b) {
+                        return a[childAttr] > b[childAttr] ? 1 : (a[childAttr] < b[childAttr] ? -1 : 0);
+                    });
+                    var parentObj = getParent(p.id);
+                    if(parentObj == null) {
+                        // A non-existent parent should only occur when a story is edited and set to belong
+                        // to a non-existent epic, in which case the server will create the epic
+                        parentObj = p;
+                        putParent(parentObj.id, parentObj);
+                        updateEpicLi(parentObj);
+                    }
+                    parentObj.children = children;
+
+                    var childIdArr = new Array();
+                    var parentLi = $("li#" + p.id + ".parentLi");
+                    for(var j = 0; j < children.length; j++) {
+                        var childId = children[j].id;
+                        var childLi = $("li#" + childId + ".childLi");
+                        childLi.attr('parentid', p.id);
+
+                        // If the prio* is 1, it should be placed immediately after it's parent
+                        if(children[j][childAttr] == 1) {
+                            parentLi.after(childLi);
+                        } else {
+                            $("li#" + children[j-1].id + ".childLi").after(childLi);
+                        }
+                        childIdArr.push("li#" + childId);
+                    }
+                    var childrenLis = $(childIdArr.toString());
+                    toggleExpandBtn(parentLi, childrenLis, children);
+                }
             }
+            sortList(ulObj);
         }
-        sortList(ulObj);
     };
 
     var displayUpdateMsg = function () {
@@ -821,7 +831,7 @@ $(document).ready(function () {
         }
 
         // Null-values should be further back in the list
-        return v1 === null ? 1 : (v2 === null ? -1 : v1.localeCompare(v2));
+        return v1 === null ? -1 : (v2 === null ? 1 : v1.localeCompare(v2));
     };
 
     var prioComparator = function(a, b) {
@@ -1096,7 +1106,7 @@ $(document).ready(function () {
             deleteCookie("backlogtool-selectedItems");
             unselectAll();
 //            selectedItems = new Array();
-            $(".parent-child-list").children("li").removeClass("ui-selected");
+//            $(".parent-child-list").children("li").removeClass("ui-selected");
         }
 
         if (pressed.attr("class").indexOf("parent") != -1) {
@@ -1797,13 +1807,18 @@ $(document).ready(function () {
             } else {
                 ulObj.append(items);
             }
-        } else {
+        } else if($("li#" + liObj.attr("id"), ulObj).length == 0) {
             ulObj.append(items);
-        } 
+        }
     };
     
     var getParentOrLastChildElement = function(itemObj) {
         var elem = getParent(itemObj.id);
+        if(elem == null) {
+            findChild(itemObj.id, function(childObj, parentObj, posInParent) {
+                elem = parentObj;
+            });
+        }
         if(elem != null) {
             var children = elem.children;
             if(typeof children !== "undefined" && children.length > 0) {
@@ -1860,19 +1875,30 @@ $(document).ready(function () {
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(storyId, updatedStory);
+            if(view == "story-task") {
+                if(typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
+                    $("li#" + storyId + " div.icon").addClass("expand-icon ui-icon ui-icon-triangle-1-e");
+                }
 
-            // If the update has meant a change of archive-status...
-            putInCorrPrioPos(ulObj, updatedStory.lastItem, $('li#' + storyId + '.story'));
-            sortList(ulObj);
+                // If the update has meant a change of archive-status...
+                putInCorrPrioPos(ulObj, updatedStory.lastItem, $('li#' + storyId + '.story'));
+                if($("#order-by").val() != "prio") {
+                    sortList(ulObj);
+                }
+            }
         }
-        
-        $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(updatedStory.title);
-        $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((updatedStory.themeTitle != undefined) ? updatedStory.themeTitle : "");
-        $('.titles, .titles-epic-story').find('p.epic.'+storyId).html((updatedStory.epicTitle != undefined) ? updatedStory.epicTitle : "");
+        updateStoryLiContent(updatedStory);
+    };
+
+    var updateStoryLiContent = function(story) {
+        var storyId = story.id;
+        $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(story.title);
+        $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((story.themeTitle != undefined) ? story.themeTitle : "");
+        $('.titles, .titles-epic-story').find('p.epic.'+storyId).html((story.epicTitle != undefined) ? story.epicTitle : "");
 
         //Re-add truncate on the description paragraph
         var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
-        descriptionParagraph = untruncate(descriptionParagraph, updatedStory.description);
+        descriptionParagraph = untruncate(descriptionParagraph, story.description);
         descriptionParagraph.truncate(
                 $.extend({}, truncateOptions, {className: 'truncate'+storyId})
         );
@@ -1880,18 +1906,19 @@ $(document).ready(function () {
             $('a.truncate'+storyId, descriptionParagraph.parent()).click();
         }
 
-        $('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(updatedStory.customerSite));
-        $('.stakeholders').find('p.customer.'+storyId).html(updatedStory.customer);
+        $('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(story.customerSite));
+        $('.stakeholders').find('p.customer.'+storyId).html(story.customer);
 
-        $('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(updatedStory.contributorSite));
-        $('.stakeholders').find('p.contributor.'+storyId).html(updatedStory.contributor);
+        $('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(story.contributorSite));
+        $('.stakeholders').find('p.contributor.'+storyId).html(story.contributor);
 
-        $('.times').find('p.added.' + storyId).html(getDate(updatedStory.added));
-        $('.times').find('p.deadline.' + storyId).html(getDate(updatedStory.deadline));
+        $('.times').find('p.added.' + storyId).html(getDate(story.added));
+        $('.times').find('p.deadline.' + storyId).html(getDate(story.deadline));
 
-        $('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr1)).append(getNameIfExists(updatedStory.storyAttr1));
-        $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr2)).append(getNameIfExists(updatedStory.storyAttr2));
-        $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(updatedStory.storyAttr3)).append(getNameIfExists(updatedStory.storyAttr3));
+        $('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(story.storyAttr1)).append(getNameIfExists(story.storyAttr1));
+        $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
+        $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
+
     };
 
     /**
@@ -1950,13 +1977,13 @@ $(document).ready(function () {
 
         if(childrenArr.length > 0) {
             iconDiv.addClass('expand-icon ui-icon');
-            if(childrenArr.length > 1 && $('li#' + childrenArr[0].id).css('display') == 'none') {
-                childLi.css('display', 'none');
-                iconDiv.addClass('ui-icon-triangle-1-e');
-            } else {
+            if(childrenArr.length > 1 && $('li#' + childrenArr[0].id).css('display') != 'none') {
                 visible[childLi.attr("id")];
                 childLi.css('display', 'list-item');
                 iconDiv.addClass('ui-icon-triangle-1-s');
+            } else {
+                childLi.css('display', 'none');
+                iconDiv.addClass('ui-icon-triangle-1-e');
             }
 
             $('.expand-icon', parentLi).bind('click', expandClick);
@@ -2168,10 +2195,13 @@ $(document).ready(function () {
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(epicId, updatedEpic);
-
-            // If the update has meant a change of archive-status...
-            putInCorrPrioPos(ulObj, updatedEpic.lastItem, $('li#' + epicId + '.epic'));
-            sortList(ulObj);
+            if(view == "epic-story") {
+                // If the update has meant a change of archive-status...
+                putInCorrPrioPos(ulObj, updatedEpic.lastItem, $('li#' + epicId + '.epic'));
+                if($("#order-by").val() != "prio") {
+                    sortList(ulObj);
+                }
+            }
         }
 
         $('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
@@ -2327,7 +2357,9 @@ $(document).ready(function () {
 
             // If the update has meant a change of archive-status...
             putInCorrPrioPos(ulObj, updatedTheme.lastItem, $('li#' + themeId + '.theme'));
-            sortList(ulObj);
+            if($("#order-by").val() != "prio") {
+                sortList(ulObj);
+            }
         }
 
         $('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
@@ -2456,7 +2488,7 @@ $(document).ready(function () {
 //            $("#list-container").sortable( "option", "disabled", false );
             sortList($("ul#list-container"));
             sortList($("ul#archived-list-container"));
-            if (orderBy == "prio") {
+            if ($("#order-by").val() == "prio") {
                 $("#list-container").sortable("option", "disabled", false);
             } else {
                 $("#list-container").sortable("option", "disabled", true);
@@ -2622,7 +2654,8 @@ $(document).ready(function () {
             $(this).addClass("over");
         });
         elem.mouseup(function () {
-            $(".parent-child-list", elem).children("li").removeClass("over");
+            $(this).removeClass("over");
+//            $(".parent-child-list", elem).children("li").removeClass("over");
         });
 
         $("a.createEpic", elem).click(createEpic);
@@ -2632,7 +2665,6 @@ $(document).ready(function () {
         $("a.cloneItem", elem).click(function() {
             cloneItem($(this), false);
         });
-
         $("a.cloneItem-with-children", elem).click(function() {
             cloneItem($(this), true);
         });

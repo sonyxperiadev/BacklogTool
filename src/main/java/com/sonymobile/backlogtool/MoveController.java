@@ -205,6 +205,7 @@ public class MoveController {
             tx.commit();
             HashMap<String, Object> hm = new HashMap<String, Object>();
             hm.put("lastItem", lastItem);
+            hm.put("view", "story-task");
             if(itemTypes.equals("child")) {
                 hm.put("objects", parentsToPush);
             } else {
@@ -367,6 +368,7 @@ public class MoveController {
             
             HashMap<String, Object> hm = new HashMap<String, Object>();
             hm.put("lastItem", lastItem);
+            hm.put("view", "epic-story");
             if(itemTypes.equals("child")) {
                 hm.put("objects", parentsToPush);
             } else {
@@ -531,6 +533,7 @@ public class MoveController {
             tx.commit();
             HashMap<String, Object> hm = new HashMap<String, Object>();
             hm.put("lastItem", lastItem);
+            hm.put("view", "theme-epic");
             if(itemTypes.equals("child")) {
                 hm.put("objects", parentsToPush);
             } else {
