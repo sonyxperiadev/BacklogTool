@@ -274,6 +274,8 @@ p.description {
 .title {
     height: 19px;
     color: #494949;
+    display: table-cell;
+    vertical-align: bottom;
 }
 
 p.theme,p.epic,p.typeMark {
