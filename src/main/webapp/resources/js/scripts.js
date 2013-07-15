@@ -1341,6 +1341,7 @@ $(document).ready(function () {
                                 $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
                             }
                             exitEditMode(storyId);
+                            addZebraStripesToParents();
                         });
                     } else {
                         exitEditMode(storyId);
@@ -1557,6 +1558,7 @@ $(document).ready(function () {
                                 $('#archived-list-container > [parentId="'+epicId+'"]').appendTo('#list-container');
                             }
                             exitEditMode(epicId);
+                            addZebraStripesToParents();
                         });
                     } else {
                         exitEditMode(epicId);
@@ -1692,6 +1694,7 @@ $(document).ready(function () {
                             $('#archived-list-container > [parentId="'+themeId+'"]').appendTo('#list-container');
                         }
                         exitEditMode(themeId);
+                        addZebraStripesToParents();
                     });
                 } else {
                     exitEditMode(themeId);
@@ -2664,11 +2667,12 @@ $(document).ready(function () {
      * This method alternate the color of parent li's.
      * For a readability purpose
      */
-    var addZebraStripesToParents = function() { 
+    var addZebraStripesToParents = function() {
+    	$("#list-container>li.zebra-stripes").removeClass("zebra-stripes");
     	$( "#list-container .parentLi" ).each(function(index) {
 	       if(index % 2 == 0) {
-	    	   $(this).css("background","#f9f9f9");
-	       }  
+	    	   $(this).addClass("zebra-stripes");
+	       }
     	});
     };
     

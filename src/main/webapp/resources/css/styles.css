@@ -123,7 +123,7 @@ p {
 }
 
 #archived-list-container > li {
-    background: #EDECEC;
+    background: #ECECF0;
 }
 
 #list-divider {
@@ -131,6 +131,10 @@ p {
     width: -moz-calc(100% + 8px);
     width: -webkit-calc(100% + 8px);
     width: calc(100% + 8px);
+}
+
+.zebra-stripes {
+    background: #f9f9f9 !important;
 }
 
 #create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button, #settings {
