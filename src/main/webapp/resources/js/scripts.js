@@ -267,7 +267,7 @@ $(document).ready(function () {
                 enableEdits();
             }
         } else {
-        	$("#list-divider").hide();
+            $("#list-divider").hide();
         }
         var cookieStr = (dispArchived) ? "checked" : "unchecked";
         createCookie("backlogtool-disparchived", cookieStr, 60);
@@ -2254,7 +2254,7 @@ $(document).ready(function () {
      */
     buildVisibleList = function (archived) {
         if ($("#archived-checkbox").prop("checked")) {
-        	$("#list-divider").show();
+            $("#list-divider").show();
             $("#archived-list-container").append(generateList(true)).show();
         }
     	if (archived != true && !firstBuild) {
@@ -2662,20 +2662,21 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
-    
+
     /**
      * This method alternate the color of parent li's.
      * For a readability purpose
      */
     var addZebraStripesToParents = function() {
-    	$("#list-container>li.zebra-stripes").removeClass("zebra-stripes");
-    	$( "#list-container .parentLi" ).each(function(index) {
-	       if(index % 2 == 0) {
-	    	   $(this).addClass("zebra-stripes");
-	       }
-    	});
+        $("#list-container>li.zebra-stripes").removeClass("zebra-stripes");
+        $( "#list-container .parentLi" ).each(function(index) {
+            if (index % 2 == 0) {
+                $(this).addClass("zebra-stripes");
+                $(this).nextUntil(".parentLi").addClass("zebra-stripes");
+            }
+        });
     };
-    
+
     addZebraStripesToParents();
 
     setHeightAndMargin($("#header").height());
