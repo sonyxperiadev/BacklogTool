@@ -96,6 +96,20 @@ function deleteCookie(name) {
 }
 
 /**
+ * This method alternate the color of parent li's.
+ * For a readability purpose
+ */
+var addZebraStripesToParents = function() {
+    $("#list-container>li.zebra-stripes").removeClass("zebra-stripes");
+    $( "#list-container .parentLi" ).each(function(index) {
+        if (index % 2 == 0) {
+            $(this).addClass("zebra-stripes");
+            $(this).nextUntil(".parentLi").addClass("zebra-stripes");
+        }
+    });
+};
+
+/**
  * Checks if array a contains an object with same id as argument object
  * 
  * @param a
@@ -361,7 +375,6 @@ $(document).ready(function () {
         $(".parent-child-list").empty();
         buildVisibleList();
         $.unblockUI();
-        addZebraStripesToParents();
     };
 
     var ignorePush;
@@ -2391,6 +2404,7 @@ $(document).ready(function () {
             $("#list-container").sortable("option", "disabled", true);
         }
         firstBuild = false;
+        addZebraStripesToParents();
     };
 
     var setHeightAndMargin = function (value) {
@@ -2662,22 +2676,6 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
-
-    /**
-     * This method alternate the color of parent li's.
-     * For a readability purpose
-     */
-    var addZebraStripesToParents = function() {
-        $("#list-container>li.zebra-stripes").removeClass("zebra-stripes");
-        $( "#list-container .parentLi" ).each(function(index) {
-            if (index % 2 == 0) {
-                $(this).addClass("zebra-stripes");
-                $(this).nextUntil(".parentLi").addClass("zebra-stripes");
-            }
-        });
-    };
-
-    addZebraStripesToParents();
 
     setHeightAndMargin($("#header").height());
 
