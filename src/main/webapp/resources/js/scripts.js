@@ -295,7 +295,7 @@ $(document).ready(function () {
 
     var getNameIfExists = function (object) {
         if (object == null) {
-            return '';
+            return '&nbsp;';
         } else {
             return object.name;
         }
