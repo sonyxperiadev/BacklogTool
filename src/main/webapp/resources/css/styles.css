@@ -114,16 +114,27 @@ p {
 #archived-list-container > li, #list-container > li {
     width: 100%;
 }
-#archived-list-container > li:first-child {
-    border-top: 15px solid #555555;
+#list-container > li {
+    background: white;
 }
 
-#archived-list-container {
+#archived-list-container, #list-divider {
     display: none;
 }
 
 #archived-list-container > li {
-    background: #EDECEC;
+    background: #ECECF0;
+}
+
+#list-divider {
+    border-bottom: 9px solid #494949;
+    width: -moz-calc(100% + 8px);
+    width: -webkit-calc(100% + 8px);
+    width: calc(100% + 8px);
+}
+
+.zebra-stripes {
+    background: #f9f9f9 !important;
 }
 
 #create-parent, #save-all, #print-stories, #archived-checkbox, #login-out, #filter-button, #settings {
