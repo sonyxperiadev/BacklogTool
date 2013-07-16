@@ -275,7 +275,14 @@ $(document).ready(function () {
      * Adding line breaks and <a> tags for the param text.
      */
     var addLinksAndLineBreaks = function(text) {
-        return text.replace(/\n/g, '<br />').replace( /(http:\/\/[^\s]+)/gi , '<a href="$1">$1</a>' );
+        return text.replace( /(http:\/\/[^\s]+)/gi , '<a href="$1">$1</a>' ).replace(/\n/g, '<br />');
+    };
+
+    /**
+     * Escapes html from param text
+     */
+    var escapeHtml = function(text) {
+        return $("<div/>").html(text).text();
     };
 
     var replaceNullWithEmpty = function (object) {
@@ -921,7 +928,7 @@ $(document).ready(function () {
             paragraph = $(paragraph[1]);
         }
         paragraph.css({display: "block"});
-        paragraph.html(newText);
+        paragraph.html(addLinksAndLineBreaks(newText));
         return paragraph;
     };
 
@@ -1523,9 +1530,8 @@ $(document).ready(function () {
      * Cancel current editing of parents/children.
      */
     var bulkCancel = function() {
-        for(var i = 0; i < editingItems.length; i++) {
+        for (var i = 0; i < editingItems.length; i++) {
             $("." + editingItems[i].id).toggleClass('hidden-edit');
-            $("textarea." + editingItems[i].id).html("");
             var bindEvent = null;
             if(editingItems[i].type == "story") {
                 bindEvent = editStory;
@@ -1627,22 +1633,30 @@ $(document).ready(function () {
 
             $("."+storyId).toggleClass('hidden-edit');
 
-            if (story.storyAttr1 != null) {
+            if (story.storyAttr1 == null) {
+                $("select#storyAttr1"+storyId).val('');
+            } else {
                 $("select#storyAttr1"+storyId).val(story.storyAttr1.id);
             }
-            if (story.storyAttr2 != null) {
+            if (story.storyAttr2 == null) {
+                $("select#storyAttr2"+storyId).val('');
+            } else {
                 $("select#storyAttr2"+storyId).val(story.storyAttr2.id);
             }
-            if (story.storyAttr3 != null) {
+            if (story.storyAttr3 == null) {
+                $("select#storyAttr3"+storyId).val('');
+            } else {
                 $("select#storyAttr3"+storyId).val(story.storyAttr3.id);
             }
+            $("input#customer"+storyId).val(escapeHtml(story.customer));
+            $("input#contributor"+storyId).val(escapeHtml(story.contributor));
             $("select#customerSite"+storyId).val(story.customerSite);
             $("select#contributorSite"+storyId).val(story.contributorSite);
             $("archiveStory"+storyId).val(story.archived);
-            
-            $("textarea#title" + storyId).html(story.title);
-            $("textarea#description" + storyId).html(story.description);
-            
+
+            $("textarea#title" + storyId).val(escapeHtml(story.title));
+            $("textarea#description" + storyId).val(escapeHtml(story.description));
+
             $("textarea#theme"+storyId).autocomplete({
                 minLength: 0,
                 source: "../json/autocompletethemes/" + areaName,
@@ -1681,8 +1695,8 @@ $(document).ready(function () {
                 $("textarea#epic"+storyId).autocomplete("search", $("textarea#epic"+storyId).val());
             });
 
-            $("textarea#epic"+storyId).html(story.epicTitle);
-            $("textarea#theme"+storyId).html(story.themeTitle);
+            $("textarea#epic"+storyId).val(escapeHtml(story.epicTitle));
+            $("textarea#theme"+storyId).val(escapeHtml(story.themeTitle));
             
             //auto resize the textareas to fit the text
             $('textarea'+"."+storyId).autosize('');
@@ -2068,11 +2082,13 @@ $(document).ready(function () {
             });
             $("."+taskId).toggleClass('hidden-edit');
             //sets values for all edit fields
-            $("textarea#taskTitle" + taskId).html(task.title);
-            $("textarea#taskDescription" + taskId).html(task.description);
+            $("textarea#taskTitle" + taskId).val(escapeHtml(task.title));
+            $("textarea#taskDescription" + taskId).val(escapeHtml(task.description));
             $("select#calculatedTime" + taskId).val(task.calculatedTime);
 
-            if (task.taskAttr1 != null) {
+            if (task.taskAttr1 == null) {
+                $("select#taskAttr1" + taskId).val('');
+            } else {
                 $("select#taskAttr1" + taskId).val(task.taskAttr1.id);
             }
 
@@ -2261,9 +2277,9 @@ $(document).ready(function () {
                 $("textarea#epicTheme"+epicId).autocomplete("search", $("textarea#epicTheme"+epicId).val());
             });
             
-            $("textarea#epicTitle" + epicId).html(epic.title);
-            $("textarea#epicTheme"+epicId).html(epic.themeTitle);
-            $("textarea#epicDescription" + epicId).html(epic.description);
+            $("textarea#epicTitle" + epicId).val(escapeHtml(epic.title));
+            $("textarea#epicTheme"+epicId).val(escapeHtml(epic.themeTitle));
+            $("textarea#epicDescription" + epicId).val(escapeHtml(epic.description));
             
             //auto resize the textareas to fit the text
             $('textarea'+"."+epicId).autosize('');
@@ -2401,8 +2417,8 @@ $(document).ready(function () {
             });
             $("."+themeId).toggleClass('hidden-edit');
             
-            $('textarea#themeTitle' + themeId).html(theme.title);
-            $('textarea#themeDescription' + themeId).html(theme.description);
+            $('textarea#themeTitle' + themeId).val(escapeHtml(theme.title));
+            $('textarea#themeDescription' + themeId).val(escapeHtml(theme.description));
 
             //auto resize the textareas to fit the text
             $('textarea'+"."+themeId).autosize('');
