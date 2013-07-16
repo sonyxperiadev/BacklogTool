@@ -837,6 +837,18 @@ $(document).ready(function () {
     };
 
     /**
+     * The following click event handler unselects all items if
+     * the user presses outside both the li elements and the header.
+     */
+    $(document).click(function(event) {
+        if ($(event.target).closest('li,#header').length == 0) {
+            selectedItems = new Array();
+            $(".ui-selected").removeClass("ui-selected");
+            updateCookie();
+        }
+    });
+
+    /**
      * Gets the most recently selected item.
      * Optional argument is type specification ("child" or "parent").
      */
