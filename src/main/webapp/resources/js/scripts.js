@@ -1085,6 +1085,16 @@ $(document).ready(function () {
         }
     }
 
+    var selectItem = function(selectObj) {
+        $("li#" + selectObj.id).addClass("ui-selected");
+        selectedItems.push(selectObj);
+    };
+
+    var unselectItem = function(id) {
+        $("li#" + id).removeClass("ui-selected");
+        selectedItems.remove({id:id});
+    };
+
     var editingItems = new Array();
     var lastPressed = null;
 
@@ -1105,31 +1115,25 @@ $(document).ready(function () {
             //then reset all selected items.
             deleteCookie("backlogtool-selectedItems");
             unselectAll();
-//            selectedItems = new Array();
-//            $(".parent-child-list").children("li").removeClass("ui-selected");
         }
 
         if (pressed.attr("class").indexOf("parent") != -1) {
             //Parent was selected
             if (pressed.attr("class").indexOf("ui-selected") != -1) {
                 //Already selected
-                pressed.removeClass("ui-selected");
-                selectedItems.remove({id:pressed.attr("id")});
+                unselectItem(pressed.attr("id"));
             } else {
                 //Not already selected
-                pressed.addClass("ui-selected");
-                selectedItems.push({id:pressed.attr("id"), type:"parent"});
+                selectItem({id:pressed.attr("id"), type:"parent"});
             }
         } else {
             //Child was selected
             if (pressed.attr("class").indexOf("ui-selected") != -1) {
                 //Already selected
-                pressed.removeClass("ui-selected");
-                selectedItems.remove({id:pressed.attr("id")});
+                unselectItem(pressed.attr("id"));
             } else {
                 //Not already selected
-                pressed.addClass("ui-selected");
-                selectedItems.push({id:pressed.attr("id"), type:"child"});
+                selectItem({id:pressed.attr("id"), type:"child"});
             }
         }
         lastPressed = pressed;
@@ -1157,7 +1161,7 @@ $(document).ready(function () {
     
     var unselectAll = function() {
         for(var i = 0; i < selectedItems.length; i++) {
-            $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected");
+            $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected over");
         }
         selectedItems = new Array();
     };
@@ -1197,18 +1201,20 @@ $(document).ready(function () {
             contentType : "application/json; charset=utf-8",
             success : function(newTask) {
                 if (newTask != null) {
+                    newTask.lastItem = task.lastItem;
+                    updateTaskLi(newTask);
+                    expandParent(newTask.id);
                     visible[newTask.id] = true;
+
                     unselectAll();
-                    selectedItems.push({id : newTask.id, type : "child"});
+                    selectItem({id : newTask.id, type : "child"});
                     updateCookie();
+
+                    $.unblockUI();
+                    editTask(newTask.id);
+                    scrollTo(newTask.id);
+                    focusAndSelectText("taskTitle"+newTask.id);
                 }
-                $.unblockUI();
-                newTask.lastItem = task.lastItem;
-                updateTaskLi(newTask);
-                expandParent(newTask.id);
-                editTask(newTask.id);
-                scrollTo(newTask.id);
-                focusAndSelectText("taskTitle"+newTask.id);
             },
             error : function(request, status, error) {
                 $.unblockUI();
@@ -1242,22 +1248,25 @@ $(document).ready(function () {
             contentType : "application/json; charset=utf-8",
             success : function(newStory) {
                 if (newStory != null) {
-                    visible[newStory.id] = true;
+                    newStory.lastItem = storyContainer.lastItem;
+                    updateStoryLi(newStory);
+                    $("li#" + newStory.id).addClass("ui-selected");
+                    $.unblockUI();
+
                     unselectAll();
                     if (view == "story-task") {
-                        selectedItems.push({id : newStory.id, type : "parent"});
+                        selectItem({id : newStory.id, type : "parent"});
                     } else if (view == "epic-story") {
-                        selectedItems.push({id : newStory.id, type : "child"});
+                        selectItem({id : newStory.id, type : "child"});
                     }
                     updateCookie();
+
+                    expandParent(newStory.id);
+                    visible[newStory.id] = true;
+                    editStory(newStory.id);
+                    scrollTo(newStory.id);
+                    focusAndSelectText("title"+newStory.id);
                 }
-                $.unblockUI();
-                newStory.lastItem = storyContainer.lastItem;
-                updateStoryLi(newStory);
-                expandParent(newStory.id);
-                editStory(newStory.id);
-                scrollTo(newStory.id);
-                focusAndSelectText("title"+newStory.id);
             },
             error : function(error) {
                 $.unblockUI();
@@ -1292,22 +1301,24 @@ $(document).ready(function () {
             contentType : "application/json; charset=utf-8",
             success : function(newEpic) {
                 if (newEpic != null) {
-                    visible[newEpic.id] = true;
+                    newEpic.lastItem = epicContainer.lastItem;
+                    updateEpicLi(newEpic);
+
                     unselectAll();
                     if (view == "epic-story") {
-                        selectedItems.push({id : newEpic.id, type : "parent"});
+                        selectItem({id : newEpic.id, type : "parent"});
                     } else if (view == "theme-epic") {
-                        selectedItems.push({id : newEpic.id, type : "child"});
+                        selectItem({id : newEpic.id, type : "child"});
                     }
                     updateCookie();
+
+                    expandParent(newEpic.id);
+                    visible[newEpic.id] = true;
+                    editEpic(newEpic.id);
+                    $.unblockUI();
+                    scrollTo(newEpic.id);
+                    focusAndSelectText("epicTitle" + newEpic.id);
                 }
-                $.unblockUI();
-                newEpic.lastItem = epicContainer.lastItem;
-                updateEpicLi(newEpic);
-                expandParent(newEpic.id);
-                editEpic(newEpic.id);
-                scrollTo(newEpic.id);
-                focusAndSelectText("epicTitle" + newEpic.id);
             },
             error : function(error) {
                 $.unblockUI();
@@ -1333,17 +1344,20 @@ $(document).ready(function () {
             contentType : "application/json; charset=utf-8",
             success : function(newTheme) {
                 if (newTheme != null) {
-                    visible[newTheme.id] = true;
+                    newTheme.lastItem = themeContainer.lastItem;
+                    updateThemeLi(newTheme);
+
                     unselectAll();
-                    selectedItems.push({id : newTheme.id, type : "parent"});
+                    selectItem({id : newTheme.id, type : "parent"});
                     updateCookie();
+
+                    $.unblockUI();
+                    expandParent(newEpic.id);
+                    visible[newTheme.id] = true;
+                    editTheme(newTheme.id);
+                    scrollTo(newTheme.id);
+                    focusAndSelectText("themeTitle" + newTheme.id);
                 }
-                $.unblockUI();
-                newTheme.lastItem = themeContainer.lastItem;
-                updateThemeLi(newTheme);
-                editTheme(newTheme.id);
-                scrollTo(newTheme.id);
-                focusAndSelectText("themeTitle" + newTheme.id);
             },
             error : function(error) {
                 $.unblockUI();
@@ -1597,7 +1611,6 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
-            $("li#" + storyId).addClass("ui-selected");
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
 //            ignorePush = true;
@@ -1977,14 +1990,20 @@ $(document).ready(function () {
 
         if(childrenArr.length > 0) {
             iconDiv.addClass('expand-icon ui-icon');
-            if(childrenArr.length > 1 && $('li#' + childrenArr[0].id).css('display') != 'none') {
-                visible[childLi.attr("id")];
+            var visibleChild;
+            if(childrenArr.length > 1 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
+                visibleChild = true;
                 childLi.css('display', 'list-item');
                 iconDiv.addClass('ui-icon-triangle-1-s');
             } else {
+                visibleChild = false;
                 childLi.css('display', 'none');
                 iconDiv.addClass('ui-icon-triangle-1-e');
             }
+
+            childLi.each(function() {
+               visible[$(this).attr("id")] = visibleChild;
+            });
 
             $('.expand-icon', parentLi).bind('click', expandClick);
         }
@@ -2056,7 +2075,6 @@ $(document).ready(function () {
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
-            $("li#" + taskId).addClass("ui-selected");
             $("li#"+taskId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:taskId, type:"task"});
 //            ignorePush = true;
@@ -2233,7 +2251,6 @@ $(document).ready(function () {
         }
 
         if (isGoingIntoEdit(epicId)) {
-            $("li#" + epicId).addClass("ui-selected");
             $("li#"+epicId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:epicId, type:"epic"});
 //            ignorePush = true;
@@ -2388,7 +2405,6 @@ $(document).ready(function () {
             theme = getChild(themeId);
         }
         if (isGoingIntoEdit(themeId)) {
-            $("li#" + themeId).addClass("ui-selected");
             $("li#"+themeId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:themeId, type:"theme"});
 //            ignorePush = true;
@@ -2654,7 +2670,7 @@ $(document).ready(function () {
             $(this).addClass("over");
         });
         elem.mouseup(function () {
-            $(this).removeClass("over");
+            $(".parent-child-list").children("li").removeClass("over");
 //            $(".parent-child-list", elem).children("li").removeClass("over");
         });
 
@@ -2893,12 +2909,12 @@ $(document).ready(function () {
             } else {
                 displayUpdateMsg();
                 sendMovedItems();
-
-                var pressed = $(ui.item);
-                pressed.removeClass("moving");
-                $('.ui-selected').removeClass("ui-hidden");
-                lastPressed = null;
             }
+            var pressed = $(ui.item);
+            pressed.removeClass("moving");
+            $('.ui-selected').removeClass("ui-hidden");
+            lastPressed = null;
+            $(".over").removeClass("over");
         }
 
     });
