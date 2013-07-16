@@ -824,6 +824,9 @@ public class JSONController {
             tx.commit();
             if (pushUpdate) {
                 AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
+                if(theme != null) {
+                    AtmosphereHandler.push(areaName, getJsonString("Theme", theme));
+                }
                 if(parentsToPush.size() > 0) {
                     HashMap<String, Object> hm = new HashMap<String, Object>();
                     hm.put("lastItem", null);

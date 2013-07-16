@@ -440,19 +440,19 @@ $(document).ready(function () {
                 offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
             }
 
-            if(jsonObj.type == "Story") {
+            if(jsonObj.type == "Story" && view != "theme-epic") {
                 updateStoryLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
                 }
-            } else if(jsonObj.type == "Task") {
+            } else if(jsonObj.type == "Task" && view == "story-task") {
                 updateTaskLi(data);
-            } else if(jsonObj.type == "Epic") {
+            } else if(jsonObj.type == "Epic" && view != "story-task") {
                 updateEpicLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateStoryLi(childData[i]);
                 }
-            } else if(jsonObj.type == "Theme") {
+            } else if(jsonObj.type == "Theme" && view == "theme-epic") {
                 updateThemeLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateEpicLi(childData[i]);
@@ -511,19 +511,30 @@ $(document).ready(function () {
                     });
                     var parentObj = getParent(p.id);
                     if(parentObj == null) {
-                        // A non-existent parent should only occur when a story is edited and set to belong
-                        // to a non-existent epic, in which case the server will create the epic
+                        // Only happens when an Epic or Story is "created" via a Story
                         parentObj = p;
-                        putParent(parentObj.id, parentObj);
-                        updateEpicLi(parentObj);
+                        parentObj.children = new Array();
+                        if(view == "epic-story") {
+                            updateEpicLi(parentObj);
+                        } else if(view == "theme-epic") {
+                            updateThemeLi(parentObj);
+                        }
+                    } else {
+                        parentObj.children = children;
                     }
-                    parentObj.children = children;
 
                     var childIdArr = new Array();
                     var parentLi = $("li#" + p.id + ".parentLi");
                     for(var j = 0; j < children.length; j++) {
                         var childId = children[j].id;
                         var childLi = $("li#" + childId + ".childLi");
+                        if(childLi.length == 0) {
+                            if(view == "epic-story") {
+                                updateStoryLi(children[j]);
+                            } else if(view == "theme-epic") {
+                                updateEpicLi(children[j]);
+                            }
+                        }
                         childLi.attr('parentid', p.id);
 
                         // If the prio* is 1, it should be placed immediately after it's parent
@@ -1910,19 +1921,14 @@ $(document).ready(function () {
             htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
 
             var newItem = $(htmlStr);
-            if(view == "epic-story") {
-                newItem.attr('parentid', updatedStory.epicId);
-            }
 
             if(view == "story-task") {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory);
-            } else {
+            } else if(view == "epic-story") {
+                newItem.attr('parentid', updatedStory.epicId);
                 var parent = getParent(updatedStory.epicId);
                 var attr = 'prioInEpic';
-                if(typeof parent === "undefined") {
-                    parent = getParent(updatedStory.themeId);
-                    attr = 'prioInEpic'; // Should be theme?
-                }
+
                 if(typeof parent !== "undefined") {
                     addChildToParent(parent, updatedStory, attr);
                     
