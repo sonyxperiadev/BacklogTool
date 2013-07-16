@@ -70,9 +70,11 @@ public class MoveController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/movestory-task/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean moveStory(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
+    public @ResponseBody Set<Story> moveStory(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        List<Story> affectedStories = new ArrayList<Story>();
+        Set<Story> parentsToPush = new HashSet<Story>();
         try {
             tx = session.beginTransaction();
 
@@ -91,12 +93,11 @@ public class MoveController {
                 }
             }
 
-            Set<Story> parentsToPush = new HashSet<Story>();
             HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
-                    return false;
+                    return parentsToPush;
                 }
 
                 //Get all moved children from db.
@@ -140,6 +141,7 @@ public class MoveController {
 
                 Set<Story> oldParents = new HashSet<Story>();
                 parentsToPush.add(lastParent);
+                affectedStories.add(lastParent);
                 //Move all tasks to the new parent
                 for (Task child : movedChildren) {
                     Story oldParent = child.getStory();
@@ -148,6 +150,7 @@ public class MoveController {
                     child.setStory(lastParent);
                     oldParents.add(oldParent);
                     parentsToPush.add(oldParent);
+//                    affectedStories.add()
                 }
 
                 for (Story oldStory : oldParents) {
@@ -221,7 +224,7 @@ public class MoveController {
             session.close();
         }
 
-        return true;
+        return parentsToPush;
     }
 
     /**
@@ -233,9 +236,10 @@ public class MoveController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/moveepic-story/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean moveEpic(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
+    public @ResponseBody Set<Epic> moveEpic(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Set<Epic> parentsToPush = new HashSet<Epic>();
         try {
             tx = session.beginTransaction();
 
@@ -254,12 +258,11 @@ public class MoveController {
                 }
             }
 
-            Set<Epic> parentsToPush = new HashSet<Epic>();
             HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
-                    return false;
+                    return parentsToPush;
                 }
 
                 //Get all moved children from db.
@@ -384,7 +387,7 @@ public class MoveController {
             session.close();
         }
 
-        return true;
+        return parentsToPush;
     }
 
     /**
@@ -396,9 +399,10 @@ public class MoveController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/movetheme-epic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean moveTheme(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
+    public @ResponseBody Set<Theme> moveTheme(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Set<Theme> parentsToPush = new HashSet<Theme>();
         try {
             tx = session.beginTransaction();
 
@@ -417,12 +421,11 @@ public class MoveController {
                 }
             }
 
-            Set<Theme> parentsToPush = new HashSet<Theme>();
             HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
-                    return false;
+                    return parentsToPush;
                 }
 
                 //Get all moved children from db.
@@ -549,7 +552,7 @@ public class MoveController {
             session.close();
         }
 
-        return true;
+        return parentsToPush;
     }
 
     /**

@@ -1359,7 +1359,7 @@ $(document).ready(function () {
                     updateCookie();
 
                     $.unblockUI();
-                    expandParent(newEpic.id);
+                    expandParent(newTheme.id);
                     visible[newTheme.id] = true;
                     editTheme(newTheme.id);
                     scrollTo(newTheme.id);
@@ -2005,7 +2005,7 @@ $(document).ready(function () {
         if(childrenArr.length > 0) {
             iconDiv.addClass('expand-icon ui-icon');
             var visibleChild;
-            if(childrenArr.length > 1 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
+            if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
                 visibleChild = true;
                 childLi.css('display', 'list-item');
                 iconDiv.addClass('ui-icon-triangle-1-s');
@@ -2858,6 +2858,10 @@ $(document).ready(function () {
             }
         });
         moveContainer.movedItems = selectedItems;
+        var moveType = null;
+        if(selectedItems.length > 0) {
+            moveType = (selectedItems[0].type == "child") ? "childMove" : "parentMove";
+        }
 
         if (moveContainer.lastItem.id != null) {
             moveContainer.lastItem.id = eval(moveContainer.lastItem.id);
@@ -2870,6 +2874,17 @@ $(document).ready(function () {
             data: JSON.stringify(moveContainer),
             contentType: "application/json; charset=utf-8",
             success: function (data) {
+                if(data != null) {
+                    if(moveType == "childMove") {
+                        var dataObj = new Object();
+                        dataObj.objects = data;
+                        dataObj.view = view;
+                        handleMovePush(moveType, dataObj);
+
+                        expandParent(selectedItems[0].id);
+                    }
+                }
+
                 $.unblockUI();
             },
             error: function (request, status, error) {
@@ -2921,7 +2936,6 @@ $(document).ready(function () {
              * is no parent */
             if(ui.item.hasClass('childLi') && ui.item.index() == 0) {
                 $(this).sortable('cancel');
-                alert("Child-elements must have a parent");
             } else {
                 displayUpdateMsg();
                 sendMovedItems();
