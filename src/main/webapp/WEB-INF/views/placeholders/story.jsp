@@ -149,7 +149,7 @@
                 <img src="../resources/image/${story.storyAttr1.icon}"
                     title="${story.storyAttr1.name}" /> 
             </c:if>
-            ${story.storyAttr1.name}
+            ${story.storyAttr1.name}&nbsp;
         </p>
         <select id="storyAttr1${story.id}"
             class="bindChange story-attr1 hidden-edit ${story.id} text ui-widget-content ui-corner-all">
@@ -168,7 +168,7 @@
                 <img src="../resources/image/${story.storyAttr2.icon}"
                     title="${story.storyAttr2.name}" /> 
              </c:if>
-             ${story.storyAttr2.name}
+             ${story.storyAttr2.name}&nbsp;
         </p>
         <select id="storyAttr2${story.id}"
             class="bindChange story-attr2 hidden-edit ${story.id} text ui-widget-content ui-corner-all">
@@ -188,7 +188,7 @@
                 <img src="../resources/image/${story.storyAttr3.icon}"
                     title="${story.storyAttr3.name}" /> 
             </c:if>
-            ${story.storyAttr3.name}
+            ${story.storyAttr3.name}&nbsp;
         </p>
         <select id="storyAttr3${story.id}"
             class="bindChange story-attr3 hidden-edit ${story.id} text ui-widget-content ui-corner-all">
