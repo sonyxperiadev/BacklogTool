@@ -431,12 +431,15 @@ $(document).ready(function () {
             data.children = new Array();
         }
         if(data) {
+            /* Store current offset and focus in order to be able to restore
+             * these after the push-message has been processed */ 
             var offset = null, offsetObj = null, inputFocus = null;
             if(editingItems.length > 0) {
                 inputFocus = $(document.activeElement);
                 offsetObj = editingItems[0];
                 offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
             }
+
             if(jsonObj.type == "Story") {
                 updateStoryLi(data);
                 for(var i = 0; i < childData.length; i++) {
@@ -459,9 +462,12 @@ $(document).ready(function () {
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
             }
+
             if(offset !== null) {
+                // Restore offset
                 var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
                 if(newOffset.top != offset.top) {
+                    // Restore focus
                     var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
                     $(window).scrollTop(newPos);
                     inputFocus[0].focus();
@@ -485,8 +491,8 @@ $(document).ready(function () {
             } else if(view == "theme-epic") {
                 childAttr = "prioInTheme";
             }
-
             var ulObj = $('ul#list-container');
+
             if(moveType == "parentMove") {
                 for(var key in objList) {
                     var p = getParent(key);
@@ -495,7 +501,7 @@ $(document).ready(function () {
                         ulObj = $('ul#archived-list-container');
                     }
                 }
-            } else {
+            } else { // child-move
                 for(var i = 0; i < objList.length; i++) {
                     var p = objList[i];
                     var children = p.children;
@@ -1508,13 +1514,41 @@ $(document).ready(function () {
      * from the page
      */
     var removeItem = function(itemLi) {
-        if(itemLi.hasClass('parentLi')) {
+        var itemId = itemLi.attr('id');
+        if(itemLi.hasClass('parentLi')) { // A parent was removed
             var obj = removeParent(itemLi.attr('id'));
-            $('li[parentid="' + itemLi.attr('id') + '"]').remove();
-            itemLi.remove();
-            decrPrioForParents(obj.prio);
-        } else {
-            itemLi.remove();
+            if(typeof obj !== "undefined") {
+                $('li[parentid="' + itemId + '"]').remove();
+                itemLi.remove();
+                decrPrioForParents(obj.prio);
+            }
+        } else { // A child was removed
+            var parentLi = $("li#" + itemLi.attr("parentid"));
+            var parent = getParent(itemLi.attr("parentid"));
+            var children = parent.children;
+            var position = -1;
+            for(var i = 0; i < children.length; i++) {
+                if(children[i].id == itemId) {
+                    position = i;
+                    break;
+                }
+            }
+            if(position >= 0) {
+                children.splice(position, 1);
+                itemLi.remove();
+                toggleExpandBtn(parentLi, itemLi, children);
+
+                var attr = "prioInStory";
+                if(view == "epic-story") {
+                    attr = "prioInEpic";
+                } else if(view == "theme-epic") {
+                    attr = "prioInTheme";
+                }
+
+                for(var i = 0; i < children.length; i++) { // Update the prio for all children
+                    children[i][attr] = i + 1;
+                }
+            }
         }
     };
     
@@ -1875,8 +1909,10 @@ $(document).ready(function () {
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
 
-            var newItem = $(htmlStr);            
-            newItem.attr('id', storyId);
+            var newItem = $(htmlStr);
+            if(view == "epic-story") {
+                newItem.attr('parentid', updatedStory.epicId);
+            }
 
             if(view == "story-task") {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory);
@@ -2002,23 +2038,26 @@ $(document).ready(function () {
         $('.expand-icon', parentLi).unbind('click', expandClick);
         iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
+        var visibleChild;
+        if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
+            visibleChild = true;
+            childLi.css('display', 'list-item');
+        } else {
+            visibleChild = false;
+            childLi.css('display', 'none');
+        }
+
+        childLi.each(function() {
+            visible[$(this).attr("id")] = visibleChild;
+        });
+
         if(childrenArr.length > 0) {
-            iconDiv.addClass('expand-icon ui-icon');
-            var visibleChild;
-            if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
-                visibleChild = true;
-                childLi.css('display', 'list-item');
+            if(visibleChild) {
                 iconDiv.addClass('ui-icon-triangle-1-s');
             } else {
-                visibleChild = false;
-                childLi.css('display', 'none');
                 iconDiv.addClass('ui-icon-triangle-1-e');
             }
-
-            childLi.each(function() {
-               visible[$(this).attr("id")] = visibleChild;
-            });
-
+            iconDiv.addClass('expand-icon ui-icon');
             $('.expand-icon', parentLi).bind('click', expandClick);
         }
     };
@@ -2208,7 +2247,10 @@ $(document).ready(function () {
             
             newItem = $(htmlStr);            
             newItem.attr('id', epicId);
-            
+            if(view == "theme-epic") {
+                newItem.attr('parentid', updatedEpic.themeId);
+            }
+
             if(view == "epic-story") {
                 handleNewParentItem(updatedEpic.lastItem, newItem, updatedEpic);
             } else {

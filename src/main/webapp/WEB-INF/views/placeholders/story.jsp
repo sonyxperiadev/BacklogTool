@@ -1,5 +1,5 @@
 <li class="story ui-state-default editStory <c:if test='${view.equals("story-task")}'>parentLi</c:if><c:if test='${view.equals("epic-story")}'>childLi ui-hidden</c:if>" 
-    id="${story.id}">
+    id="${story.id}" <c:if test='${view.equals("epic-story")}'>parentid="${story.epic.id}"</c:if>>
     <div id="icons">
         <c:if test='${view.equals("story-task")}'>
             <div title="Show tasks"
