@@ -31,6 +31,7 @@ THE SOFTWARE.
     <script type="text/javascript">
         var areaName = "${area.name}";
         var view = "${view}";
+        var archivedView = "${archivedView}" == "true" ? true : false;
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
         var parentsMap = ${jsonDataNonArchivedStories};
         var area = ${jsonAreaData};
@@ -66,18 +67,6 @@ THE SOFTWARE.
             </div>
 
             <div id="list-container-div">
-<div id="table-header" style="margin-left:20px;width:100%">
-                    <p class="oneline" style="width:${longestId+6}ex;padding:0.3em;font-size:0.75em;vertical-align:top;font-weight: bold;">ID</p>
-                    <p class="oneline" style="margin-left:4px;width:30%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Title</p>
-                    <p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr1.name}</p>
-                    <p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr2.name}</p>
-                    <p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr3.name}</p>
-                    <p class="oneline" style="width:5%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Deadline</p>
-                    <p class="oneline" style="width:5%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Archived</p>
-</div>
-
-            
-            
                 <ul class="parent-child-list" id="list-container">
                     <c:forEach var="story" items="${nonArchivedStories}">
                         <c:if test="${filterIds == null || filterIds.contains(story.id)}">

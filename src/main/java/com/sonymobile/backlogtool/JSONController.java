@@ -83,6 +83,8 @@ import com.sonymobile.backlogtool.permission.User;
 @RequestMapping(value="/json")
 public class JSONController {
 
+    public static final int ELEMENTS_PER_ARCHIVED_PAGE = 2;
+
     @Autowired
     SessionFactory sessionFactory;
 
@@ -296,6 +298,56 @@ public class JSONController {
             session.close();
         }
         return new ResponseEntity<String>(mapper.writeValueAsString(themes), responseHeaders, HttpStatus.CREATED);
+    }
+    
+    @RequestMapping(value="/read-archived/{areaName}", method=RequestMethod.GET)
+    @Transactional
+    public @ResponseBody String readArchived(@PathVariable String areaName,
+           @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
+           @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
+
+                @SuppressWarnings("rawtypes")
+                List archivedItems = new ArrayList();
+                Area area = null;
+
+                Session session = sessionFactory.openSession();
+                Transaction tx = null;
+                try {
+                   tx = session.beginTransaction();
+
+                    area = (Area) session.get(Area.class, areaName);
+                    if (area != null && type.matches("Story")) {
+                        if (page > 0) {
+                            String archivedQueryString = "from " + type + " " +
+                                    "where area = ? " +
+                                    "and archived=true " +
+                                    "order by dateArchived desc";
+
+                            Query archivedQuery = session.createQuery(archivedQueryString);
+                            archivedQuery.setParameter(0, area);
+                            archivedQuery.setFirstResult(ELEMENTS_PER_ARCHIVED_PAGE * ((page-1)));
+                            archivedQuery.setMaxResults(ELEMENTS_PER_ARCHIVED_PAGE);
+
+                            if (type.equals("Story")) {
+                                archivedItems = Util.castList(Story.class, archivedQuery.list());
+                                for (Object item : archivedItems) {
+                                    Story s = (Story) item;
+                                    Hibernate.initialize(s.getChildren());
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (tx != null) {
+                        tx.rollback();
+                    }
+                } finally {
+                    session.close();
+                }
+
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(archivedItems);
     }
 
     @RequestMapping(value="/autocompletethemes/{areaName}", method=RequestMethod.GET)

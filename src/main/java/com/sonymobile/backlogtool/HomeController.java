@@ -324,7 +324,8 @@ public class HomeController {
             Model model,
             @PathVariable String areaName,
             @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
-            @RequestParam(required = false, value = "ids") Set<Integer> filterIds) {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
+            @RequestParam(required = false, value="archived-view", defaultValue="false") boolean archivedView) {
 
         Area area = Util.getArea(areaName, sessionFactory);
 
@@ -332,7 +333,7 @@ public class HomeController {
                 .getAuthentication();
         String username = auth.getName();
 
-        List<Story> nonArchivedStories = null;
+        List<Story> nonArchivedStories = new ArrayList<Story>();
         Set<String> adminAreas = null;
         ModelAndView view = new ModelAndView();
 
@@ -357,32 +358,38 @@ public class HomeController {
                 adminAreas = getAdminAreaNames(session, username);
                 adminAreas.remove(area.getName());
 
-                String queryString = null;
-                if (order.contains("storyAttr")) {
-                    // If the user wants to sort by one of the custom created
-                    // attributes,
-                    // then the attributeOptions needs to be sorted by their
-                    // compareValues.
-                    queryString = "select distinct s from Story s "
-                            + "left join fetch s.children "
-                            + "left join fetch s." + order + " as attr "
-                            + "where s.area = ? " + "and s.archived = false "
-                            + "order by attr.compareValue";
-                } else if (order.matches("description|contributor" +
-                        "|customer|contributorSite|customerSite")) {
-                    queryString = "select distinct s from Story s "
-                            + "left join fetch s.children "
-                            + "where s.area = ? " + "and s.archived = false "
-                            + "order by s." + order;
-                } else { // Fall back to sorting by prio
-                    queryString = "select distinct s from Story s "
-                            + "left join fetch s.children "
-                            + "where s.area = ? and " + "s.archived = false "
-                            + "order by s.prio";
+                if (!archivedView) {
+                    String queryString = null;
+                    if (order.contains("storyAttr")) {
+                        // If the user wants to sort by one of the custom created
+                        // attributes,
+                        // then the attributeOptions needs to be sorted by their
+                        // compareValues.
+                        queryString = "select distinct s from Story s "
+                                + "left join fetch s.children "
+                                + "left join fetch s." + order + " as attr "
+                                + "where s.area = ? " + "and s.archived = false "
+                                + "order by attr.compareValue";
+                    } else if (order.matches("description|contributor" +
+                            "|customer|contributorSite|customerSite")) {
+                        queryString = "select distinct s from Story s "
+                                + "left join fetch s.children "
+                                + "where s.area = ? " + "and s.archived = false "
+                                + "order by s." + order;
+                    } else { // Fall back to sorting by prio
+                        queryString = "select distinct s from Story s "
+                                + "left join fetch s.children "
+                                + "where s.area = ? and " + "s.archived = false "
+                                + "order by s.prio";
+                    }
+                    Query query = session.createQuery(queryString);
+                    query.setParameter(0, area);
+                    nonArchivedStories = Util.castList(Story.class, query.list());
+                } else {
+                    long nbrOfStories = ((Long) session.createQuery("select count(*) from Story where archived = true").iterate().next()).longValue();
+                    int nbrOfPages = (int) Math.ceil(nbrOfStories / JSONController.ELEMENTS_PER_ARCHIVED_PAGE);
+                    view.addObject("nbrOfPages", nbrOfPages);
                 }
-                Query query = session.createQuery(queryString);
-                query.setParameter(0, area);
-                nonArchivedStories = Util.castList(Story.class, query.list());
 
                 ObjectMapper mapper = new ObjectMapper();
 
@@ -405,16 +412,6 @@ public class HomeController {
             } finally {
                 session.close();
             }
-            int longestId = 2;
-            if (!nonArchivedStories.isEmpty()) {
-                longestId = String.valueOf(Collections.max(nonArchivedStories, new Comparator<Story>() {
-                    
-                    @Override
-                    public int compare(Story o1, Story o2) {
-                        return o1.getId()-o2.getId();
-                    }
-                }).getId()).length();
-            }
 
             Story placeholderStory = new Story();
             Task placeholderTask = new Task();
@@ -432,8 +429,8 @@ public class HomeController {
             view.addObject("nonArchivedStories", nonArchivedStories);
             view.addObject("filterIds", filterIds);
             view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
-            view.addObject("longestId", longestId);
             view.addObject("jsonAreaData", jsonAreaData);
+            view.addObject("archivedView", archivedView);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));

@@ -1988,6 +1988,9 @@ $(document).ready(function () {
         $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
         $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
 
+        if (story.archived == true) {
+            $('#archiveStory' + storyId).attr('checked', true);
+        }
     };
 
     /**
@@ -2588,10 +2591,38 @@ $(document).ready(function () {
         } else return '';
     };
 
+    var buildArchivedList = function(pageNbr) {
+        var type = null;
+        if (view == "story-task") {
+            type = "Story";
+        } else if (view == "epic-story") {
+
+        }
+        $.ajax({
+            url: "../json/read-archived/" + areaName + "?type=" + type + "&page=" + pageNbr,
+            dataType: 'json',
+            success: function (data) {
+                for (var i=0; i<data.length; i++) {
+                    console.log(data[i]);
+                    updateStoryLi(data[i]);
+                    //TODO: Fix that the children are displayed as well
+//                    var childData = data[i].children;
+//                    for (var k = 0; k < childData.length; k++) {
+//                        updateTaskLi(childData[k]);
+//                    }
+                }
+            }
+        });
+    };
+
+    if (archivedView) {
+        buildArchivedList(1);
+    }
+
     /**
      * Builds the visible html list using the JSON data
      */
-    buildVisibleList = function (archived) {
+    buildVisibleList = function () {
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
