@@ -35,11 +35,16 @@ THE SOFTWARE.
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
         var parentsMap = ${jsonDataNonArchivedStories};
         var area = ${jsonAreaData};
+
+        <c:if test="${archivedView == true}">
+        	var nbrOfPages = ${nbrOfPages};
+    	</c:if>
     </script>
     <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/jquery.dropdown.css" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/simplePagination.css" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.blockUI-2.61.0.js" />"></script>
@@ -49,6 +54,7 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.dropdown.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere-min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.simplePagination.js" />"></script>
     
 </head>
 <body>
@@ -79,6 +85,9 @@ THE SOFTWARE.
                 </ul>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
+            <c:if test="${archivedView == true}">
+                <div id="pagination"></div>
+            </c:if>
         </div>
 
     </div>

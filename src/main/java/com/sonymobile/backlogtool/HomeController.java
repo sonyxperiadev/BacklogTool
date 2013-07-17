@@ -386,7 +386,9 @@ public class HomeController {
                     query.setParameter(0, area);
                     nonArchivedStories = Util.castList(Story.class, query.list());
                 } else {
-                    long nbrOfStories = ((Long) session.createQuery("select count(*) from Story where archived = true").iterate().next()).longValue();
+                    Query countQuery = session.createQuery("select count(*) from Story where archived = true and area = ?");
+                    countQuery.setParameter(0, area);
+                    long nbrOfStories = ((Long) countQuery.iterate().next()).longValue();
                     int nbrOfPages = (int) Math.ceil(nbrOfStories / JSONController.ELEMENTS_PER_ARCHIVED_PAGE);
                     view.addObject("nbrOfPages", nbrOfPages);
                 }

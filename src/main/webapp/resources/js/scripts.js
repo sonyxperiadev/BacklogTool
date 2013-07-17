@@ -2636,6 +2636,15 @@ $(document).ready(function () {
 
     if (archivedView) {
         buildArchivedList(1);
+        $("#pagination").pagination({
+            pages: nbrOfPages,
+            cssStyle: 'light-theme',
+            onPageClick: function(pageNumber, event) {
+                $('#archived-list-container').empty();
+                buildArchivedList(pageNumber);
+                return false; //Makes sure that no hashtag is appended to URL
+            }
+        });
     }
 
     /**

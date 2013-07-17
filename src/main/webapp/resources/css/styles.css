@@ -733,3 +733,8 @@ p.addOptionSeries, p.addOption {
 .attr-icon {
 	vertical-align: sub;
 }
+
+#pagination {
+	display: table;
+    margin: 0 auto;
+}
