@@ -79,8 +79,8 @@ THE SOFTWARE.
                             </c:forEach>
                         </c:if>
                     </c:forEach>
-
                 </ul>
+                <p id="list-divider"></p>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
         </div>

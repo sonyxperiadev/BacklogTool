@@ -96,6 +96,20 @@ function deleteCookie(name) {
 }
 
 /**
+ * This method alternate the color of parent li's.
+ * For a readability purpose
+ */
+var addZebraStripesToParents = function() {
+    $("#list-container>li.zebra-stripes").removeClass("zebra-stripes");
+    $( "#list-container .parentLi" ).each(function(index) {
+        if (index % 2 == 0) {
+            $(this).addClass("zebra-stripes");
+            $(this).nextUntil(".parentLi").addClass("zebra-stripes");
+        }
+    });
+};
+
+/**
  * Checks if array a contains an object with same id as argument object
  * 
  * @param a
@@ -266,6 +280,8 @@ $(document).ready(function () {
             if (!disableEditsBoolean) {
                 enableEdits();
             }
+        } else {
+            $("#list-divider").hide();
         }
         var cookieStr = (dispArchived) ? "checked" : "unchecked";
         createCookie("backlogtool-disparchived", cookieStr, 60);
@@ -1818,6 +1834,7 @@ $(document).ready(function () {
                                 $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
                             }
                             exitEditMode(storyId);
+                            addZebraStripesToParents();
                         });
                     } else {
                         exitEditMode(storyId);
@@ -2213,6 +2230,7 @@ $(document).ready(function () {
                                 $('#archived-list-container > [parentId="'+epicId+'"]').appendTo('#list-container');
                             }
                             exitEditMode(epicId);
+                            addZebraStripesToParents();
                         });
                     } else {
                         exitEditMode(epicId);
@@ -2400,6 +2418,7 @@ $(document).ready(function () {
                             $('#archived-list-container > [parentId="'+themeId+'"]').appendTo('#list-container');
                         }
                         exitEditMode(themeId);
+                        addZebraStripesToParents();
                     });
                 } else {
                     exitEditMode(themeId);
@@ -2623,6 +2642,7 @@ $(document).ready(function () {
      * Builds the visible html list using the JSON data
      */
     buildVisibleList = function () {
+            $("#list-divider").show();
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
@@ -2754,6 +2774,7 @@ $(document).ready(function () {
             $("#list-container").sortable("option", "disabled", true);
         }
         firstBuild = false;
+        addZebraStripesToParents();
     };
     
     bindEventsToItem = function (elem) {
