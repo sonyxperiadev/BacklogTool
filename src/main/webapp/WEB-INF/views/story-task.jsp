@@ -35,10 +35,6 @@ THE SOFTWARE.
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
         var parentsMap = ${jsonDataNonArchivedStories};
         var area = ${jsonAreaData};
-
-        <c:if test="${archivedView == true}">
-        	var nbrOfPages = ${nbrOfPages};
-    	</c:if>
     </script>
     <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>

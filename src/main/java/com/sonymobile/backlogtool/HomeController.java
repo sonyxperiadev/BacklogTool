@@ -385,14 +385,7 @@ public class HomeController {
                     Query query = session.createQuery(queryString);
                     query.setParameter(0, area);
                     nonArchivedStories = Util.castList(Story.class, query.list());
-                } else {
-                    Query countQuery = session.createQuery("select count(*) from Story where archived = true and area = ?");
-                    countQuery.setParameter(0, area);
-                    long nbrOfStories = ((Long) countQuery.iterate().next()).longValue();
-                    int nbrOfPages = (int) Math.ceil(nbrOfStories / JSONController.ELEMENTS_PER_ARCHIVED_PAGE);
-                    view.addObject("nbrOfPages", nbrOfPages);
                 }
-
                 ObjectMapper mapper = new ObjectMapper();
 
                 for(Story s : nonArchivedStories) {
@@ -448,10 +441,11 @@ public class HomeController {
             Model model,
             @PathVariable String areaName,
             @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
-            @RequestParam(required = false, value = "ids") Set<Integer> filterIds) {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
+            @RequestParam(required = false, value="archived-view", defaultValue="false") boolean archivedView) {
 
         Area area = Util.getArea(areaName, sessionFactory);
-        List<Epic> nonArchivedEpics = null;
+        List<Epic> nonArchivedEpics = new ArrayList<Epic>();
 
         ModelAndView view = new ModelAndView();
 
@@ -468,22 +462,24 @@ public class HomeController {
             try {
                 tx = session.beginTransaction();
 
-                String queryString = null;
-                if (order.matches("title|description")) {
-                    queryString = "select distinct e from Epic e "
-                            + "left join fetch e.children "
-                            + "where e.area = ? and " + "e.archived=false "
-                            + "order by e." + order;
-                } else { // Fall back to sorting by prio
-                    queryString = "select distinct e from Epic e "
-                            + "left join fetch e.children "
-                            + "where e.area = ? and " + "e.archived = false "
-                            + "order by e.prio";
-                }
+                if (!archivedView) {
+                    String queryString = null;
+                    if (order.matches("title|description")) {
+                        queryString = "select distinct e from Epic e "
+                                + "left join fetch e.children "
+                                + "where e.area = ? and " + "e.archived=false "
+                                + "order by e." + order;
+                    } else { // Fall back to sorting by prio
+                        queryString = "select distinct e from Epic e "
+                                + "left join fetch e.children "
+                                + "where e.area = ? and " + "e.archived = false "
+                                + "order by e.prio";
+                    }
 
-                Query query = session.createQuery(queryString);
-                query.setParameter(0, area);
-                nonArchivedEpics = Util.castList(Epic.class, query.list());
+                    Query query = session.createQuery(queryString);
+                    query.setParameter(0, area);
+                    nonArchivedEpics = Util.castList(Epic.class, query.list());
+                }
 
                 ObjectMapper mapper = new ObjectMapper();
 
@@ -523,6 +519,7 @@ public class HomeController {
             view.addObject("view", "epic-story");
             view.addObject("jsonDataNonArchivedEpics", jsonNonArchivedEpics);
             view.addObject("jsonAreaData", jsonAreaData);
+            view.addObject("archivedView", archivedView);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
@@ -538,10 +535,11 @@ public class HomeController {
             Model model,
             @PathVariable String areaName,
             @CookieValue(value = "backlogtool-orderby", defaultValue = "prio", required = false) String order,
-            @RequestParam(required = false, value = "ids") Set<Integer> filterIds) {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
+            @RequestParam(required = false, value="archived-view", defaultValue="false") boolean archivedView) {
 
         Area area = Util.getArea(areaName, sessionFactory);
-        List<Theme> nonArchivedThemes = null;
+        List<Theme> nonArchivedThemes = new ArrayList<Theme>();
 
         ModelAndView view = new ModelAndView();
 
@@ -557,25 +555,28 @@ public class HomeController {
             Transaction tx = null;
             try {
                 tx = session.beginTransaction();
-                String queryString = null;
-                if (order.matches("title||description")) {
-                    queryString = "select distinct t from Theme t "
-                            + "left join fetch t.children "
-                            + "where t.area = ? and " + "t.archived = false "
-                            + "order by t." + order;
-                } else { // Fall back to sorting by prio
-                    queryString = "select distinct t from Theme t "
-                            + "left join fetch t.children "
-                            + "where t.area = ? and " + "t.archived = false "
-                            + "order by t.prio";
-                }
-                Query query = session.createQuery(queryString);
-                query.setParameter(0, area);
 
-                nonArchivedThemes = Util.castList(Theme.class, query.list());
-
-                for(Theme t : nonArchivedThemes) {
-                    map.put(t.getId(), t);
+                if (!archivedView) {
+                    String queryString = null;
+                    if (order.matches("title||description")) {
+                        queryString = "select distinct t from Theme t "
+                                + "left join fetch t.children "
+                                + "where t.area = ? and " + "t.archived = false "
+                                + "order by t." + order;
+                    } else { // Fall back to sorting by prio
+                        queryString = "select distinct t from Theme t "
+                                + "left join fetch t.children "
+                                + "where t.area = ? and " + "t.archived = false "
+                                + "order by t.prio";
+                    }
+                    Query query = session.createQuery(queryString);
+                    query.setParameter(0, area);
+    
+                    nonArchivedThemes = Util.castList(Theme.class, query.list());
+    
+                    for(Theme t : nonArchivedThemes) {
+                        map.put(t.getId(), t);
+                    }
                 }
                 ObjectMapper mapper = new ObjectMapper();
 
@@ -611,6 +612,7 @@ public class HomeController {
             view.addObject("view", "theme-epic");
             view.addObject("jsonDataNonArchivedThemes", jsonNonArchivedThemes);
             view.addObject("jsonAreaData", jsonAreaData);
+            view.addObject("archivedView", archivedView);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));

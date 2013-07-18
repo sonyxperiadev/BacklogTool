@@ -34,6 +34,7 @@ THE SOFTWARE.
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/jquery.dropdown.css" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/simplePagination.css" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.blockUI-2.61.0.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
@@ -42,10 +43,12 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.dropdown.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere-min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.simplePagination.js" />"></script>
 
     <script type="text/javascript">
         var areaName = "${area.name}";
         var view = "${view}";
+        var archivedView = "${archivedView}" == "true" ? true : false;
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
         var parentsMap = ${jsonDataNonArchivedEpics};
         var area = ${jsonAreaData};
@@ -80,9 +83,11 @@ THE SOFTWARE.
                         </c:if>
                     </c:forEach>
                 </ul>
-                <p id="list-divider"></p>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
+            <c:if test="${archivedView == true}">
+                <div id="pagination"></div>
+            </c:if>
         </div>
 
     </div>

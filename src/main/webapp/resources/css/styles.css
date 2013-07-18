@@ -127,13 +127,6 @@ p {
     background: #ECECF0;
 }
 
-#list-divider {
-    border-bottom: 9px solid #494949;
-    width: -moz-calc(100% + 8px);
-    width: -webkit-calc(100% + 8px);
-    width: calc(100% + 8px);
-}
-
 .zebra-stripes {
     background: #f9f9f9 !important;
 }
@@ -736,5 +729,6 @@ p.addOptionSeries, p.addOption {
 
 #pagination {
 	display: table;
-    margin: 0 auto;
+    margin: 50px auto;
+    padding-top: 10px;
 }

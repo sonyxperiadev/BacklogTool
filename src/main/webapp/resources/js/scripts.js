@@ -266,25 +266,12 @@ $(document).ready(function () {
 
 
     $('#archived-checkbox').change(function () {
-        $('#archived-list-container').toggle($('#archived-checkbox').is(":checked"));
-        var dispArchived = $("#archived-checkbox").prop("checked");
-        if (dispArchived) {
-//            $("#archived-list-container").empty();
-//            buildVisibleList(true);
-
-            //Unbind all items and bind them again including archived.
-            $(".editTheme").unbind("dblclick");
-            $(".editEpic").unbind("dblclick");
-            $(".editStory").unbind("dblclick");
-            $(".editTask").unbind("dblclick");
-            if (!disableEditsBoolean) {
-                enableEdits();
-            }
+        var checked = $("#archived-checkbox").prop("checked");
+        if (checked) {
+            window.location = '?archived-view=true';
         } else {
-            $("#list-divider").hide();
+            window.location = '?archived-view=false';
         }
-        var cookieStr = (dispArchived) ? "checked" : "unchecked";
-        createCookie("backlogtool-disparchived", cookieStr, 60);
     });
 
     /**
@@ -595,12 +582,6 @@ $(document).ready(function () {
             $("#order-by").val("prio");
         }
     }
-
-    // Load checkbox-status for the Archived-checkbox
-    var dispArchived = readCookie("backlogtool-disparchived");
-    if(dispArchived != null) {
-        $('#archived-checkbox').prop('checked', (dispArchived == "checked"));
-    }
     
 //    var parentsMap = new Object();
     
@@ -865,13 +846,13 @@ $(document).ready(function () {
         var v1 = getParent(a.id)[attr];
         var v2 = getParent(b.id)[attr];
 
-        if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr2") {
+        if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
             v1 = (v1 !== null) ? v1.compareValue + '' : null;
             v2 = (v2 !== null) ? v2.compareValue + '' : null;
         }
 
         // Null-values should be further back in the list
-        return v1 === null ? -1 : (v2 === null ? 1 : v1.localeCompare(v2));
+        return v1 == null ? -1 : (v2 == null ? 1 : v1.localeCompare(v2));
     };
 
     var prioComparator = function(a, b) {
@@ -1520,6 +1501,9 @@ $(document).ready(function () {
                             $.unblockUI();
                             removeItem(item);
                             unselectAll();
+                            if (archivedView) {
+                                reBuildArchivedList();
+                            }
                         },
                         error: function (request, status, error) {
                             $.unblockUI();
@@ -1817,39 +1801,34 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedStory) {
                 //Set updated values, we prefer to not reload the whole page.
-                updateStoryLi(updatedStory);
-
                 if (view == "story-task") {
                     //If story was moved,
                     //check if this story is in list-container or in archived.list-container and moves it.
                     if (getParent(storyId).archived != updatedStory.archived) {
-                        li.fadeOut("normal", function() {
-                            if (li.parent('#list-container').length) {
-                                //move all children and parent
-                                $('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
-                                li.prependTo('#archived-list-container').fadeIn();
-                            } else {
-                                //move all children and parent
-                                li.appendTo('#list-container').fadeIn();
-                                $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
-                            }
-                            exitEditMode(storyId);
+                        //TODO: Hide all children as well
+                        li.hide("normal", function() {
+//                            if (li.parent('#list-container').length) {
+//                                //move all children and parent
+//                                $('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
+//                                li.prependTo('#archived-list-container').fadeIn();
+//                            } else {
+//                                //move all children and parent
+//                                li.appendTo('#list-container').fadeIn();
+//                                $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
+//                            }
                             addZebraStripesToParents();
                         });
-                    } else {
-                        exitEditMode(storyId);
                     }
                     //Replacing story with a new one
+                    updateStoryLi(updatedStory);
                     replaceParent(storyId, updatedStory);
-                } else if (updatedStory.archived) {
-                    //Save this for issue #44
-                    //li.fadeOut("normal", function() {
-                    //replaceChild(storyId, updatedStory);
-                    exitEditMode(storyId);
-                    //});
-                } else {
-                    exitEditMode(storyId);
+                    if (archivedView && !updatedStory.archived) {
+                        //Story was hidden from the current view;
+                        //we need to add a new element
+                        reBuildArchivedList();
+                    }
                 }
+                exitEditMode(storyId);
             },
             error: function (request, status, error) {
                 alert(error);
@@ -1857,7 +1836,7 @@ $(document).ready(function () {
         });
         li.dblclick(editStory);
     };
-    
+
     /**
      * Adds the specified parent to the list of parents, as well as
      * puts it in the correct position in the specified list
@@ -1926,13 +1905,13 @@ $(document).ready(function () {
         var storyId = updatedStory.id;
 
         var ulObj = null;
-        if(updatedStory.archived) {
+        if(updatedStory.archived && archivedView) {
             ulObj = $('ul#archived-list-container');
-        } else {
+        } else if (!updatedStory.archived && !archivedView) {
             ulObj = $('ul#list-container');
         }
 
-        if($('li#' + storyId + '.story').length == 0) {
+        if($('li#' + storyId + '.story').length == 0) { //Was a new story
             var divItem = $('div#story-placeholder').clone();
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
@@ -1966,10 +1945,11 @@ $(document).ready(function () {
                     $("li#" + storyId + " div.icon").addClass("expand-icon ui-icon ui-icon-triangle-1-e");
                 }
 
-                // If the update has meant a change of archive-status...
-                putInCorrPrioPos(ulObj, updatedStory.lastItem, $('li#' + storyId + '.story'));
-                if($("#order-by").val() != "prio") {
-                    sortList(ulObj);
+                if (ulObj != null) {
+                    putInCorrPrioPos(ulObj, updatedStory.lastItem, $('li#' + storyId + '.story'));
+                    if ($("#order-by").val() != "prio") {
+                        sortList(ulObj);
+                    }
                 }
             }
         }
@@ -2610,48 +2590,76 @@ $(document).ready(function () {
         } else return '';
     };
 
+    /**
+     * Populates the archived-list with backlog items belonging
+     * to argument page number.
+     */
     var buildArchivedList = function(pageNbr) {
         var type = null;
         if (view == "story-task") {
             type = "Story";
         } else if (view == "epic-story") {
-
+            type = "Epic";
+        } else if (view == "theme-epic") {
+            type = "Theme";
         }
+        $("#pagination").pagination('destroy');
         $.ajax({
             url: "../json/read-archived/" + areaName + "?type=" + type + "&page=" + pageNbr,
             dataType: 'json',
+            error: function (request, status, error) {
+                alert(error);
+            },
             success: function (data) {
-                for (var i=0; i<data.length; i++) {
-                    console.log(data[i]);
-                    updateStoryLi(data[i]);
-                    //TODO: Fix that the children are displayed as well
-//                    var childData = data[i].children;
-//                    for (var k = 0; k < childData.length; k++) {
-//                        updateTaskLi(childData[k]);
-//                    }
+                $("#pagination").pagination({
+                    pages: data.nbrOfPages,
+                    currentPage: pageNbr,
+                    cssStyle: 'light-theme',
+                    onPageClick: function(pageNumber, event) {
+                        $('#archived-list-container').empty();
+                        buildArchivedList(pageNumber);
+                        return false; //Makes sure that no hashtag is appended to URL
+                    }
+                });
+                var archivedItems = data.archivedItems;
+                for (var i=0; i<archivedItems.length; i++) {
+                    if (type == "Story") {
+                        updateStoryLi(archivedItems[i]);
+                        //TODO: Fix that the children are displayed as well
+//                      var childData = archivedItems[i].children;
+//                      for (var k = 0; k < childData.length; k++) {
+//                      updateTaskLi(childData[k]);
+//                      }
+                    } else if (type == "Epic") {
+                        updateEpicLi(archivedItems[i]);
+                    } else if (type == "Theme") {
+                        updateThemeLi(archivedItems[i]);
+                    }
+                    //TODO: Make sure that sort is not called several times
+
                 }
             }
         });
     };
 
+    /**
+     * Rebuilds the archived list.
+     * This means adding missing items and updating the ones that 
+     * already exist.
+     */
+    var reBuildArchivedList = function() {
+        var currentPage = $("#pagination").pagination('getCurrentPage');
+        buildArchivedList(currentPage);
+    };
+
     if (archivedView) {
         buildArchivedList(1);
-        $("#pagination").pagination({
-            pages: nbrOfPages,
-            cssStyle: 'light-theme',
-            onPageClick: function(pageNumber, event) {
-                $('#archived-list-container').empty();
-                buildArchivedList(pageNumber);
-                return false; //Makes sure that no hashtag is appended to URL
-            }
-        });
     }
 
     /**
      * Builds the visible html list using the JSON data
      */
     buildVisibleList = function () {
-            $("#list-divider").show();
         editingItems =  new Array();
         for (var i = 0; i < selectedItems.length; ++i) {
             $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");

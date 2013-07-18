@@ -83,7 +83,7 @@ import com.sonymobile.backlogtool.permission.User;
 @RequestMapping(value="/json")
 public class JSONController {
 
-    public static final int ELEMENTS_PER_ARCHIVED_PAGE = 2;
+    public static final int ELEMENTS_PER_ARCHIVED_PAGE = 10;
 
     @Autowired
     SessionFactory sessionFactory;
@@ -306,48 +306,62 @@ public class JSONController {
            @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
            @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
 
-                @SuppressWarnings("rawtypes")
-                List archivedItems = new ArrayList();
-                Area area = null;
+        List<Object> archivedItems = new ArrayList<Object>();
+        int nbrOfPages = 0;
+        Area area = null;
 
-                Session session = sessionFactory.openSession();
-                Transaction tx = null;
-                try {
-                   tx = session.beginTransaction();
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
 
-                    area = (Area) session.get(Area.class, areaName);
-                    if (area != null && type.matches("Story")) {
-                        if (page > 0) {
-                            String archivedQueryString = "from " + type + " " +
-                                    "where area = ? " +
-                                    "and archived=true " +
-                                    "order by dateArchived desc";
+            area = (Area) session.get(Area.class, areaName);
+            if (area != null && type.matches("Story|Epic|Theme")) {
+                String archivedQueryString = "from " + type + " " +
+                        "where area = ? " +
+                        "and archived=true " +
+                        "order by dateArchived desc";
 
-                            Query archivedQuery = session.createQuery(archivedQueryString);
-                            archivedQuery.setParameter(0, area);
-                            archivedQuery.setFirstResult(ELEMENTS_PER_ARCHIVED_PAGE * ((page-1)));
-                            archivedQuery.setMaxResults(ELEMENTS_PER_ARCHIVED_PAGE);
+                Query archivedQuery = session.createQuery(archivedQueryString);
+                archivedQuery.setParameter(0, area);
+                archivedQuery.setFirstResult(ELEMENTS_PER_ARCHIVED_PAGE * ((page-1)));
+                archivedQuery.setMaxResults(ELEMENTS_PER_ARCHIVED_PAGE);
 
-                            if (type.equals("Story")) {
-                                archivedItems = Util.castList(Story.class, archivedQuery.list());
-                                for (Object item : archivedItems) {
-                                    Story s = (Story) item;
-                                    Hibernate.initialize(s.getChildren());
-                                }
-                            }
-                        }
+                Query countQuery = session.createQuery("select count(*) from " + type + " where archived = true and area = ?");
+                countQuery.setParameter(0, area);
+                long nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
+                nbrOfPages = (int) Math.ceil((double) nbrOfItems / JSONController.ELEMENTS_PER_ARCHIVED_PAGE);
+
+                archivedItems = Util.castList(Object.class, archivedQuery.list());
+
+                for (Object item : archivedItems) {
+                    if (type.equals("Story")) {
+                        Hibernate.initialize(((Story) item).getChildren());
+                    } else if (type.equals("Epic")) {
+                        Hibernate.initialize(((Epic) item).getChildren());
+                    } else if (type.equals("Theme")) {
+                        Hibernate.initialize(((Theme) item).getChildren());
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (tx != null) {
-                        tx.rollback();
-                    }
-                } finally {
-                    session.close();
                 }
-
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(archivedItems);
+        if (type.equals("Epic")) {
+            mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
+        } else if (type.equals("Theme")) {
+            mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
+        }
+        Map<String,Object> archivedInfo = new HashMap<String, Object>();
+        archivedInfo.put("nbrOfPages", nbrOfPages);
+        archivedInfo.put("archivedItems", archivedItems);
+        return mapper.writeValueAsString(archivedInfo);
     }
 
     @RequestMapping(value="/autocompletethemes/{areaName}", method=RequestMethod.GET)
