@@ -571,9 +571,9 @@ public class HomeController {
                     }
                     Query query = session.createQuery(queryString);
                     query.setParameter(0, area);
-    
+
                     nonArchivedThemes = Util.castList(Theme.class, query.list());
-    
+
                     for(Theme t : nonArchivedThemes) {
                         map.put(t.getId(), t);
                     }
