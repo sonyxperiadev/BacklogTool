@@ -1,5 +1,19 @@
-<li class="epic ui-state-default editEpic <c:if test='${view.equals("epic-story")}'>parentLi</c:if><c:if test='${view.equals("theme-epic")}'>childLi ui-hidden</c:if>"
-    id="${epic.id}" <c:if test='${view.equals("theme-epic")}'>parentid="${epic.theme.id}"</c:if>>
+<li class="epic ui-state-default editEpic 
+    <c:if test='${view.equals("epic-story")}'>
+        parentLi 
+    </c:if>
+    <c:if test='${view.equals("theme-epic")}'>
+        childLi 
+    </c:if>
+    <c:if test='${hidden}'>
+        ui-hidden
+    </c:if>
+    "
+    id="${epic.id}" 
+    <c:if test='${view.equals("theme-epic")}'>
+        parentid="${epic.theme.id}"
+    </c:if>
+>
     <div id="icons">
         <c:if test='${view.equals("epic-story")}'>
             <div title="Show stories"

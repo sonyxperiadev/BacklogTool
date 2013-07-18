@@ -2047,6 +2047,8 @@ $(document).ready(function () {
         var visibleChild;
         if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
             visibleChild = true;
+            //TODO: Should be removeClass(ui-hidden). However a bug is causing
+            //moved children to get hidden if they are moved to a parent with other hidden children.
             childLi.css('display', 'list-item');
         } else {
             visibleChild = false;
@@ -2604,8 +2606,13 @@ $(document).ready(function () {
             type = "Theme";
         }
         $("#pagination").pagination('destroy');
+
+        var url = "../json/read-archived/" + areaName + "?type=" + type + "&page=" + pageNbr;
+        if (isFilterActive()) {
+            url += "&ids=" + $("#filter").val();
+        }
         $.ajax({
-            url: "../json/read-archived/" + areaName + "?type=" + type + "&page=" + pageNbr,
+            url: url,
             dataType: 'json',
             error: function (request, status, error) {
                 alert(error);
@@ -3132,33 +3139,41 @@ $(document).ready(function () {
      * Also disable drag and drop if filter is active.
      */
     var updateFilter = function() {
-        iterAllParents(function(parent) {
-            var pLi = $("li#" + parent.id);
-            var cLi = $('[parentid="' + parent.id + '"]');
-            var visibleChildren = true;
-            if(isFiltered(parent.id) || !isFilterActive()) {
-                pLi.removeClass("ui-hidden");
-                if(pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
-                    cLi.css("display", "list-item");
+        if (archivedView) {
+            $('#archived-list-container').empty();
+            buildArchivedList(1);
+        } else {
+            iterAllParents(function(parent) {
+                var pLi = $("li#" + parent.id);
+                var cLi = $('[parentid="' + parent.id + '"]');
+                var visibleChildren = true;
+                if(isFiltered(parent.id) || !isFilterActive()) {
+                    pLi.removeClass("ui-hidden");
+                    if(pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
+                        cLi.css("display", "list-item");
+                    }
+                } else {
+                    visibleChildren = false;
+                    pLi.addClass("ui-hidden");
+                    if(typeof parent.children !== "undefined") {
+                        cLi.css("display", "none");
+                    }
                 }
-            } else {
-                visibleChildren = false;
-                pLi.addClass("ui-hidden");
-                if(typeof parent.children !== "undefined") {
-                    cLi.css("display", "none");
-                }
-            }
 
-            for(var i = 0; i < parent.children.length; i++) {
-                visible[parent.children[i]] = visibleChildren;
-            }
-        });
+                for(var i = 0; i < parent.children.length; i++) {
+                    visible[parent.children[i]] = visibleChildren;
+                }
+            });
+        }
 
         if (isFilterActive()) {
             $("html, body").animate({ scrollTop: 0 }, "fast");
-
-            var filterString = '?ids=' + $("#filter").val();
-            window.history.replaceState( {} , document.title, filterString );
+            var paramString = "?";
+            if (archivedView) {
+                paramString = "?archived-view=true&";
+            }
+            paramString += 'ids=' + $("#filter").val();
+            window.history.replaceState( {} , document.title, paramString );
             $("#list-container").sortable("option", "disabled", true);
 
             //Remove selected items if they are invisible after changing filter
@@ -3167,7 +3182,11 @@ $(document).ready(function () {
             });
             updateCookie(); //Necessary if selected items changed
         } else {
-            window.history.replaceState( {} , document.title, '?' );
+            var paramString = "?";
+            if (archivedView) {
+                paramString += "archived-view=true";
+            }
+            window.history.replaceState( {} , document.title, paramString);
             if (!disableEditsBoolean) {
                 $("#list-container").sortable("option", "disabled", false);
             }

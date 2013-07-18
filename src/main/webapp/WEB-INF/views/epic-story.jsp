@@ -75,12 +75,12 @@ THE SOFTWARE.
                 <ul class="parent-child-list" id="list-container">
 
                     <c:forEach var="epic" items="${nonArchivedEpics}">
-                        <c:if test="${filterIds == null || filterIds.contains(epic.id)}">
-                            <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
-                            <c:forEach var="story" items="${epic.children}">
-                                <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
-                            </c:forEach>
-                        </c:if>
+                        <c:set var="hidden" value="${filterIds != null && !filterIds.contains(epic.id)}"/>
+                        <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
+                        <c:set var="hidden" value="${true}"/>
+                        <c:forEach var="story" items="${epic.children}">
+                            <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                        </c:forEach>
                     </c:forEach>
                 </ul>
                 <ul class="parent-child-list" id="archived-list-container"></ul>

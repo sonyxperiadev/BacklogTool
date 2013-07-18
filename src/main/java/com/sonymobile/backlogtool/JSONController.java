@@ -317,18 +317,37 @@ public class JSONController {
 
             area = (Area) session.get(Area.class, areaName);
             if (area != null && type.matches("Story|Epic|Theme")) {
-                String archivedQueryString = "from " + type + " " +
-                        "where area = ? " +
-                        "and archived=true " +
-                        "order by dateArchived desc";
+                Query archivedQuery = null;
+                if (filterIds == null || filterIds.isEmpty()) {
+                    archivedQuery = session.createQuery("from " + type + " " +
+                            "where area = ? " +
+                            "and archived=true " +
+                            "order by dateArchived desc");
+                } else {
+                    archivedQuery = session.createQuery("from " + type + " " +
+                            "where area = ? " +
+                            "and archived=true " +
+                            "and id in (:filterIds) " +
+                            "order by dateArchived desc");
+                    archivedQuery.setParameterList("filterIds", filterIds);
+                }
 
-                Query archivedQuery = session.createQuery(archivedQueryString);
                 archivedQuery.setParameter(0, area);
                 archivedQuery.setFirstResult(ELEMENTS_PER_ARCHIVED_PAGE * ((page-1)));
                 archivedQuery.setMaxResults(ELEMENTS_PER_ARCHIVED_PAGE);
 
-                Query countQuery = session.createQuery("select count(*) from " + type + " where archived = true and area = ?");
+                Query countQuery = null;
+                if (filterIds == null || filterIds.isEmpty()) {
+                    countQuery = session.createQuery("select count(*) from " + type 
+                            + " where archived = true and area = ?");
+                } else {
+                    countQuery = session.createQuery("select count(*) from " + type  +
+                            " where archived = true and area = ? "+
+                            " and id in (:filterIds)");
+                    countQuery.setParameterList("filterIds", filterIds);
+                }
                 countQuery.setParameter(0, area);
+
                 long nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
                 nbrOfPages = (int) Math.ceil((double) nbrOfItems / JSONController.ELEMENTS_PER_ARCHIVED_PAGE);
 

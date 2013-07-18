@@ -1,4 +1,10 @@
-<li class="parentLi theme ui-state-default editTheme" id="${theme.id}">
+<li class="parentLi theme ui-state-default editTheme 
+    <c:if test='${hidden}'>
+        ui-hidden
+    </c:if>
+    " 
+    id="${theme.id}"
+>
     <div id="icons">
         <div title="Show epics"
         class="icon 
