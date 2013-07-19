@@ -379,9 +379,21 @@ $(document).ready(function () {
 //      request.logLevel = 'debug';
 
         request.onMessage = function(response) {
-            if (!ignorePush) {
-                var message = response.responseBody;
-                processPushData(message);
+            var data = response.responseBody;
+
+            //Data is on format {msg1},{msg2},
+            //make it into a valid json array:
+            data = "[" + data.substring(0, data.length - 1) + "]";
+
+            var jsonObj = {};
+            try {
+                jsonObj = JSON.parse(data);
+            } catch (error) {
+                alert("Error: Invalid JSON-message from the server, check console log " + error);
+            }
+
+            for (var i=0; i<jsonObj.length; i++) {
+                processPushData(jsonObj[i]);
             }
         };
 
@@ -420,13 +432,7 @@ $(document).ready(function () {
      * Try to interpret the data as JSON, and forward the data
      * to corresponding method
      */
-    var processPushData = function processPushData(dataString) {
-        var jsonObj = {};
-        try {
-            jsonObj = JSON.parse(dataString);
-        } catch (error) {
-            alert("Error: Invalid JSON-message from the server");
-        }
+    var processPushData = function processPushData(jsonObj) {
         var data = jsonObj.data;
         var childData = new Array();
         if(typeof data.children !== "undefined" && data.children != null) {

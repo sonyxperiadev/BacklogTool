@@ -78,6 +78,7 @@ public final class AtmosphereHandler implements HandlerMethodArgumentResolver {
         if (bc == null) {
             bc = BroadcasterFactory.getDefault().get();
             bc.setID(areaName);
+            bc.getBroadcasterConfig().addFilter(new BroadcastDelimiter());
             BroadcasterFactory.getDefault().add(bc, bc.getID());
         }
         return bc;

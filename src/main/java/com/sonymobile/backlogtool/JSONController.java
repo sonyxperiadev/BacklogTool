@@ -800,7 +800,7 @@ public class JSONController {
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
-            @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
+           @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
@@ -1736,8 +1736,23 @@ public class JSONController {
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
                     }
+                    AtmosphereHandler.push(newAreaName, getJsonString(Story.class, story));
                 }
                 Util.rebuildRanks(BacklogType.STORY, oldArea, session);
+
+                //Push out all affected themes and epics
+                Set<Epic> updatedEpics = new HashSet<Epic>();
+                Set<Theme> updatedThemes = new HashSet<Theme>();
+                for (Story story : storiesToMove) {
+                    Theme theme = story.getTheme();
+                    Epic epic = story.getEpic();
+                    if (theme != null && updatedThemes.add(theme)) {
+                        AtmosphereHandler.push(newAreaName, getJsonString(Theme.class, theme));
+                    }
+                    if (epic != null && updatedEpics.add(epic)) {
+                        AtmosphereHandler.push(newAreaName, getJsonString(Epic.class, epic));
+                    }
+                }
             }
             tx.commit();
         } catch (Exception e) {
@@ -2016,6 +2031,7 @@ public class JSONController {
             session.close();
         }
 
+        //TODO:This push does nothing at the moment
         AtmosphereHandler.push(areaName);
         return true;
     }
