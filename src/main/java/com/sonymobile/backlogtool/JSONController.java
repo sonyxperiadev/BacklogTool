@@ -1737,6 +1737,7 @@ public class JSONController {
                         story.setTheme(newEpic.getTheme());
                     }
                     AtmosphereHandler.push(newAreaName, getJsonString(Story.class, story));
+                    AtmosphereHandler.push(areaName, getJsonString("Delete", story.getId()));
                 }
                 Util.rebuildRanks(BacklogType.STORY, oldArea, session);
 
