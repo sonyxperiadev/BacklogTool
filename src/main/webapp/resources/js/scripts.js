@@ -1986,6 +1986,8 @@ $(document).ready(function () {
         $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
 
         if (story.archived == true) {
+            $('p#archived-text' + storyId).text("Archived");
+            $('p#date-archived' + storyId).html(getDate(story.dateArchived));
             $('#archiveStory' + storyId).attr('checked', true);
         }
     };
@@ -2301,6 +2303,12 @@ $(document).ready(function () {
         if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
             $('a.truncate'+epicId, descriptionParagraph.parent()).click();
         }
+
+        if (updatedEpic.archived == true) {
+            $('p#archived-text' + epicId).text("Archived");
+            $('p#date-archived' + epicId).html(getDate(updatedEpic.dateArchived));
+            $('#archiveEpic' + epicId).attr('checked', true);
+        }
     };
 
     var editEpic = function(event) {
@@ -2458,6 +2466,13 @@ $(document).ready(function () {
         if (extendedDescriptions.indexOf('truncate'+themeId) != -1) {
             $('a.truncate'+themeId, descriptionParagraph.parent()).click();
         }
+
+        if (updatedTheme.archived == true) {
+            $('p#archived-text' + themeId).text("Archived");
+            $('p#date-archived' + themeId).html(getDate(updatedTheme.dateArchived));
+            $('#archiveEpic' + themeId).attr('checked', true);
+        }
+
     };
 
     var editTheme = function(event) {

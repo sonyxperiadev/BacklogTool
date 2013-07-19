@@ -227,10 +227,12 @@
         <button
             class="inline marginTop cancelButton hidden-edit ${story.id}"
             title="Cancel">Cancel</button>
-        <c:if test='${story.archived}'>
-            <p class="title ${story.id}">Archived</p>
-        </c:if>
-        <p class="description ${story.id}">
+        <p id="archived-text${story.id}" class="title ${story.id}">
+            <c:if test='${story.isArchived()}'>
+                Archived
+            </c:if>
+        </p>
+        <p id="date-archived${story.id}" class="description ${story.id}">
             <fmt:formatDate value="${story.dateArchived}" pattern="yyyy-MM-dd" />
         </p>
     </div>

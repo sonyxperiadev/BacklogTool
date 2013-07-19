@@ -84,12 +84,12 @@
     <br>
     <button class="save-button hidden-edit ${epic.id}" title="Save">Save</button>
     <button class="cancelButton hidden-edit ${epic.id}" title="Cancel">Cancel</button>
-    <c:if test='${epic.archived}'>
-        <p class="title ${epic.id}">
-            Archived
-        </p>
-    </c:if>
-    <p class="description ${epic.id}">
+    <p id="archived-text${epic.id}" class="title ${epic.id}">
+        <c:if test='${epic.archived}'>
+                Archived
+        </c:if>
+    </p>
+    <p id="date-archived${epic.id}" class="description ${epic.id}">
         <fmt:formatDate value="${epic.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
     <br style="clear: both" />
