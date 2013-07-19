@@ -759,7 +759,7 @@ public class JSONController {
     @RequestMapping(value="/updatetask/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Task updateTask(@PathVariable String areaName,
-            @RequestBody NewTaskContainer updatedTask, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
+            @RequestBody NewTaskContainer updatedTask) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Task task = null;
@@ -791,9 +791,8 @@ public class JSONController {
         } finally {
             session.close();
         }
-        if (pushUpdate) {
-            AtmosphereHandler.push(areaName, getJsonString(Task.class, task));
-        }
+
+        AtmosphereHandler.push(areaName, getJsonString(Task.class, task));
         return task;
     }
 
@@ -801,7 +800,7 @@ public class JSONController {
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
-            @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
+            @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
@@ -907,18 +906,17 @@ public class JSONController {
             }
 
             tx.commit();
-            if (pushUpdate) {
-                AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
-                if(theme != null) {
-                    AtmosphereHandler.push(areaName, getJsonString("Theme", theme));
-                }
-                if(parentsToPush.size() > 0) {
-                    HashMap<String, Object> hm = new HashMap<String, Object>();
-                    hm.put("lastItem", null);
-                    hm.put("objects", parentsToPush);
-                    hm.put("view", "epic-story"); // It is only considered a move in "epic-story"-view
-                    AtmosphereHandler.push(areaName, JSONController.getJsonString("childMove", hm));
-                }
+
+            AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
+            if (theme != null) {
+                AtmosphereHandler.push(areaName, getJsonString("Theme", theme));
+            }
+            if (parentsToPush.size() > 0) {
+                HashMap<String, Object> hm = new HashMap<String, Object>();
+                hm.put("lastItem", null);
+                hm.put("objects", parentsToPush);
+                hm.put("view", "epic-story"); // It is only considered a move in "epic-story"-view
+                AtmosphereHandler.push(areaName, JSONController.getJsonString("childMove", hm));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -936,7 +934,7 @@ public class JSONController {
     @RequestMapping(value="/updateepic/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody String updateEpic(@PathVariable String areaName,
-            @RequestBody NewEpicContainer updatedEpic, @RequestParam boolean pushUpdate) throws Exception {
+            @RequestBody NewEpicContainer updatedEpic) throws Exception {
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -1005,9 +1003,8 @@ public class JSONController {
                 epic.setDescription(updatedEpic.getDescription());
                 epic.setArchived(updatedEpic.isArchived());
                 tx.commit();
-                if (pushUpdate) {
-                    AtmosphereHandler.push(areaName, getJsonString(Epic.class, epic));
-                }
+
+                AtmosphereHandler.push(areaName, getJsonString(Epic.class, epic));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1026,7 +1023,7 @@ public class JSONController {
     @RequestMapping(value="/updatetheme/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody String updateTheme(@PathVariable String areaName,
-            @RequestBody Theme updatedTheme, @RequestParam boolean pushUpdate) throws Exception {
+            @RequestBody Theme updatedTheme) throws Exception {
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -1081,9 +1078,8 @@ public class JSONController {
                 theme.setDescription(updatedTheme.getDescription());
                 theme.setArchived(updatedTheme.isArchived());
                 tx.commit();
-                if (pushUpdate) {
-                    AtmosphereHandler.push(areaName, getJsonString(Theme.class, theme));
-                }
+
+                AtmosphereHandler.push(areaName, getJsonString(Theme.class, theme));
             }
         } catch (Exception e) {
             e.printStackTrace();

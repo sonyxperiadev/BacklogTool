@@ -1625,25 +1625,19 @@ $(document).ready(function () {
      */
     var bulkSave = function() {
         displayUpdateMsg();
-        var pushUpdate = false;
         while (editingItems.length > 0) {
-            //If last item, we want to trigger a push update
-//            if (editingItems.length == 1) {               
-                pushUpdate = true; // We want to always push
-//            }
             var lastElement = $(editingItems).last()[0];
             var id = eval(lastElement.id);
 
             if (lastElement.type == "task") {
-                saveTask(id, pushUpdate);
+                saveTask(id);
             } else if (lastElement.type == "story") {
-                saveStory(id, pushUpdate);
+                saveStory(id);
             } else if (lastElement.type == "epic") {
-                saveEpic(id, pushUpdate);
+                saveEpic(id);
             } else if (lastElement.type == "theme") {
-                saveTheme(id, pushUpdate);
+                saveTheme(id);
             }
-
         }
         editingItems = new Array();
         $.unblockUI();
@@ -1778,7 +1772,7 @@ $(document).ready(function () {
         }
     };
 
-    var saveStory = function(event, pushUpdate) {
+    var saveStory = function(event) {
         var storyId = null;
         if (typeof event == "number") {
             storyId = event;
@@ -1806,7 +1800,7 @@ $(document).ready(function () {
         story.storyAttr3Id = $('#storyAttr3' + storyId).val();
 
         $.ajax({
-            url: "../json/updatestory/"+areaName+"?pushUpdate="+pushUpdate,
+            url: "../json/updatestory/"+areaName,
             type: 'POST',
             dataType: 'json',
             async: false,
@@ -2014,7 +2008,7 @@ $(document).ready(function () {
         updateWhenItemsClosed();
     };
 
-    var saveTask = function(event, pushUpdate) {
+    var saveTask = function(event) {
         var taskId;
         if (typeof event == "number") {
             taskId = event;
@@ -2034,7 +2028,7 @@ $(document).ready(function () {
         task.taskAttr1Id = $('#taskAttr1' + taskId).val();
 
         $.ajax({
-            url: "../json/updatetask/"+areaName+"?pushUpdate="+pushUpdate,
+            url: "../json/updatetask/"+areaName,
             type: 'POST',
             async: false,
             dataType: 'json',
@@ -2183,7 +2177,7 @@ $(document).ready(function () {
         }
     };
 
-    var saveEpic = function(event, pushUpdate) {
+    var saveEpic = function(event) {
         var epicId;
         if (typeof event == "number") {
             epicId = event;
@@ -2202,7 +2196,7 @@ $(document).ready(function () {
         epic.archived = $('#archiveEpic' + epicId).is(':checked');
 
         $.ajax({
-            url: "../json/updateepic/"+areaName+"?pushUpdate="+pushUpdate,
+            url: "../json/updateepic/"+areaName,
             type: 'POST',
             async: false,
             dataType: 'json',
@@ -2379,7 +2373,7 @@ $(document).ready(function () {
         }
     };
 
-    var saveTheme = function(event, pushUpdate) {
+    var saveTheme = function(event) {
         var themeId;
         if (typeof event == "number") {
             themeId = event;
@@ -2397,7 +2391,7 @@ $(document).ready(function () {
         theme.archived = $('#archiveTheme' + themeId).is(':checked');
 
         $.ajax({
-            url: "../json/updatetheme/"+areaName+"?pushUpdate="+pushUpdate,
+            url: "../json/updatetheme/"+areaName,
             type: 'POST',
             async: false,
             dataType: 'json',
@@ -2483,7 +2477,7 @@ $(document).ready(function () {
         if (updatedTheme.archived == true) {
             $('p#archived-text' + themeId).text("Archived");
             $('p#date-archived' + themeId).html(getDate(updatedTheme.dateArchived));
-            $('#archiveEpic' + themeId).attr('checked', true);
+            $('#archiveTheme' + themeId).attr('checked', true);
         }
 
     };
