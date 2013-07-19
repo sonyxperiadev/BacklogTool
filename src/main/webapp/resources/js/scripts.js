@@ -477,6 +477,7 @@ $(document).ready(function () {
                 }
                 offset = null;
             }
+            addZebraStripesToParents();
         } else {
             window.console && console.log("No json-data in push-message");
         }
