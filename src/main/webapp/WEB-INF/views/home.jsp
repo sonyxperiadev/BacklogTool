@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page session="false"%>
 <!DOCTYPE html>
 <html>
@@ -35,10 +36,30 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
-    
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
     <script type="text/javascript">
-        var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
     
+        google.load("feeds", "1");
+    
+        function initialize() {
+            var feed = new google.feeds.Feed("https://github.com/sonyxperiadev/BacklogTool/releases.atom");
+            feed.load(function(result) {
+                if (!result.error) {
+                    for (var i = 0; i < 2; i++) {
+                        var entry = result.feed.entries[i];
+                        $("#releases").append("<a href=https://github.com" + entry.link + "><h3>" + entry.title + "</h3></a>");
+                        $("#releases").append("<p>" + entry.publishedDate.slice(0, -14) + "</p>");
+                        $("#releases").append(entry.content);
+                    }
+                }
+            });
+        }
+
+        google.setOnLoadCallback(initialize);
+
+        var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
+
         $(document).ready(function() {
             $(".home-link").css("color", "#1c94c4");
 
@@ -138,34 +159,46 @@ THE SOFTWARE.
         <div id="main">
             <div id="list-container-div">
                 <div id="area-container-div" class="inline">
-                    <p style="margin-top: 15px;">Areas:</p>
-                    <c:forEach var="area" items="${adminAreas}">
-                        <a class="area-links" href="story-task/${area}">
-                            ${area} </a>
-                        <a><img
-                            src="resources/css/ui-lightness/images/delete.png"
-                            class="deletebutton" id="${area}"
-                            title="Delete area" alt="Delete area" /></a>
-                        <a href="areaedit/${area}"><img
-                            src="resources/css/ui-lightness/images/pencil_go.png"
-                            class="editbutton" title="Edit area" alt="Edit area" /></a>
-                        <br />
-                    </c:forEach>
-                    <br>
-                    <c:forEach var="area" items="${nonAdminAreas}">
-                        <a class="area-links" href="story-task/${area}">
-                            ${area} </a>
-                        <br />
-                    </c:forEach>
-                    <br> <br>
-                    <p>Create new area</p>
-                    <input type="text"
-                        class="text ui-widget-content ui-corner-all"
-                        id="area-name" size="33" maxlength="50"> <a
-                        title="Create area" id="create-area">Create area</a>
+                    <div class="well">
+                        <h3>Areas</h3>
+                        <c:if test="${fn:length(adminAreas) gt 0}">
+                            <p>With admin permissions</p>
+                        </c:if>
+                        <c:forEach var="area" items="${adminAreas}">
+                            <a class="area-links" href="story-task/${area}">
+                                ${area} </a>
+                            <a>
+                                <img
+                                    src="resources/css/ui-lightness/images/delete.png"
+                                    class="deletebutton" id="${area}"
+                                    title="Delete area" alt="Delete area" />
+                            </a>
+                            <a href="areaedit/${area}">
+                                <img
+                                    src="resources/css/ui-lightness/images/pencil_go.png"
+                                    class="editbutton" title="Edit area" alt="Edit area" /></a>
+                            <br />
+                        </c:forEach>
+                        <br>
+                        <c:if test="${fn:length(nonAdminAreas) gt 0}">
+                            <p>With viewing permissions</p>
+                        </c:if>
+                        <c:forEach var="area" items="${nonAdminAreas}">
+                            <a class="area-links" href="story-task/${area}">
+                                ${area} </a>
+                            <br />
+                        </c:forEach>
+                    </div>
+                    <div class="well">
+                        <h3>Create new area</h3>
+                        <input type="text"
+                            class="text ui-corner-all"
+                            id="area-name" size="33" maxlength="50"> 
+                        <a title="Create area" id="create-area">Create area</a>
+                    </div>
                 </div>
-
-                <div id="info-container-div" class="inline">
+                <div id="info-container-div" class="inline well">
+                    <h3>About</h3>
                     <p>This tool keeps track of the backlog for software
                         development teams.</p>
                     <p>
@@ -183,6 +216,7 @@ THE SOFTWARE.
                         are supported.
                     <p>Thanks to famfamfam.com for the icons!</p>
                 </div>
+                <div id="releases" class="inline well"></div>
             </div>
         </div>
     </div>
@@ -193,8 +227,8 @@ THE SOFTWARE.
 
     <div id="delete-area" title="Delete area">
         <p>
-            <span style="float: left; margin: 0 7px 20px 0;"></span> Do
-            you want to remove this area?
+            <span style="float: left; margin: 0 7px 20px 0;"></span> 
+            Do you want to remove this area?
         </p>
     </div>
 </body>

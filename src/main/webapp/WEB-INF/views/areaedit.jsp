@@ -45,8 +45,38 @@ THE SOFTWARE.
         var taskAttr1Id = "${area.taskAttr1.id}";
     	var seriesIds = jQuery.parseJSON('${seriesIds}');
     </script>
+    
+    <style>
+        #main {
+            padding-top: 40px;
+        }
+
+        #right-panel > div {
+            min-width: 435px;
+        }
+
+        li * {
+            vertical-align: middle;
+        }
+
+        .new-attribute > div > .attrIcon {
+            margin-left: 7px;
+        }
+
+        .new-attribute > .removeOption {
+            margin-left: 7px;
+        }
+
+        .new-attribute > .icon-container {
+            margin-left: 2px;
+        }
+
+        .new-attribute input {
+            margin: 1px;
+        }
+    </style>
 </head>
-<body style="min-width: 1420px;">
+<body>
     <div id="wrap">
         <div id="header">
             <h1>
@@ -59,117 +89,118 @@ THE SOFTWARE.
                 <p class="headerText textstyle inline">${loggedInUser}</p>
                 <a id="login-out" class="fff inline" href="../auth/logout">Log out</a>
             </div>
-            <br style="clear: both" />
+            
         </div>
         <div id="main">
-            <div id="list-container-div">
-                <div id="namechange-div">
-                    <h4>Area name</h4>
-                    <p>Change area name</p>
-                    <input type="text" class="ui-corner-all"
-                        id="area-name" size="33" maxlength="50"
-                        value="${area.name}"> <input
-                        id="name-button"
-                        class="ui-corner-all areaedit-button"
-                        type="submit" value="Change">
+            <div id="left-panel">
+                <div class="well">
+                    <p>Area name</p>
+                    <input type="text" 
+                    class="ui-corner-all"
+                    id="area-name" 
+                    size="33" 
+                    maxlength="50"
+                    value="${area.name}"> 
+                    <input id="name-button"
+                    class="ui-corner-all areaedit-button"
+                    type="submit" value="Change">
+                </div>
+                <div class="well">
+                    <div id="admins-div">
+                        <p>Admins</p> 
+                        <input id="admin-username" 
+                        class="inline ui-corner-all"
+                        placeholder="Username">  
+                        <button id="add-admin" type="submit" class="inline fff">Add</button>
+                        <br/>
+                        <ul>
+                        <c:forEach var="admin" items="${area.admins}">
+                            <li>
+                                <b>${admin}</b>
+                                <a>
+                                    <img
+                                        src="../resources/css/ui-lightness/images/delete.png"
+                                        class="deleteAdminButton"
+                                        id="${admin}" title="Remove admin"
+                                        alt="Remove admin" />
+                                </a>
+                                <br />
+                            </li>
+                        </c:forEach>
+                        </ul>
+                    </div>
+                    <div id="editors-div">
+                        <p>Editors</p> 
+                        <input id="editor-username" 
+                        class="inline ui-corner-all"
+                        placeholder="Username"> 
+                        <button id="add-editor" type="submit" class="inline fff">Add</button> 
+                        <ul>
+                        <c:forEach var="editor" items="${area.editors}">
+                            <li>
+                                <b>${editor}</b>
+                                <a>
+                                    <img
+                                        src="../resources/css/ui-lightness/images/delete.png"
+                                        class="deleteEditorButton"
+                                        id="${editor}" title="Remove editor"
+                                        alt="Remove editor" />
+                                </a>
+                            </li>
+                        </c:forEach>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div id="right-panel" class="well">
+                <button id="save" class="fff">&nbsp Save changes</button>
+                <br style="clear:both" />
+                <div class="inline">
+                    <p>Dynamic story field 1</p>
+                    <input
+                        id="${area.storyAttr1.id}"
+                        class="ui-corner-all attrTitle"
+                        value="${area.storyAttr1.name}"
+                        maxlength="15">
+                    <c:set var="attribute" value="${area.storyAttr1}" />
+                    <%@ include file="/WEB-INF/views/attribute.jsp" %>
+                </div>
+                
+                <div class="inline">
+                    <p>Dynamic story field 2</p>
+                    <input
+                        id="${area.storyAttr2.id}"
+                        class="ui-corner-all attrTitle"
+                        value="${area.storyAttr2.name}"
+                        maxlength="15">
+                    <c:set var="attribute" value="${area.storyAttr2}" />
+                    <%@ include file="/WEB-INF/views/attribute.jsp" %>
                 </div>
 
-                <h4>Permissions</h4>
-                <table>
-                    <tr>
-                        <td style="width: 280px">
-                            <p>Current admins</p> <c:forEach var="admin"
-                                items="${area.admins}">
-                                <b>${admin}</b>
-                                <a><img
-                                    src="../resources/css/ui-lightness/images/delete.png"
-                                    class="deleteAdminButton"
-                                    id="${admin}" title="Remove admin"
-                                    alt="Remove admin" /></a>
-                                <br />
-                            </c:forEach> <br />
-                            <p>Add new admin</p> <input
-                            id="admin-username" class="ui-corner-all"
-                            placeholder="Username"> <input
-                            id="add-admin"
-                            class="ui-corner-all areaedit-button"
-                            type="submit" value="Add"> <br>
-                            <br>
-                        </td>
-                        <td style="width: 280px">
-                            <p>Current editors</p> 
-                            <c:forEach var="editor" items="${area.editors}">
-                                <b>${editor}</b>
-                                <a><img
-                                    src="../resources/css/ui-lightness/images/delete.png"
-                                    class="deleteEditorButton"
-                                    id="${editor}" title="Remove editor"
-                                    alt="Remove editor" /></a>
-                                <br />
-                            </c:forEach> <br />
-                            <p>Add new editor</p> <input
-                            id="editor-username" class="ui-corner-all"
-                            placeholder="Username"> <input
-                            id="add-editor"
-                            class="ui-corner-all areaedit-button"
-                            type="submit" value="Add"> <br>
-                            <br>
-                        </td>
-                    </tr>
-                </table>
+                <br style="clear:both" />
+                <br/>
 
-                <h4>Dynamic fields</h4>
-                <h5>Stories</h5>
-                <table>
-                    <tr>
-                        <td style="width: 450px"><input
-                            id="${area.storyAttr1.id}"
-                            class="ui-corner-all attrTitle"
-                            value="${area.storyAttr1.name}"
-                            maxlength="15">
-                        </td>
-                        <td style="width: 450px"><input
-                            id="${area.storyAttr2.id}"
-                            class="ui-corner-all attrTitle"
-                            value="${area.storyAttr2.name}"
-                            maxlength="15">
-                        </td>
-                        <td style="width: 450px">
-                            <input id="${area.storyAttr3.id}"
-                            class="ui-corner-all attrTitle"
-                            value="${area.storyAttr3.name}"
-                            maxlength="15">
-                        </td>
-                    </tr>
-                    <tr>
-                        <c:set var="attribute" value="${area.storyAttr1}" />
-                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
-                        
-                        <c:set var="attribute" value="${area.storyAttr2}" />
-                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
+                <div class="inline">
+                    <p>Dynamic story field 3</p>
+                    <input id="${area.storyAttr3.id}"
+                        class="ui-corner-all attrTitle"
+                        value="${area.storyAttr3.name}"
+                        maxlength="15">
 
-                        <c:set var="attribute" value="${area.storyAttr3}" />
-                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
-                    </tr>
-                </table>
-                <h5>Tasks</h5>
-                <table>
-                    <tr>
-                        <td style="width: 450px">
-                            <input id="${area.taskAttr1.id}"
-                            class="ui-corner-all attrTitle"
-                            value="${area.taskAttr1.name}"
-                            maxlength="15">
-                        </td>
-                    </tr>
-                    <tr>
-                        <c:set var="attribute" value="${area.taskAttr1}" />
-                        <%@ include file="/WEB-INF/views/attribute.jsp" %>
-                    </tr>
-                </table>
+                    <c:set var="attribute" value="${area.storyAttr3}" />
+                    <%@ include file="/WEB-INF/views/attribute.jsp" %>
+                </div>
+                
+                <div class="inline">
+                    <p>Dynamic task field</p>
+                    <input id="${area.taskAttr1.id}"
+                        class="ui-corner-all attrTitle"
+                        value="${area.taskAttr1.name}"
+                        maxlength="15">
 
-                <input id="save" class="ui-corner-all areaedit-button"
-                    type="submit" value="Save">
+                    <c:set var="attribute" value="${area.taskAttr1}" />
+                    <%@ include file="/WEB-INF/views/attribute.jsp" %>
+               </div>
             </div>
         </div>
     </div>
