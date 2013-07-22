@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page session="false"%>
 <!DOCTYPE html>
 <html>
@@ -42,7 +41,7 @@ THE SOFTWARE.
     
         google.load("feeds", "1");
     
-        function initialize() {
+        function initializeChangelog() {
             var feed = new google.feeds.Feed("https://github.com/sonyxperiadev/BacklogTool/releases.atom");
             feed.load(function(result) {
                 if (!result.error) {
@@ -56,11 +55,12 @@ THE SOFTWARE.
             });
         }
 
-        google.setOnLoadCallback(initialize);
-
         var isLoggedIn = "${isLoggedIn}" == "true" ? true : false;
 
         $(document).ready(function() {
+
+            initializeChangelog();
+
             $(".home-link").css("color", "#1c94c4");
 
             $("#create-area").button().click(function() {
@@ -161,12 +161,13 @@ THE SOFTWARE.
                 <div id="area-container-div" class="inline">
                     <div class="well">
                         <h3>Areas</h3>
-                        <c:if test="${fn:length(adminAreas) gt 0}">
+                        <c:if test="${!adminAreas.isEmpty()}">
                             <p>With admin permissions</p>
                         </c:if>
                         <c:forEach var="area" items="${adminAreas}">
                             <a class="area-links" href="story-task/${area}">
-                                ${area} </a>
+                                ${area} 
+                            </a>
                             <a>
                                 <img
                                     src="resources/css/ui-lightness/images/delete.png"
@@ -180,7 +181,7 @@ THE SOFTWARE.
                             <br />
                         </c:forEach>
                         <br>
-                        <c:if test="${fn:length(nonAdminAreas) gt 0}">
+                        <c:if test="${!nonAdminAreas.isEmpty()}">
                             <p>With viewing permissions</p>
                         </c:if>
                         <c:forEach var="area" items="${nonAdminAreas}">
@@ -193,30 +194,35 @@ THE SOFTWARE.
                         <h3>Create new area</h3>
                         <input type="text"
                             class="text ui-corner-all"
-                            id="area-name" size="33" maxlength="50"> 
+                            id="area-name" 
+                            size="33"
+                            placeholder="Name" 
+                            maxlength="50"> 
                         <a title="Create area" id="create-area">Create area</a>
                     </div>
                 </div>
-                <div id="info-container-div" class="inline well">
-                    <h3>About</h3>
-                    <p>This tool keeps track of the backlog for software
-                        development teams.</p>
-                    <p>
-                        Backlog items can be inserted as <b>themes</b>, <b>epics</b>,
-                        <b>stories</b> and <b>tasks</b> as a tree structure in
-                        that order.
-                    </p>
-                    <p>Three different views are available when managing the
-                        backlog, namely theme-epic, epic-story and story-task.
-                        In these views, double click on the backlog
-                        items in order to edit them.</p>
-                    <br>
-                    <p>
-                        Currently only <b>Chrome</b> and <b>Firefox</b> browsers
-                        are supported.
-                    <p>Thanks to famfamfam.com for the icons!</p>
+                <div class="inline">
+                    <div id="info-container-div" class="well">
+                        <h3>About</h3>
+                        <p>This tool keeps track of the backlog for software
+                            development teams.</p>
+                        <p>
+                            Backlog items can be inserted as <b>themes</b>, <b>epics</b>,
+                            <b>stories</b> and <b>tasks</b> as a tree structure in
+                            that order.
+                        </p>
+                        <p>Three different views are available when managing the
+                            backlog, namely theme-epic, epic-story and story-task.
+                            In these views, double click on the backlog
+                            items in order to edit them.</p>
+                        <br>
+                        <p>
+                            Currently only <b>Chrome</b> and <b>Firefox</b> browsers
+                            are supported.
+                        <p>Thanks to famfamfam.com for the icons!</p>
+                    </div>
+                    <div id="releases" class="well"></div>
                 </div>
-                <div id="releases" class="inline well"></div>
             </div>
         </div>
     </div>

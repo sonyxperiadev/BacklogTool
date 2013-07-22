@@ -74,6 +74,9 @@ THE SOFTWARE.
         .new-attribute input {
             margin: 1px;
         }
+        #save {
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
@@ -96,21 +99,22 @@ THE SOFTWARE.
                 <div class="well">
                     <p>Area name</p>
                     <input type="text" 
-                    class="ui-corner-all"
-                    id="area-name" 
-                    size="33" 
-                    maxlength="50"
-                    value="${area.name}"> 
+                        class="ui-corner-all"
+                        id="area-name" 
+                        size="33" 
+                        maxlength="50"
+                        value="${area.name}"> 
                     <input id="name-button"
-                    class="ui-corner-all areaedit-button"
-                    type="submit" value="Change">
+                        class="ui-corner-all areaedit-button"
+                        type="submit" 
+                        value="Change">
                 </div>
                 <div class="well">
                     <div id="admins-div">
                         <p>Admins</p> 
                         <input id="admin-username" 
-                        class="inline ui-corner-all"
-                        placeholder="Username">  
+                            class="inline ui-corner-all"
+                            placeholder="Username">  
                         <button id="add-admin" type="submit" class="inline fff">Add</button>
                         <br/>
                         <ul>
@@ -132,8 +136,8 @@ THE SOFTWARE.
                     <div id="editors-div">
                         <p>Editors</p> 
                         <input id="editor-username" 
-                        class="inline ui-corner-all"
-                        placeholder="Username"> 
+                            class="inline ui-corner-all"
+                            placeholder="Username"> 
                         <button id="add-editor" type="submit" class="inline fff">Add</button> 
                         <ul>
                         <c:forEach var="editor" items="${area.editors}">
@@ -153,7 +157,6 @@ THE SOFTWARE.
                 </div>
             </div>
             <div id="right-panel" class="well">
-                <button id="save" class="fff">&nbsp Save changes</button>
                 <br style="clear:both" />
                 <div class="inline">
                     <p>Dynamic story field 1</p>
@@ -176,17 +179,17 @@ THE SOFTWARE.
                     <c:set var="attribute" value="${area.storyAttr2}" />
                     <%@ include file="/WEB-INF/views/attribute.jsp" %>
                 </div>
-
+                
                 <br style="clear:both" />
                 <br/>
-
+                
                 <div class="inline">
                     <p>Dynamic story field 3</p>
                     <input id="${area.storyAttr3.id}"
                         class="ui-corner-all attrTitle"
                         value="${area.storyAttr3.name}"
                         maxlength="15">
-
+                
                     <c:set var="attribute" value="${area.storyAttr3}" />
                     <%@ include file="/WEB-INF/views/attribute.jsp" %>
                 </div>
@@ -197,10 +200,12 @@ THE SOFTWARE.
                         class="ui-corner-all attrTitle"
                         value="${area.taskAttr1.name}"
                         maxlength="15">
-
+                
                     <c:set var="attribute" value="${area.taskAttr1}" />
                     <%@ include file="/WEB-INF/views/attribute.jsp" %>
-               </div>
+                </div>
+                <br style="clear:both" />
+                <button id="save" class="fff">&nbsp Save changes</button>
             </div>
         </div>
     </div>
