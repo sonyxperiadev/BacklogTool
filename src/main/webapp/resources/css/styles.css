@@ -708,8 +708,8 @@ p.addOptionSeries, p.addOption {
 	display: none;
 }
 
-#releases, #info-container-div {
-    max-width: 700px;
+#right-div {
+    width: 500px;
 }
 
 #releases > ul {
