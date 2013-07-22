@@ -571,6 +571,7 @@ div.navigation-links a {
 
 #area-container-div {
     float: left;
+    min-width: 500px;
 }
 
 #info-container-div {
