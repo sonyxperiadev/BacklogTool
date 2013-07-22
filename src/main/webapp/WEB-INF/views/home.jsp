@@ -205,21 +205,21 @@ THE SOFTWARE.
                     <div id="info-container-div" class="well">
                         <h3>About</h3>
                         <p>This tool keeps track of the backlog for software
-                            development teams.</p>
-                        <p>
-                            Backlog items can be inserted as <b>themes</b>, <b>epics</b>,
+                            development teams. Backlog items can be inserted as <b>themes</b>, <b>epics</b>,
                             <b>stories</b> and <b>tasks</b> as a tree structure in
                             that order.
                         </p>
+                        <br>
                         <p>Three different views are available when managing the
                             backlog, namely theme-epic, epic-story and story-task.
                             In these views, double click on the backlog
-                            items in order to edit them.</p>
+                            items in order to edit them.
+                        </p>
                         <br>
                         <p>
                             Currently only <b>Chrome</b> and <b>Firefox</b> browsers
-                            are supported.
-                        <p>Thanks to famfamfam.com for the icons!</p>
+                            are supported. Thanks to famfamfam.com for the icons!
+                        </p>
                     </div>
                     <div id="releases" class="well"></div>
                 </div>
