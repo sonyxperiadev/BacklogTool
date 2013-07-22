@@ -2002,6 +2002,10 @@ $(document).ready(function () {
             $('p#archived-text' + storyId).text("Archived");
             $('p#date-archived' + storyId).html(getDate(story.dateArchived));
             $('#archiveStory' + storyId).attr('checked', true);
+        } else {
+            $('p#archived-text' + storyId).text("");
+            $('p#date-archived' + storyId).text("");
+            $('#archiveStory' + storyId).attr('checked', false);
         }
     };
 
@@ -2321,6 +2325,10 @@ $(document).ready(function () {
             $('p#archived-text' + epicId).text("Archived");
             $('p#date-archived' + epicId).html(getDate(updatedEpic.dateArchived));
             $('#archiveEpic' + epicId).attr('checked', true);
+        } else {
+            $('p#archived-text' + epicId).text("");
+            $('p#date-archived' + epicId).text("");
+            $('#archiveEpic' + epicId).attr('checked', false);
         }
     };
 
@@ -2484,6 +2492,10 @@ $(document).ready(function () {
             $('p#archived-text' + themeId).text("Archived");
             $('p#date-archived' + themeId).html(getDate(updatedTheme.dateArchived));
             $('#archiveTheme' + themeId).attr('checked', true);
+        } else {
+            $('p#archived-text' + themeId).text("");
+            $('p#date-archived' + themeId).text("");
+            $('#archiveTheme' + themeId).attr('checked', false);
         }
 
     };
