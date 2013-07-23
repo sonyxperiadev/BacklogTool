@@ -555,6 +555,10 @@ div.navigation-links a {
     -moz-transition: .3s;
     -webkit-transition: .3s;
     transition: .1s;
+    display: inline-block;
+    max-width: 480px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #list-container-div {
@@ -571,6 +575,10 @@ div.navigation-links a {
 
 #area-container-div {
     float: left;
+}
+
+#right-div, #area-container-div {
+    width: 620px;
 }
 
 #info-container-div {
@@ -706,10 +714,6 @@ p.addOptionSeries, p.addOption {
 
 .placeholder {
 	display: none;
-}
-
-#releases, #info-container-div {
-    max-width: 700px;
 }
 
 #releases > ul {
