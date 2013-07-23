@@ -119,34 +119,6 @@ THE SOFTWARE.
             };
             $(".deletebutton").click(deleteArea);
         });
-
-        $(window).load(function() {
-
-            /**
-             * Updates the width of the right and left containers,
-             * making sure that they have the same width when they are
-             * on different lines (i.e. the window is small).
-             */
-             var updateWidth = function() {
-                 var rightdivMinWidth = 500;
-                 $("#right-div").css("width", rightdivMinWidth);
-                 $("#area-container-div").css("width", "auto");
-
-                 //If the right div is on a new line
-                 if ($("#area-container-div").offset().top != $("#right-div").offset().top) {
-                     var leftWidth = $("#area-container-div").width();
-                     var maxWidth = Math.max(leftWidth, rightdivMinWidth);
-                     $("#area-container-div").css("width", maxWidth);
-                     $("#right-div").css("width", maxWidth);
-                 }
-             };
-             updateWidth();
-
-             $(window).resize(function() {
-                 updateWidth();
-             });
-         });
-
     </script>
 </head>
 
