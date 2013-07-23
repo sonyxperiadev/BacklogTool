@@ -379,21 +379,25 @@ $(document).ready(function () {
 //      request.logLevel = 'debug';
 
         request.onMessage = function(response) {
-            var data = response.responseBody;
+            if(archivedView == false) {
+                var data = response.responseBody;
 
-            //Data is on format {msg1},{msg2},
-            //make it into a valid json array:
-            data = "[" + data.substring(0, data.length - 1) + "]";
+                //Data is on format {msg1},{msg2},
+                //make it into a valid json array:
+                data = "[" + data.substring(0, data.length - 1) + "]";
 
-            var jsonObj = {};
-            try {
-                jsonObj = JSON.parse(data);
-            } catch (error) {
-                alert("Error: Invalid JSON-message from the server, check console log " + error);
-            }
+                var jsonObj = {};
+                try {
+                    jsonObj = JSON.parse(data);
+                } catch (error) {
+                    alert("Error: Invalid JSON-message from the server, check console log " + error);
+                }
 
-            for (var i=0; i<jsonObj.length; i++) {
-                processPushData(jsonObj[i]);
+                for (var i=0; i<jsonObj.length; i++) {
+                    if(jsonObj[i].views.indexOf(view) > -1 || jsonObj[i].views == "*") {
+                        processPushData(jsonObj[i]);
+                    }
+                }
             }
         };
 
@@ -449,19 +453,19 @@ $(document).ready(function () {
                 offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
             }
 
-            if(jsonObj.type == "Story" && view != "theme-epic") {
+            if(jsonObj.type == "Story") {
                 updateStoryLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
                 }
-            } else if(jsonObj.type == "Task" && view == "story-task") {
+            } else if(jsonObj.type == "Task") {
                 updateTaskLi(data);
-            } else if(jsonObj.type == "Epic" && view != "story-task") {
+            } else if(jsonObj.type == "Epic") {
                 updateEpicLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateStoryLi(childData[i]);
                 }
-            } else if(jsonObj.type == "Theme" && view == "theme-epic") {
+            } else if(jsonObj.type == "Theme") {
                 updateThemeLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateEpicLi(childData[i]);
@@ -493,74 +497,72 @@ $(document).ready(function () {
      * Process and handle a move-push-event
      */
     var handleMovePush = function(moveType, dataObj) {
-        if(dataObj.view == view) { // To prevent handling move-data that is not intended for us
-            var objList = dataObj.objects;
-            var childAttr = "prioInStory";
-            if(view == "epic-story") {
-                childAttr = "prioInEpic";
-            } else if(view == "theme-epic") {
-                childAttr = "prioInTheme";
-            }
-            var ulObj = $('ul#list-container');
-
-            if(moveType == "parentMove") {
-                for(var key in objList) {
-                    var p = getParent(key);
-                    p.prio = objList[key];
-                    if(p.archived) {
-                        ulObj = $('ul#archived-list-container');
-                    }
-                }
-            } else { // child-move
-                for(var i = 0; i < objList.length; i++) {
-                    var p = objList[i];
-                    var children = p.children;
-                    // The children should be sorted in correct prio-order in the parent
-                    children.sort(function(a, b) {
-                        return a[childAttr] > b[childAttr] ? 1 : (a[childAttr] < b[childAttr] ? -1 : 0);
-                    });
-                    var parentObj = getParent(p.id);
-                    if(parentObj == null) {
-                        // Only happens when an Epic or Story is "created" via a Story
-                        parentObj = p;
-                        parentObj.children = new Array();
-                        if(view == "epic-story") {
-                            updateEpicLi(parentObj);
-                        } else if(view == "theme-epic") {
-                            updateThemeLi(parentObj);
-                        }
-                    } else {
-                        parentObj.children = children;
-                    }
-
-                    var childIdArr = new Array();
-                    var parentLi = $("li#" + p.id + ".parentLi");
-                    for(var j = 0; j < children.length; j++) {
-                        var childId = children[j].id;
-                        var childLi = $("li#" + childId + ".childLi");
-                        if(childLi.length == 0) {
-                            if(view == "epic-story") {
-                                updateStoryLi(children[j]);
-                            } else if(view == "theme-epic") {
-                                updateEpicLi(children[j]);
-                            }
-                        }
-                        childLi.attr('parentid', p.id);
-
-                        // If the prio* is 1, it should be placed immediately after it's parent
-                        if(children[j][childAttr] == 1) {
-                            parentLi.after(childLi);
-                        } else {
-                            $("li#" + children[j-1].id + ".childLi").after(childLi);
-                        }
-                        childIdArr.push("li#" + childId);
-                    }
-                    var childrenLis = $(childIdArr.toString());
-                    toggleExpandBtn(parentLi, childrenLis, children);
-                }
-            }
-            sortList(ulObj);
+        var objList = dataObj.objects;
+        var childAttr = "prioInStory";
+        if(view == "epic-story") {
+            childAttr = "prioInEpic";
+        } else if(view == "theme-epic") {
+            childAttr = "prioInTheme";
         }
+        var ulObj = $('ul#list-container');
+
+        if(moveType == "parentMove") {
+            for(var key in objList) {
+                var p = getParent(key);
+                p.prio = objList[key];
+                if(p.archived) {
+                    ulObj = $('ul#archived-list-container');
+                }
+            }
+        } else { // child-move
+            for(var i = 0; i < objList.length; i++) {
+                var p = objList[i];
+                var children = p.children;
+                // The children should be sorted in correct prio-order in the parent
+                children.sort(function(a, b) {
+                    return a[childAttr] > b[childAttr] ? 1 : (a[childAttr] < b[childAttr] ? -1 : 0);
+                });
+                var parentObj = getParent(p.id);
+                if(parentObj == null) {
+                    // Only happens when an Epic or Story is "created" via a Story
+                    parentObj = p;
+                    parentObj.children = new Array();
+                    if(view == "epic-story") {
+                        updateEpicLi(parentObj);
+                    } else if(view == "theme-epic") {
+                        updateThemeLi(parentObj);
+                    }
+                }
+
+                var childIdArr = new Array();
+                var parentLi = $("li#" + p.id + ".parentLi");
+                for(var j = 0; j < children.length; j++) {
+                    var childId = children[j].id;
+                    var childLi = $("li#" + childId + ".childLi");
+                    if(childLi.length == 0) {
+                        if(view == "epic-story") {
+                            updateStoryLi(children[j]);
+                        } else if(view == "theme-epic") {
+                            updateEpicLi(children[j]);
+                        }
+                    }
+                    childLi.attr('parentid', p.id);
+
+                    // If the prio* is 1, it should be placed immediately after it's parent
+                    if(children[j][childAttr] == 1) {
+                        parentLi.after(childLi);
+                    } else {
+                        $("li#" + children[j-1].id + ".childLi").after(childLi);
+                    }
+                    childIdArr.push("li#" + childId);
+                }
+                var childrenLis = $(childIdArr.toString());
+                toggleExpandBtn(parentLi, childrenLis, children);
+
+                parentObj.children = children;
+            }
+        }
+        sortList(ulObj);
     };
 
     var displayUpdateMsg = function () {
@@ -802,12 +804,16 @@ $(document).ready(function () {
             offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
         }
 
-        var orderBy = $("#order-by").val();
         var comp = null;
-        if(orderBy == "prio") {
-            comp = prioComparator;
+        if(archivedView == true) {
+            comp = getComparatorFor("dateArchived");
         } else {
-            comp = getComparatorFor(orderBy);
+            var orderBy = $("#order-by").val();
+            if(orderBy == "prio") {
+                comp = prioComparator;
+            } else {
+                comp = getComparatorFor(orderBy);
+            }
         }
 
         ulObj.children('li.parentLi').sort(comp).appendTo(ulObj);
@@ -837,6 +843,10 @@ $(document).ready(function () {
         }
     };
 
+    var isNumeric = function(val) {
+        return val !== null && !isNaN(val);
+    };
+
     /**
      * Returns a function func(a, b) that works as a comparator
      * when e.g. sorting
@@ -853,9 +863,13 @@ $(document).ready(function () {
         var v1 = getParent(a.id)[attr];
         var v2 = getParent(b.id)[attr];
 
+        if(isNumeric(v1) && isNumeric(v2)) {
+            return v1 - v2;
+        }
+
         if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
-            v1 = (v1 !== null) ? v1.compareValue + '' : null;
-            v2 = (v2 !== null) ? v2.compareValue + '' : null;
+            v1 = (v1 !== null) ? v1.compareValue : null;
+            v2 = (v2 !== null) ? v2.compareValue : null;
         }
 
         // Null-values should be further back in the list
@@ -1540,7 +1554,7 @@ $(document).ready(function () {
     };
     
     /**
-     * Remove the li-object, and if a parent, all the corresponding li-children
+     * Remove the object and the li-element, and if a parent, all the corresponding li-children
      * from the page
      */
     var removeItem = function(itemLi) {
@@ -1552,7 +1566,7 @@ $(document).ready(function () {
                 itemLi.remove();
                 decrPrioForParents(obj.prio);
             }
-        } else { // A child was removed
+        } else if(typeof itemId !== "undefined") { // A child was removed
             var parentLi = $("li#" + itemLi.attr("parentid"));
             var parent = getParent(itemLi.attr("parentid"));
             var children = parent.children;
@@ -1817,24 +1831,14 @@ $(document).ready(function () {
                 if (view == "story-task") {
                     //If story was moved,
                     //check if this story is in list-container or in archived.list-container and moves it.
-                    if (getParent(storyId).archived != updatedStory.archived) {
-                        //TODO: Hide all children as well
-                        li.hide("normal", function() {
-//                            if (li.parent('#list-container').length) {
-//                                //move all children and parent
-//                                $('#list-container > [parentId="'+storyId+'"]').prependTo('#archived-list-container');
-//                                li.prependTo('#archived-list-container').fadeIn();
-//                            } else {
-//                                //move all children and parent
-//                                li.appendTo('#list-container').fadeIn();
-//                                $('#archived-list-container > [parentId="'+storyId+'"]').appendTo('#list-container');
-//                            }
-                            addZebraStripesToParents();
-                        });
+                    if (getParent(storyId).archived != updatedStory.archived) { // we just archived it
+                        removeItem($("li#" + storyId));
+                        addZebraStripesToParents();
+                    } else {
+                        updateStoryLi(updatedStory);
+                        replaceParent(storyId, updatedStory);
                     }
                     //Replacing story with a new one
-                    updateStoryLi(updatedStory);
-                    replaceParent(storyId, updatedStory);
                     if (archivedView && !updatedStory.archived) {
                         //Story was hidden from the current view;
                         //we need to add a new element
@@ -1856,17 +1860,11 @@ $(document).ready(function () {
      * @param lastItemObj An object with the id of the last selected element
      * @param newItemLi The new li-object to put in the list
      * @param newItemObj The object corresponding to the li-object
+     * @param ulObj The ul-list-element to add the element to
      */
-    var handleNewParentItem = function(lastItemObj, newItemLi, newItemObj) {
+    var handleNewParentItem = function(lastItemObj, newItemLi, newItemObj, ulObj) {
         incrPrioForParents(newItemObj.prio);
         putParent(newItemObj.id, newItemObj);
-
-        var ulObj = null;
-        if(newItemObj.archived) {
-            ulObj = $('ul#archived-list-container');
-        } else {
-            ulObj = $('ul#list-container');
-        }
         
         putInCorrPrioPos(ulObj, lastItemObj, newItemLi);
         
@@ -1880,16 +1878,18 @@ $(document).ready(function () {
         if(items.length == 0) {
             items = liObj;
         }
-        if(typeof lastItemObj !== "undefined" && lastItemObj != null) {
-            var putAfter = getParentOrLastChildElement(lastItemObj);
-            
-            if(putAfter != null) {
-                putAfter.after(items);
-            } else {
+        if(items != null) {
+            if(typeof lastItemObj !== "undefined" && lastItemObj != null) {
+                var putAfter = getParentOrLastChildElement(lastItemObj);
+
+                if(putAfter != null) {
+                    putAfter.after(items);
+                } else {
+                    ulObj.append(items);
+                }
+            } else if($("li#" + liObj.attr("id"), ulObj).length == 0) {
                 ulObj.append(items);
             }
-        } else if($("li#" + liObj.attr("id"), ulObj).length == 0) {
-            ulObj.append(items);
         }
     };
     
@@ -1932,7 +1932,7 @@ $(document).ready(function () {
             var newItem = $(htmlStr);
 
             if(view == "story-task") {
-                handleNewParentItem(updatedStory.lastItem, newItem, updatedStory);
+                handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
             } else if(view == "epic-story") {
                 newItem.attr('parentid', updatedStory.epicId);
                 var parent = getParent(updatedStory.epicId);
@@ -2043,7 +2043,6 @@ $(document).ready(function () {
             success: function (updatedTask) {
                 //Set the updated values
                 updateTaskLi(updatedTask);
-
                 replaceChild(taskId, updatedTask);
                 exitEditMode(taskId);
             },
@@ -2065,9 +2064,11 @@ $(document).ready(function () {
             //TODO: Should be removeClass(ui-hidden). However a bug is causing
             //moved children to get hidden if they are moved to a parent with other hidden children.
             childLi.css('display', 'list-item');
+            childLi.removeClass("ui-hidden");
         } else {
             visibleChild = false;
             childLi.css('display', 'none');
+            childLi.addClass("ui-hidden");
         }
 
         childLi.each(function() {
@@ -2198,8 +2199,17 @@ $(document).ready(function () {
         epic.id = eval(epicId);
         epic.title = $("textarea#epicTitle"+epicId).val();
         epic.description = $("textarea#epicDescription"+epicId).val();
-        epic.themeTitle = $("textarea#epicTheme"+epicId).val();
         epic.archived = $('#archiveEpic' + epicId).is(':checked');
+
+        var themeTitle = $("textarea#epicTheme"+epicId).val();
+        // In the Theme-Epic-view there is no textarea for Theme, so
+        // we have to get it from the map instead
+        if(themeTitle == null) {
+            findChild(epicId, function(childObj, parentObj, posInParent) {
+                themeTitle = childObj.themeTitle;
+            });
+        }
+        epic.themeTitle = themeTitle;
 
         $.ajax({
             url: "../json/updateepic/"+areaName,
@@ -2209,31 +2219,18 @@ $(document).ready(function () {
             data: JSON.stringify(epic),
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
-
-                updateEpicLi(updatedEpic);
-
                 if (view == "epic-story") {
                     //If epic was moved,
                     //check if this epic is in list-container or in archived.list-container and moves it.
                     if (getParent(epicId).archived != updatedEpic.archived) {
-                        li.fadeOut("normal", function() {
-                            if (li.parent('#list-container').length) {
-                                //move all children and parent
-                                $('#list-container > [parentId="'+epicId+'"]').prependTo('#archived-list-container');
-                                li.prependTo('#archived-list-container').fadeIn();
-                            } else {
-                                //move all children and parent
-                                li.appendTo('#list-container').fadeIn();
-                                $('#archived-list-container > [parentId="'+epicId+'"]').appendTo('#list-container');
-                            }
-                            exitEditMode(epicId);
-                            addZebraStripesToParents();
-                        });
+                        removeItem($("li#" + epicId));
                     } else {
+                        updateEpicLi(updatedEpic);
+                        //Replacing story with a new one
+                        replaceParent(epicId, updatedEpic);
                         exitEditMode(epicId);
                     }
-                    //Replacing story with a new one
-                    replaceParent(epicId, updatedEpic);
+                    addZebraStripesToParents();
                 } else if (updatedEpic.archived) {
                     //Save this for issue #44
                     //li.fadeOut("normal", function() {
@@ -2276,7 +2273,7 @@ $(document).ready(function () {
             }
 
             if(view == "epic-story") {
-                handleNewParentItem(updatedEpic.lastItem, newItem, updatedEpic);
+                handleNewParentItem(updatedEpic.lastItem, newItem, updatedEpic, ulObj);
             } else {
                 var parent = getParent(updatedEpic.themeId);
                 var attr = 'prioInTheme';
@@ -2404,30 +2401,16 @@ $(document).ready(function () {
             data: JSON.stringify(theme),
             contentType: "application/json; charset=utf-8",
             success: function (updatedTheme) {
-
-                updateThemeLi(updatedTheme);
-
                 //if theme was moved from or to archive
                 if (getParent(themeId).archived != updatedTheme.archived) {
                     //Checks if this theme is in list-container or in archived.list-container and moves it.
-                    li.fadeOut("normal", function() {
-                        if (li.parent('#list-container').length) {
-                            //move all children and parent
-                            $('#list-container > [parentId="'+themeId+'"]').prependTo('#archived-list-container');
-                            li.prependTo('#archived-list-container').fadeIn();
-                        } else {
-                            //move all children and parent
-                            li.appendTo('#list-container').fadeIn();
-                            $('#archived-list-container > [parentId="'+themeId+'"]').appendTo('#list-container');
-                        }
-                        exitEditMode(themeId);
-                        addZebraStripesToParents();
-                    });
+                    removeItem($("li#" + themeId));
                 } else {
+                    updateThemeLi(updatedTheme);
+                    replaceParent(themeId, updatedTheme);
                     exitEditMode(themeId);
                 }
-                //Replacing theme with a new one
-                replaceParent(themeId, updatedTheme);
+                addZebraStripesToParents();
             },
             error: function (request, status, error) {
                 alert(error);
@@ -2456,7 +2439,7 @@ $(document).ready(function () {
 
             newItem = $(htmlStr);            
             newItem.attr('id', themeId);
-            handleNewParentItem(updatedTheme.lastItem, newItem, updatedTheme);
+            handleNewParentItem(updatedTheme.lastItem, newItem, updatedTheme, ulObj);
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(themeId, updatedTheme);
@@ -2658,17 +2641,23 @@ $(document).ready(function () {
                 });
                 var archivedItems = data.archivedItems;
                 for (var i=0; i<archivedItems.length; i++) {
+                    var childData = archivedItems[i].children;
+                    archivedItems[i].children = new Array();
                     if (type == "Story") {
                         updateStoryLi(archivedItems[i]);
-                        //TODO: Fix that the children are displayed as well
-//                      var childData = archivedItems[i].children;
-//                      for (var k = 0; k < childData.length; k++) {
-//                      updateTaskLi(childData[k]);
-//                      }
+                        for (var k = 0; k < childData.length; k++) {
+                            updateTaskLi(childData[k]);
+                        }
                     } else if (type == "Epic") {
                         updateEpicLi(archivedItems[i]);
+                        for (var k = 0; k < childData.length; k++) {
+                            updateStoryLi(childData[k]);
+                        }
                     } else if (type == "Theme") {
                         updateThemeLi(archivedItems[i]);
+                        for (var k = 0; k < childData.length; k++) {
+                            updateEpicLi(childData[k]);
+                        }
                     }
                     //TODO: Make sure that sort is not called several times
 
@@ -3179,12 +3168,14 @@ $(document).ready(function () {
                     pLi.removeClass("ui-hidden");
                     if(pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
                         cLi.css("display", "list-item");
+                        cLi.removeClass("ui-hidden");
                     }
                 } else {
                     visibleChildren = false;
                     pLi.addClass("ui-hidden");
                     if(typeof parent.children !== "undefined") {
                         cLi.css("display", "none");
+                        cLi.addClass("ui-hidden");
                     }
                 }
 

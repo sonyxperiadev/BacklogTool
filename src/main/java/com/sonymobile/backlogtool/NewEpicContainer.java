@@ -57,5 +57,28 @@ public class NewEpicContainer extends Epic {
     public void setThemeTitle(String themeTitle) {
         this.themeTitle = StringEscapeUtils.unescapeHtml(themeTitle);
     }
+    
+    public void fromEpic(Epic e) {
+        setArchived(e.isArchived());
+        setArea(e.getArea());
+        setDateArchived(e.getDateArchived());
+        setDescription(e.getDescription());
+        setTheme(e.getTheme());
+        setTitle(e.getTitle());
+        
+        setId(e.getId());
+        setPrio(e.getPrio());
+        setPrioInTheme(e.getPrioInTheme());
+        setThemeTitle(e.getThemeTitle());
+        
+        for (Story s : e.getChildren()) {
+            Story copiedStory = s.copy(false);
+            copiedStory.setEpic(this);
+            copiedStory.setPrioInEpic(s.getPrioInEpic());
+            copiedStory.setPrio(s.getPrio());
+            copiedStory.setId(s.getId());
+            getChildren().add(copiedStory);
+        }
+    }
 
 }

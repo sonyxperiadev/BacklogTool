@@ -97,5 +97,38 @@ public class NewStoryContainer extends Story {
     public void setStoryAttr3Id(String storyAttr3Id) {
         this.storyAttr3Id = storyAttr3Id;
     }
+    
+    public void fromStory(Story s) {
+        setDescription(s.getDescription());
+        setTitle(s.getTitle());
+        setAdded(s.getAdded());
+        setContributorSite(s.getContributorSite());
+        setCustomerSite(s.getCustomerSite());
+        setContributor(s.getContributor());
+        setCustomer(s.getCustomer());
+        setDeadline(s.getDeadline());
+        setEpic(s.getEpic());
+        setTheme(s.getTheme());
+        setStoryAttr1(s.getStoryAttr1());
+        setStoryAttr2(s.getStoryAttr2());
+        setStoryAttr3(s.getStoryAttr3());
+        setArea(s.getArea());
+        setArchived(s.isArchived());
+        setDateArchived(s.getDateArchived());
+        setPrio(s.getPrio());
+        setPrioInEpic(s.getPrioInEpic());
+        setId(s.getId());
+        
+        setEpicTitle(s.getEpicTitle());
+        setThemeTitle(s.getThemeTitle());
+        
+        for (Task task : s.getChildren()) {
+            Task copiedTask = task.copy();
+            copiedTask.setStory(this);
+            copiedTask.setPrioInStory(task.getPrioInStory());
+            copiedTask.setId(task.getId());
+            addTask(copiedTask);
+        }
+    }
 
 }

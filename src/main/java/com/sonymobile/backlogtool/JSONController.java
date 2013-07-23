@@ -84,6 +84,10 @@ import com.sonymobile.backlogtool.permission.User;
 public class JSONController {
 
     public static final int ELEMENTS_PER_ARCHIVED_PAGE = 10;
+    public static final String STORY_TASK_VIEW = "story-task";
+    public static final String EPIC_STORY_VIEW = "epic-story";
+    public static final String THEME_EPIC_VIEW = "theme-epic";
+    public static final String PUSH_ACTION_DELETE = "Delete";
 
     @Autowired
     SessionFactory sessionFactory;
@@ -487,8 +491,11 @@ public class JSONController {
             newTask.setTitle("New task " + newTask.getId());
             story.addTask(newTask);
 
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Task.class, newTask, STORY_TASK_VIEW));
+
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString(Task.class, newTask));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -582,9 +589,11 @@ public class JSONController {
             if (epic != null) {
                 epic.getChildren().add(newStory);
             }
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Story.class, newStory, STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString(Story.class, newStory));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -672,10 +681,11 @@ public class JSONController {
             newEpic.setTheme(theme);
             session.save("com.sonymobile.backlogtool.Epic", newEpic);
             newEpic.setTitle("New epic " + newEpic.getId());
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Epic.class, newEpic, EPIC_STORY_VIEW + "|" + THEME_EPIC_VIEW));
+
             tx.commit();
-
-            AtmosphereHandler.push(areaName, getJsonString(Epic.class, newEpic));
-
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -738,9 +748,11 @@ public class JSONController {
             newTheme.setArea(area);
             session.save("com.sonymobile.backlogtool.Theme", newTheme);
             newTheme.setTitle("New theme " + newTheme.getId());
-            tx.commit();
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Theme.class, newTheme, THEME_EPIC_VIEW));
 
-            AtmosphereHandler.push(areaName, getJsonString(Theme.class, newTheme));
+            tx.commit();
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -782,7 +794,11 @@ public class JSONController {
             task.setCalculatedTime(updatedTask.getCalculatedTime());
             task.setTaskAttr1(attr1);
 
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Task.class, task, STORY_TASK_VIEW));
+
             tx.commit();
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -791,8 +807,6 @@ public class JSONController {
         } finally {
             session.close();
         }
-
-        AtmosphereHandler.push(areaName, getJsonString(Task.class, task));
         return task;
     }
 
@@ -836,8 +850,9 @@ public class JSONController {
                     }
                 }
             }
-
+            boolean movedToArchived = false;
             if (updatedStory.isArchived() && !story.isArchived()) {
+                movedToArchived = true;
                 //Was moved to archive
                 story.setDateArchived(new Date());
 
@@ -905,19 +920,27 @@ public class JSONController {
                 story.setEpic(newEpic);
             }
 
-            tx.commit();
-
-            AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
+            List<String> messages = new ArrayList<String>();
+            String updatedStoryViews = EPIC_STORY_VIEW;
+            if(movedToArchived) {
+                messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
+            } else {
+                updatedStoryViews += "|" + STORY_TASK_VIEW;
+            }
+            messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
+            
             if (theme != null) {
-                AtmosphereHandler.push(areaName, getJsonString("Theme", theme));
+                messages.add(getJsonStringInclChildren("Theme", theme, THEME_EPIC_VIEW));
             }
             if (parentsToPush.size() > 0) {
                 HashMap<String, Object> hm = new HashMap<String, Object>();
                 hm.put("lastItem", null);
                 hm.put("objects", parentsToPush);
-                hm.put("view", "epic-story"); // It is only considered a move in "epic-story"-view
-                AtmosphereHandler.push(areaName, JSONController.getJsonString("childMove", hm));
+                messages.add(JSONController.getJsonStringInclChildren("childMove", hm, EPIC_STORY_VIEW));
             }
+
+            tx.commit();
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -959,17 +982,33 @@ public class JSONController {
             boolean createEpicIfDoesNotExist = false;
             Epic sameNameEpic = getEpic(updatedEpic.getTitle(), theme, area, session, createEpicIfDoesNotExist);
 
+            Set<Theme> affectedThemes = new HashSet<Theme>();
             //Only make changes if the title does not already exist on another object
             if (sameNameEpic == null || sameNameEpic == epic) {
+                Theme oldTheme = epic.getTheme();
+                if(oldTheme != theme) {
+                    if(oldTheme != null) {
+                        oldTheme.getChildren().remove(epic);
+                        oldTheme.rebuildChildrenOrder();
+                        affectedThemes.add(epic.getTheme());
+                    }
+                    if(theme != null) {
+                        theme.getChildren().add(epic);
+                        epic.setPrioInTheme(Integer.MAX_VALUE);
+                        theme.rebuildChildrenOrder();
+                        affectedThemes.add(theme);
 
-                if (updatedEpic.getThemeTitle() != null) {
-                    epic.setTheme(theme);
-                    for (Story story : epic.getChildren()) {
-                        story.setTheme(theme);
+                        epic.setTheme(theme);
+                        for (Story story : epic.getChildren()) {
+                            story.setTheme(theme);
+                        }
+                        epic.setTheme(theme);
                     }
                 }
 
+                boolean epicArchived = false;
                 if (updatedEpic.isArchived() && !epic.isArchived()) {
+                    epicArchived = true;
                     //Was moved to archive
                     epic.setDateArchived(new Date());
 
@@ -1002,9 +1041,29 @@ public class JSONController {
                 epic.setTitle(updatedEpic.getTitle());
                 epic.setDescription(updatedEpic.getDescription());
                 epic.setArchived(updatedEpic.isArchived());
+
+                List<String> messages = new ArrayList<String>();
+                for(Story s : epic.getChildren()) {
+                    messages.add(getJsonStringExclChildren(Story.class, s, STORY_TASK_VIEW));
+                }
+                String updatedEpicViews = THEME_EPIC_VIEW;
+                if(epicArchived) {
+                    messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, epic.getId(), EPIC_STORY_VIEW));
+                } else {
+                    updatedEpicViews += "|" + EPIC_STORY_VIEW;
+                }
+                messages.add(getJsonStringExclChildren(Epic.class, epic, updatedEpicViews));
+
+                if(affectedThemes.size() > 0) {
+                    HashMap<String, Object> hm = new HashMap<String, Object>();
+                    hm.put("lastItem", null);
+                    hm.put("objects", affectedThemes);
+                    messages.add(JSONController.getJsonStringInclChildren("childMove", hm, THEME_EPIC_VIEW));
+                }
+
                 tx.commit();
 
-                AtmosphereHandler.push(areaName, getJsonString(Epic.class, epic));
+                AtmosphereHandler.pushJsonMessages(areaName, messages);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1077,9 +1136,20 @@ public class JSONController {
                 theme.setTitle(updatedTheme.getTitle());
                 theme.setDescription(updatedTheme.getDescription());
                 theme.setArchived(updatedTheme.isArchived());
+
+                List<String> messages = new ArrayList<String>();
+                for(Epic e : theme.getChildren()) {
+                    messages.add(getJsonStringExclChildren(Epic.class, e, EPIC_STORY_VIEW));
+
+                    for(Story s : e.getChildren()) {
+                        messages.add(getJsonStringExclChildren(Story.class, s, STORY_TASK_VIEW));
+                    }
+                }
+                messages.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
+
                 tx.commit();
 
-                AtmosphereHandler.push(areaName, getJsonString(Theme.class, theme));
+                AtmosphereHandler.pushJsonMessages(areaName, messages);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1190,12 +1260,6 @@ public class JSONController {
                 }
 
                 session.save(epic);
-                if (theme != null) {
-                    theme.getChildren().add(epic);
-                    epic.setPrioInTheme(Integer.MAX_VALUE); //This changes in theme.rebuildChildrenOrder().
-                    theme.rebuildChildrenOrder();
-                    epic.setTheme(theme);
-                }
             }
         }
         return epic;
@@ -1209,6 +1273,7 @@ public class JSONController {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story clone = null;
+        NewStoryContainer storyToPush = null;
         try {
             tx = session.beginTransaction();
 
@@ -1216,7 +1281,6 @@ public class JSONController {
             if (!storyToClone.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
-
             clone = storyToClone.copy(withChildren);
             clone.setPrio(storyToClone.getPrio() + 1);
 
@@ -1249,8 +1313,17 @@ public class JSONController {
                 session.save(task);
             }
 
+            ListItem lastItem = new ListItem();
+            lastItem.setId(storyToClone.getId());
+            storyToPush = new NewStoryContainer();
+            storyToPush.fromStory(clone);
+            storyToPush.setLastItem(lastItem);
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Story.class, storyToPush, EPIC_STORY_VIEW));
+            messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), storyToPush, STORY_TASK_VIEW));
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString(Story.class.getSimpleName(), clone));
+            
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1259,10 +1332,9 @@ public class JSONController {
         } finally {
             session.close();
         }
-        
+
         ObjectMapper mapper = new ObjectMapper();
-//        mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(clone);
+        return mapper.writeValueAsString(storyToPush);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
@@ -1273,6 +1345,7 @@ public class JSONController {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Epic clone = null;
+        NewEpicContainer epicToPush = null;
         try {
             tx = session.beginTransaction();
 
@@ -1313,8 +1386,19 @@ public class JSONController {
                 session.save(story);
             }
 
+            ListItem lastItem = new ListItem();
+            lastItem.setId(epicToClone.getId());
+            epicToPush = new NewEpicContainer();
+            epicToPush.fromEpic(clone);
+            epicToPush.setLastItem(lastItem);
+
+            List<String> messages = new ArrayList<String>();
+
+            messages.add(getJsonStringExclChildren(Epic.class, epicToPush, THEME_EPIC_VIEW));
+            messages.add(getJsonStringInclChildren(Epic.class.getSimpleName(), epicToPush, EPIC_STORY_VIEW));
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString(Epic.class.getSimpleName(), clone));
+
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1325,8 +1409,7 @@ public class JSONController {
         }
 
         ObjectMapper mapper = new ObjectMapper();
-//        mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(clone);
+        return mapper.writeValueAsString(epicToPush);
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
@@ -1337,6 +1420,7 @@ public class JSONController {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Theme clone = null;
+        NewThemeContainer themeToPush = null;
         try {
             tx = session.beginTransaction();
 
@@ -1366,8 +1450,17 @@ public class JSONController {
                 session.save(epic);
             }
 
+            ListItem lastItem = new ListItem();
+            lastItem.setId(themeToClone.getId());
+            themeToPush = new NewThemeContainer();
+            themeToPush.fromTheme(clone);
+            themeToPush.setLastItem(lastItem);
+
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), themeToPush, THEME_EPIC_VIEW));
+            
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString(Theme.class.getSimpleName(), clone));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1378,8 +1471,7 @@ public class JSONController {
         }
 
         ObjectMapper mapper = new ObjectMapper();
-//        mapper.getSerializationConfig().addMixInAnnotations(Theme.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(clone);
+        return mapper.writeValueAsString(themeToPush);
     }
 
 
@@ -1427,7 +1519,9 @@ public class JSONController {
             session.delete(storyToRemove);
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString("Delete", storyId));
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, storyId, "*"));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1475,7 +1569,9 @@ public class JSONController {
             session.delete(epicToRemove);
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString("Delete", epicId));
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, epicId, "*"));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1536,7 +1632,9 @@ public class JSONController {
             session.delete(themeToRemove);
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString("Delete", themeId));
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, themeId, "*"));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1582,7 +1680,9 @@ public class JSONController {
             session.delete(taskToRemove);
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString("Delete", taskId));
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, taskId, "*"));
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1620,6 +1720,8 @@ public class JSONController {
             Area newArea = (Area) session.get(Area.class, newAreaName);
             User user = (User) session.get(User.class, username);
 
+            List<String> pushMsgsOldArea = new ArrayList<String>();
+            List<String> pushMsgsNewArea = new ArrayList<String>();
             //Check that the user has rights for the new area as well
             if ((newArea != null && (newArea.isAdmin(username) || newArea.isEditor(username)))
                     || (user != null && user.isMasterAdmin())) {
@@ -1736,8 +1838,8 @@ public class JSONController {
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
                     }
-                    AtmosphereHandler.push(newAreaName, getJsonString(Story.class, story));
-                    AtmosphereHandler.push(areaName, getJsonString("Delete", story.getId()));
+                    pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
+                    pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
                 }
                 Util.rebuildRanks(BacklogType.STORY, oldArea, session);
 
@@ -1748,13 +1850,15 @@ public class JSONController {
                     Theme theme = story.getTheme();
                     Epic epic = story.getEpic();
                     if (theme != null && updatedThemes.add(theme)) {
-                        AtmosphereHandler.push(newAreaName, getJsonString(Theme.class, theme));
+                        pushMsgsNewArea.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
                     }
                     if (epic != null && updatedEpics.add(epic)) {
-                        AtmosphereHandler.push(newAreaName, getJsonString(Epic.class, epic));
+                        pushMsgsNewArea.add(getJsonStringExclChildren(Epic.class, epic, EPIC_STORY_VIEW));
                     }
                 }
             }
+            AtmosphereHandler.pushJsonMessages(areaName, pushMsgsOldArea);
+            AtmosphereHandler.pushJsonMessages(newAreaName, pushMsgsNewArea);
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -2318,38 +2422,41 @@ public class JSONController {
     }
 
     /**
-     * Generates a JSON-string from the specified data
+     * Generates a JSON-string from the specified data, but does <b>not</b> include children
      * @param clazz The class (e.g. Task.class)
      * @param data The object-data
+     * @param viewParam The views that this data is intended for
      * @return A String in JSON-format
      * @throws JsonGenerationException
      * @throws JsonMappingException
      * @throws IOException
      */
-    public static <T> String getJsonString(Class<T> clazz, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+    public static <T> String getJsonStringExclChildren(Class<T> clazz, Object data, String viewParam) throws JsonGenerationException, JsonMappingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(clazz, ChildrenExcluder.class);
-        return generateJsonString(mapper, clazz.getSimpleName(), data);
+        return generateJsonString(mapper, clazz.getSimpleName(), data, viewParam);
     }
-    
+
     /**
-     * Generates a JSON-string from the specified data
+     * Generates a JSON-string from the specified data, and includes children
      * @param type The type of event (e.g. "Delete")
      * @param data The object-data
+     * @param viewParam The views that this data is intended for
      * @return A String in JSON-format
      * @throws JsonGenerationException
      * @throws JsonMappingException
      * @throws IOException
      */
-    public static <T> String getJsonString(String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+    public static <T> String getJsonStringInclChildren(String type, Object data, String viewParam) throws JsonGenerationException, JsonMappingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
-        return generateJsonString(mapper, type, data);
+        return generateJsonString(mapper, type, data, viewParam);
     }
-    
-    private static <T> String generateJsonString(ObjectMapper mapper, String type, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+
+    private static <T> String generateJsonString(ObjectMapper mapper, String type, Object data, String viewParam) throws JsonGenerationException, JsonMappingException, IOException {
         HashMap<String, Object> typeMapper = new HashMap<String, Object>();
         typeMapper.put("type", type);
         typeMapper.put("data", data);
+        typeMapper.put("views", viewParam);
         return mapper.writeValueAsString(typeMapper);
     }
 

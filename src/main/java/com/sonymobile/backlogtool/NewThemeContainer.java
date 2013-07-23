@@ -45,4 +45,23 @@ public class NewThemeContainer extends Theme {
     public void setLastItem(ListItem lastItem) {
         this.lastItem = lastItem;
     }
+    
+    public void fromTheme(Theme t) {
+        setArchived(t.isArchived());
+        setArea(t.getArea());
+        setDateArchived(t.getDateArchived());
+        setDescription(t.getDescription());
+        setTitle(t.getTitle());
+        
+        setPrio(t.getPrio());
+        setId(t.getId());
+        
+        for(Epic e : t.getChildren()) {
+            Epic copiedEpic = e.copy(false);
+            copiedEpic.setTheme(this);
+            copiedEpic.setPrioInTheme(e.getPrioInTheme());
+            copiedEpic.setId(e.getId());
+            getChildren().add(copiedEpic);
+        }
+    }
 }
