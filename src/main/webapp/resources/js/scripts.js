@@ -1648,6 +1648,7 @@ $(document).ready(function () {
         while (editingItems.length > 0) {
             var lastElement = $(editingItems).last()[0];
             var id = eval(lastElement.id);
+            editingItems.remove({id:id});
 
             if (lastElement.type == "task") {
                 saveTask(id);
@@ -1661,7 +1662,6 @@ $(document).ready(function () {
         }
         editingItems = new Array();
         $.unblockUI();
-//        ignorePush = false;
     };
 
     /**
