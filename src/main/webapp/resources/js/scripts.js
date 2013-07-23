@@ -1677,7 +1677,6 @@ $(document).ready(function () {
         if (isGoingIntoEdit(storyId)) {
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
-//            ignorePush = true;
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
             //$('.save-button.'+storyId).button( "option", "disabled", true );
@@ -1727,6 +1726,7 @@ $(document).ready(function () {
 
             $("textarea#title" + storyId).val(escapeHtml(story.title));
             $("textarea#description" + storyId).val(escapeHtml(story.description));
+            $('#archiveStory' + storyId).prop('checked', story.archived);
 
             $("textarea#theme"+storyId).autocomplete({
                 minLength: 0,
@@ -2377,6 +2377,7 @@ $(document).ready(function () {
             $("textarea#epicTitle" + epicId).val(escapeHtml(epic.title));
             $("textarea#epicTheme"+epicId).val(escapeHtml(epic.themeTitle));
             $("textarea#epicDescription" + epicId).val(escapeHtml(epic.description));
+            $('#archiveEpic' + epicId).prop('checked', epic.archived);
             
             //auto resize the textareas to fit the text
             $('textarea'+"."+epicId).autosize('');
@@ -2527,6 +2528,7 @@ $(document).ready(function () {
             
             $('textarea#themeTitle' + themeId).val(escapeHtml(theme.title));
             $('textarea#themeDescription' + themeId).val(escapeHtml(theme.description));
+            $('#archiveTheme' + themeId).prop('checked', theme.archived);
 
             //auto resize the textareas to fit the text
             $('textarea'+"."+themeId).autosize('');
