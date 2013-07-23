@@ -220,6 +220,12 @@ THE SOFTWARE.
                             Currently only <b>Chrome</b> and <b>Firefox</b> browsers
                             are supported. Thanks to famfamfam.com for the icons!
                         </p>
+                        <br>
+                        <p>
+                            <a href="https://github.com/sonyxperiadev/BacklogTool" target="blank">
+                                Read more...
+                            </a>
+                        </p>
                     </div>
                     <div id="releases" class="well"></div>
                 </div>
