@@ -147,7 +147,12 @@ p {
 }
 select#order-by {
     width: 80px;   
-} 
+}
+
+.showArchive {
+	position: relative;
+	top: -4px;
+}
 
 .order {
     font-size: 10px;
@@ -639,7 +644,7 @@ input.filter {
     width: 80px;
 }
 
-div.filter, div.order-by, div.showArchive {
+div.filter, div.order-by {
 	position: relative;
 	bottom: 9px;
 }
@@ -689,4 +694,8 @@ p.addOptionSeries, p.addOption {
 	display: table;
     margin: 50px auto;
     padding-top: 10px;
+}
+
+.ui-buttonset .ui-button {
+    width: 63px;
 }

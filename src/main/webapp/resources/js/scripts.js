@@ -264,15 +264,15 @@ $(document).ready(function () {
         $(".editTask").unbind("dblclick");
     };
 
-
-    $('#archived-checkbox').change(function () {
-        var checked = $("#archived-checkbox").prop("checked");
-        if (checked) {
-            window.location = '?archived-view=true';
-        } else {
+    if (archivedView) {
+        $("#active").click(function () {
             window.location = '?archived-view=false';
-        }
-    });
+        });
+    } else {
+        $("#archive").click(function () {
+            window.location = '?archived-view=true';
+        });
+    }
 
     /**
      * Adding line breaks and <a> tags for the param text.
@@ -3150,6 +3150,8 @@ $(document).ready(function () {
             }
         });
     });
+
+    $(".showArchive").buttonset();
 
     /**
      * Sets timeout for a function, to be reset after each call on delay.
