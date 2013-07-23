@@ -1740,6 +1740,8 @@ $(document).ready(function () {
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
+
+                    $('#save-all').button("option", "disabled", false);
                 }
             });
             $("textarea#epic"+storyId).autocomplete({
@@ -1755,6 +1757,8 @@ $(document).ready(function () {
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
+
+                    $('#save-all').button("option", "disabled", false);
                 }
             });
 
@@ -2367,6 +2371,8 @@ $(document).ready(function () {
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
+
+                    $('#save-all').button("option", "disabled", false);
                 }
             });
             
@@ -2606,22 +2612,11 @@ $(document).ready(function () {
     }; 
 
     /**
-     * Updates save all button and enable ranking etc, when the last editing item is going out of edit mode.
+     * Updates save all button when the last editing item is going out of edit mode.
      */
     var updateWhenItemsClosed = function() {
         if (editingItems.length == 0) {
-            displayUpdateMsg();
-//            $("#list-container").sortable( "option", "disabled", false );
-            sortList($("ul#list-container"));
-            sortList($("ul#archived-list-container"));
-            if ($("#order-by").val() == "prio") {
-                $("#list-container").sortable("option", "disabled", false);
-            } else {
-                $("#list-container").sortable("option", "disabled", true);
-            }
-            //$('.save-button').button( "option", "disabled", true );
-            $.unblockUI();
-//            ignorePush = false;
+            $('#save-all').button("option", "disabled", true);
         }
     };
 
@@ -2783,6 +2778,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             }
         });
 
@@ -2800,6 +2797,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             },
             search: function() {
                 var themeName = $("#storyTheme").val();
@@ -2842,7 +2841,7 @@ $(document).ready(function () {
         firstBuild = false;
         addZebraStripesToParents();
     };
-    
+
     bindEventsToItem = function (elem) {
         var elemId = elem.attr("id");
         $( "#list-container" ).sortable("refresh");
@@ -2854,6 +2853,14 @@ $(document).ready(function () {
         elem.mouseup(function () {
             $(".parent-child-list").children("li").removeClass("over");
 //            $(".parent-child-list", elem).children("li").removeClass("over");
+        });
+
+        $(".bindChange").change( function(event){
+            $('#save-all').button( "option", "disabled", false );
+        });
+
+        $(".bindChange").bind('input propertychange', function(event) {
+            $("#save-all").button( "option", "disabled", false );
         });
 
         $("a.createEpic", elem).click(createEpic);
@@ -2892,6 +2899,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             }
         });
 
@@ -2909,6 +2918,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             },
             search: function() {
                 var themeName = $("#storyTheme", elem).val();
