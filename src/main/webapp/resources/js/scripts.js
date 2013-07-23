@@ -264,15 +264,15 @@ $(document).ready(function () {
         $(".editTask").unbind("dblclick");
     };
 
-
-    $('#archived-checkbox').change(function () {
-        var checked = $("#archived-checkbox").prop("checked");
-        if (checked) {
-            window.location = '?archived-view=true';
-        } else {
+    if (archivedView) {
+        $("#active").click(function () {
             window.location = '?archived-view=false';
-        }
-    });
+        });
+    } else {
+        $("#archive").click(function () {
+            window.location = '?archived-view=true';
+        });
+    }
 
     /**
      * Adding line breaks and <a> tags for the param text.
@@ -1691,7 +1691,6 @@ $(document).ready(function () {
         if (isGoingIntoEdit(storyId)) {
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
-//            ignorePush = true;
             $('button.'+storyId).button();
             $('button.'+storyId).unbind();
             //$('.save-button.'+storyId).button( "option", "disabled", true );
@@ -1741,6 +1740,7 @@ $(document).ready(function () {
 
             $("textarea#title" + storyId).val(escapeHtml(story.title));
             $("textarea#description" + storyId).val(escapeHtml(story.description));
+            $('#archiveStory' + storyId).prop('checked', story.archived);
 
             $("textarea#theme"+storyId).autocomplete({
                 minLength: 0,
@@ -1754,6 +1754,8 @@ $(document).ready(function () {
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
+
+                    $('#save-all').button("option", "disabled", false);
                 }
             });
             $("textarea#epic"+storyId).autocomplete({
@@ -1769,6 +1771,8 @@ $(document).ready(function () {
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
+
+                    $('#save-all').button("option", "disabled", false);
                 }
             });
 
@@ -2002,6 +2006,10 @@ $(document).ready(function () {
             $('p#archived-text' + storyId).text("Archived");
             $('p#date-archived' + storyId).html(getDate(story.dateArchived));
             $('#archiveStory' + storyId).attr('checked', true);
+        } else {
+            $('p#archived-text' + storyId).text("");
+            $('p#date-archived' + storyId).text("");
+            $('#archiveStory' + storyId).attr('checked', false);
         }
     };
 
@@ -2318,6 +2326,10 @@ $(document).ready(function () {
             $('p#archived-text' + epicId).text("Archived");
             $('p#date-archived' + epicId).html(getDate(updatedEpic.dateArchived));
             $('#archiveEpic' + epicId).attr('checked', true);
+        } else {
+            $('p#archived-text' + epicId).text("");
+            $('p#date-archived' + epicId).text("");
+            $('#archiveEpic' + epicId).attr('checked', false);
         }
     };
 
@@ -2356,6 +2368,8 @@ $(document).ready(function () {
                     //Used for deselecting the input field.
                     $(this).autocomplete('disable');
                     $(this).autocomplete('enable');
+
+                    $('#save-all').button("option", "disabled", false);
                 }
             });
             
@@ -2366,6 +2380,7 @@ $(document).ready(function () {
             $("textarea#epicTitle" + epicId).val(escapeHtml(epic.title));
             $("textarea#epicTheme"+epicId).val(escapeHtml(epic.themeTitle));
             $("textarea#epicDescription" + epicId).val(escapeHtml(epic.description));
+            $('#archiveEpic' + epicId).prop('checked', epic.archived);
             
             //auto resize the textareas to fit the text
             $('textarea'+"."+epicId).autosize('');
@@ -2467,6 +2482,10 @@ $(document).ready(function () {
             $('p#archived-text' + themeId).text("Archived");
             $('p#date-archived' + themeId).html(getDate(updatedTheme.dateArchived));
             $('#archiveTheme' + themeId).attr('checked', true);
+        } else {
+            $('p#archived-text' + themeId).text("");
+            $('p#date-archived' + themeId).text("");
+            $('#archiveTheme' + themeId).attr('checked', false);
         }
 
     };
@@ -2498,6 +2517,7 @@ $(document).ready(function () {
             
             $('textarea#themeTitle' + themeId).val(escapeHtml(theme.title));
             $('textarea#themeDescription' + themeId).val(escapeHtml(theme.description));
+            $('#archiveTheme' + themeId).prop('checked', theme.archived);
 
             //auto resize the textareas to fit the text
             $('textarea'+"."+themeId).autosize('');
@@ -2575,22 +2595,11 @@ $(document).ready(function () {
     }; 
 
     /**
-     * Updates save all button and enable ranking etc, when the last editing item is going out of edit mode.
+     * Updates save all button when the last editing item is going out of edit mode.
      */
     var updateWhenItemsClosed = function() {
         if (editingItems.length == 0) {
-            displayUpdateMsg();
-//            $("#list-container").sortable( "option", "disabled", false );
-            sortList($("ul#list-container"));
-            sortList($("ul#archived-list-container"));
-            if ($("#order-by").val() == "prio") {
-                $("#list-container").sortable("option", "disabled", false);
-            } else {
-                $("#list-container").sortable("option", "disabled", true);
-            }
-            //$('.save-button').button( "option", "disabled", true );
-            $.unblockUI();
-//            ignorePush = false;
+            $('#save-all').button("option", "disabled", true);
         }
     };
 
@@ -2758,6 +2767,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             }
         });
 
@@ -2775,6 +2786,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             },
             search: function() {
                 var themeName = $("#storyTheme").val();
@@ -2817,7 +2830,7 @@ $(document).ready(function () {
         firstBuild = false;
         addZebraStripesToParents();
     };
-    
+
     bindEventsToItem = function (elem) {
         var elemId = elem.attr("id");
         $( "#list-container" ).sortable("refresh");
@@ -2829,6 +2842,14 @@ $(document).ready(function () {
         elem.mouseup(function () {
             $(".parent-child-list").children("li").removeClass("over");
 //            $(".parent-child-list", elem).children("li").removeClass("over");
+        });
+
+        $(".bindChange").change( function(event){
+            $('#save-all').button( "option", "disabled", false );
+        });
+
+        $(".bindChange").bind('input propertychange', function(event) {
+            $("#save-all").button( "option", "disabled", false );
         });
 
         $("a.createEpic", elem).click(createEpic);
@@ -2867,6 +2888,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             }
         });
 
@@ -2884,6 +2907,8 @@ $(document).ready(function () {
                 //Used for deselecting the input field.
                 $(this).autocomplete('disable');
                 $(this).autocomplete('enable');
+
+                $('#save-all').button("option", "disabled", false);
             },
             search: function() {
                 var themeName = $("#storyTheme", elem).val();
@@ -3127,6 +3152,8 @@ $(document).ready(function () {
             }
         });
     });
+
+    $(".showArchive").buttonset();
 
     /**
      * Sets timeout for a function, to be reset after each call on delay.
