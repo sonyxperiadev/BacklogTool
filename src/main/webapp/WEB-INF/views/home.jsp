@@ -201,7 +201,7 @@ THE SOFTWARE.
                         <a title="Create area" id="create-area">Create area</a>
                     </div>
                 </div>
-                <div class="inline">
+                <div id="right-div" class="inline">
                     <div id="info-container-div" class="well">
                         <h3>About</h3>
                         <p>This tool keeps track of the backlog for software
