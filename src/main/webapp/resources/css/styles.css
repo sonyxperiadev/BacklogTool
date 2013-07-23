@@ -556,7 +556,7 @@ div.navigation-links a {
     -webkit-transition: .3s;
     transition: .1s;
     display: inline-block;
-    max-width: 490px;
+    max-width: 480px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -578,7 +578,7 @@ div.navigation-links a {
 }
 
 #right-div, #area-container-div {
-    width: 630px;
+    width: 620px;
 }
 
 #info-container-div {
