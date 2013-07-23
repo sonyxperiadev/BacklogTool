@@ -1103,7 +1103,9 @@ public class JSONController {
 
             Theme sameNameTheme = getTheme(updatedTheme.getTitle(), area, session, false);
             if (sameNameTheme == null || sameNameTheme == theme) {
+                boolean movedToArchived = false;
                 if (updatedTheme.isArchived() && !theme.isArchived()) {
+                    movedToArchived = true;
                     //Was moved to archive
                     theme.setDateArchived(new Date());
 
@@ -1145,8 +1147,12 @@ public class JSONController {
                         messages.add(getJsonStringExclChildren(Story.class, s, STORY_TASK_VIEW));
                     }
                 }
-                messages.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
 
+                if(movedToArchived) {
+                    messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, theme.getId(), THEME_EPIC_VIEW));
+                } else {
+                    messages.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
+                }
                 tx.commit();
 
                 AtmosphereHandler.pushJsonMessages(areaName, messages);

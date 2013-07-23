@@ -864,7 +864,7 @@ $(document).ready(function () {
         var v2 = getParent(b.id)[attr];
 
         if(isNumeric(v1) && isNumeric(v2)) {
-            return v1 - v2;
+            return v2 - v1; // Used for archived-date
         }
 
         if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
@@ -1837,11 +1837,11 @@ $(document).ready(function () {
                     //check if this story is in list-container or in archived.list-container and moves it.
                     if (getParent(storyId).archived != updatedStory.archived) { // we just archived it
                         removeItem($("li#" + storyId));
-                        addZebraStripesToParents();
                     } else {
                         updateStoryLi(updatedStory);
                         replaceParent(storyId, updatedStory);
                     }
+                    addZebraStripesToParents();
                     //Replacing story with a new one
                     if (archivedView && !updatedStory.archived) {
                         //Story was hidden from the current view;
@@ -2239,15 +2239,15 @@ $(document).ready(function () {
                         exitEditMode(epicId);
                     }
                     addZebraStripesToParents();
-                } else if (updatedEpic.archived) {
-                    //Save this for issue #44
-                    //li.fadeOut("normal", function() {
-                    exitEditMode(epicId);
-                    //});
                 } else {
+                    replaceChild(epicId, updatedEpic);
                     exitEditMode(epicId);
                 }
-                replaceChild(epicId, updatedEpic);
+                if (archivedView && !updatedEpic.archived) {
+                    //Epic was hidden from the current view;
+                    //we need to add a new element
+                    reBuildArchivedList();
+                }
             },
             error: function (request, status, error) {
                 alert(error);
@@ -2424,6 +2424,11 @@ $(document).ready(function () {
                     updateThemeLi(updatedTheme);
                     replaceParent(themeId, updatedTheme);
                     exitEditMode(themeId);
+                }
+                if (archivedView && !updatedTheme.archived) {
+                    //Theme was hidden from the current view;
+                    //we need to add a new element
+                    reBuildArchivedList();
                 }
                 addZebraStripesToParents();
             },

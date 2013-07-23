@@ -23,8 +23,6 @@
  */
 $(document).ready(function() {
     $('#login-out').button();
-    $("#add-admin").button();
-    $("#add-editor").button();
     $("#name-button").button();
     
 
@@ -34,7 +32,25 @@ $(document).ready(function() {
 	        primary: 'silk-icon-door-out'
 	    }
 	});
-
+	
+	$('#add-admin, #add-editor').button({
+	    text: false,
+	    icons: {
+	        primary: 'silk-icon-add'
+	    }
+	});
+	
+	$('.addOption, .addOptionSeries').button({
+	    icons: {
+	        primary: 'silk-icon-add'
+	    }
+	});
+	
+	$('#save').button({
+	    icons: {
+	        primary: 'silk-icon-disk'
+	    }
+	});
     
     $("#name-button").click(function() {
         $.ajax({
@@ -325,33 +341,43 @@ $(document).ready(function() {
     $(".addOption").click(function(event) {
         var parentId = $(this).attr("id");
         var id = 'NewOption' + ++newCount;
-        $("#ul" + parentId).append('<li id="' + id + '">'
+        $("#ul" + parentId).append('<li class="new-attribute" id="' + id + '">'
                 + '<span class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>'
                 + '<div class="inline-block icon-container">'
                 + '<input id="iconEnabled' + id + '"'
                 + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
-                + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
+                + '<img class="attrIcon" id="icon' + id + '"'
                 + 'src="../resources/image/new.png" icon="new.png" /> '
                 + '</div> <input id="name' + id + '" maxlength="15"'
                 + 'class="inline-block attrOptionTitle ui-corner-all">'
-                + '<img style="margin: 0px 4px" class="removeOption" src="../resources/image/delete.png" />'
+                + '<img class="removeOption" src="../resources/image/delete.png" />'
                 + '</li>');
         event.stopPropagation();
         $(".attrIcon").click(selectIcon);
         $(".removeOption").click(function(event) {
             $(this).closest("li").remove();
         });
+        $('.remove-button').button({
+            text: false,
+            icons: {
+                primary: 'silk-icon-delete'
+            }
+        });
+        $('.checkbox').change(function() {
+            var id = $(this).closest("li").attr("id");
+            $("#icon"+id).toggleClass("icon-hidden");
+        });
     });
     
     $(".addOptionSeries").click(function(event) {
         var parentId = $(this).attr("id");
         var id = 'NewOption' + ++newCount;
-        $("#ul" + parentId).append('<li id="' + id + '" class="series" >'
+        $("#ul" + parentId).append('<li id="' + id + '" class="new-attribute series" >'
                 + '<span class="ui-icon ui-icon-arrowthick-2-n-s inline-block"></span>'
                 + '<div class="inline-block icon-container">'
                 + '<input id="iconEnabled' + id + '"'
                 + 'class="checkbox inline-block" type="checkbox" title="Display icon" checked="checked" />'
-                + '<img style="margin: 0px 4px" class="attrIcon" id="icon' + id + '"'
+                + '<img class="attrIcon" id="icon' + id + '"'
                 + 'src="../resources/image/new.png" icon="new.png" /> '
                 + '</div> <input id="name' + id + '" maxlength="15" title="Optional name"'
                 + 'class="inline-block attrOptionTitle ui-corner-all">'
@@ -361,12 +387,16 @@ $(document).ready(function() {
                 + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
                 + '<input id="seriesIncrement' + id + '" maxlength="3" title="Series increment" value="1"'
                 + 'type="number" class="inline-block attrOptionSeriesBox ui-corner-all">'
-                + '<img style="margin: 0px 4px" class="removeOption" src="../resources/image/delete.png" />'
+                + '<img class="removeOption" src="../resources/image/delete.png" />'
                 + '</li>');
         event.stopPropagation();
         $(".attrIcon").click(selectIcon);
         $(".removeOption").click(function(event) {
             $(this).closest("li").remove();
+        });
+        $('.checkbox').change(function() {
+            var id = $(this).closest("li").attr("id");
+            $("#icon"+id).toggleClass("icon-hidden");
         });
     });
     
