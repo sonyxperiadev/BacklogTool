@@ -556,9 +556,9 @@ div.navigation-links a {
     -webkit-transition: .3s;
     transition: .1s;
     display: inline-block;
-	max-width: 490px;
-	overflow: hidden;
-	text-overflow: ellipsis;
+    max-width: 490px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #list-container-div {
