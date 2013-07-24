@@ -474,6 +474,24 @@ $(document).ready(function () {
                 removeItem($('li#' + data));
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
+            } else if(jsonObj.type == "AreaDelete") {
+                var invalidDialog = $(document.createElement('div'));
+                $(invalidDialog).attr('title', 'Area removed');
+                $(invalidDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
+                invalidDialog.dialog({
+                    modal: true,
+                    width: 325,
+                    resizable: false,
+                    minHeight: 0,
+                    buttons: {
+                        Ok: function() {
+                            $( this ).dialog( "close" );
+                        }
+                    },
+                    close: function(event, ui) {
+                        window.location.replace("../");
+                    }
+                });
             }
 
             if(offset !== null) {
@@ -863,17 +881,19 @@ $(document).ready(function () {
         var v1 = getParent(a.id)[attr];
         var v2 = getParent(b.id)[attr];
 
-        if(isNumeric(v1) && isNumeric(v2)) {
-            return v2 - v1; // Used for archived-date
-        }
-
         if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
             v1 = (v1 !== null) ? v1.compareValue : null;
             v2 = (v2 !== null) ? v2.compareValue : null;
         }
 
+        if(isNumeric(v1) && isNumeric(v2)) {
+            return (attr == "dateArchived") ? v2 - v1 : v1 - v2;
+        }
+
+        v1 = (v1 === "") ? null : v1; // E.g. empty descriptions should be further down in the list
+        v2 = (v2 === "") ? null : v2;
         // Null-values should be further back in the list
-        return v1 == null ? -1 : (v2 == null ? 1 : v1.localeCompare(v2));
+        return v1 == null ? 1 : (v2 == null ? -1 : v1.localeCompare(v2));
     };
 
     var prioComparator = function(a, b) {

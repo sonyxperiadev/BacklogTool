@@ -915,9 +915,17 @@ public class JSONController {
 
             if (updatedStory.getThemeTitle() != null) {
                 story.setTheme(theme);
+
+                if(newEpic != null) {
+                    newEpic.setTheme(theme);
+                }
             }
             if (updatedStory.getEpicTitle() != null) {
                 story.setEpic(newEpic);
+
+                if(theme != null) {
+                    theme.getChildren().add(newEpic);
+                }
             }
 
             List<String> messages = new ArrayList<String>();
@@ -930,7 +938,7 @@ public class JSONController {
             messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
             
             if (theme != null) {
-                messages.add(getJsonStringInclChildren("Theme", theme, THEME_EPIC_VIEW));
+                messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
             }
             if (parentsToPush.size() > 0) {
                 HashMap<String, Object> hm = new HashMap<String, Object>();
@@ -2053,11 +2061,14 @@ public class JSONController {
     /**
      * Used when deleting an area
      * @return true if everything was ok
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonGenerationException 
      */
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
     @RequestMapping(value="/deleteArea/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean deleteArea(@PathVariable String areaName) {
+    public @ResponseBody boolean deleteArea(@PathVariable String areaName) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -2141,9 +2152,9 @@ public class JSONController {
         } finally {
             session.close();
         }
-
-        //TODO:This push does nothing at the moment
-        AtmosphereHandler.push(areaName);
+        List<String> messages = new ArrayList<String>();
+        messages.add(getJsonStringInclChildren("AreaDelete", "{}", "*"));
+        AtmosphereHandler.pushJsonMessages(areaName, messages);
         return true;
     }
 
@@ -2406,8 +2417,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-
+//        AtmosphereHandler.push(areaName);
         return true;
     }
 
