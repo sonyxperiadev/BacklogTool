@@ -720,10 +720,6 @@ p.addOptionSeries, p.addOption {
     padding-top: 10px;
 }
 
-.ui-buttonset .ui-button {
-    width: 63px;
-}
-
 #releases > ul {
     list-style-type: disc;
     -webkit-margin-before: 1em;
