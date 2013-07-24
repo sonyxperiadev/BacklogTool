@@ -378,6 +378,7 @@ $(document).ready(function () {
                         processPushData(jsonObj[i]);
                     }
                 }
+                addZebraStripesToParents();
             }
         };
 
@@ -406,12 +407,7 @@ $(document).ready(function () {
         socket.subscribe(request);
     };
     connectPush();
-    
-    /**
-     * Variable to ignore push-messages in e.g. edit-mode
-     */
-    ignorePush = false;
-    
+
     /**
      * Try to interpret the data as JSON, and forward the data
      * to corresponding method
@@ -485,7 +481,6 @@ $(document).ready(function () {
                 }
                 offset = null;
             }
-            addZebraStripesToParents();
         } else {
             window.console && console.log("No json-data in push-message");
         }
@@ -508,9 +503,6 @@ $(document).ready(function () {
             for(var key in objList) {
                 var p = getParent(key);
                 p.prio = objList[key];
-                if(p.archived) {
-                    ulObj = $('ul#archived-list-container');
-                }
             }
         } else { // child-move
             for(var i = 0; i < objList.length; i++) {
@@ -571,8 +563,6 @@ $(document).ready(function () {
             fadeOut:  350});
     };
 
-    var storyAttr1Options = null;
-
     //Apply filter from URL if it exists
     var filterIdsParam = getURLParameter('ids');
     if (filterIdsParam != null) {
@@ -589,8 +579,6 @@ $(document).ready(function () {
             $("#order-by").val("prio");
         }
     }
-    
-//    var parentsMap = new Object();
     
     var getParent = function(id) {
         var p = parentsMap[id];
@@ -795,13 +783,6 @@ $(document).ready(function () {
     var sortList = function(ulObj) {
         console.log("Sort called");
 
-        var offset = null, offsetObj = null, inputFocus = null;
-        if(editingItems.length > 0) {
-            inputFocus = $(document.activeElement);
-            offsetObj = editingItems[0];
-            offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
-        }
-
         var comp = null;
         if(archivedView == true) {
             comp = getComparatorFor("dateArchived");
@@ -829,16 +810,6 @@ $(document).ready(function () {
             }
         });
         $( "#list-container" ).sortable("refresh");
-
-        if(offset !== null) {
-            var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-            if(newOffset.top != offset.top) {
-                var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
-                $(window).scrollTop(newPos);
-            }
-            inputFocus[0].focus();
-            offset = null;
-        }
     };
 
     var isNumeric = function(val) {
@@ -936,11 +907,33 @@ $(document).ready(function () {
 
     $('#order-by').bind('change', function() {
         displayUpdateMsg();
-        
+
+        //Save offset
+        var offset = null, offsetObj = null, inputFocus = null;
+        if (editingItems.length > 0) {
+            inputFocus = $(document.activeElement);
+            offsetObj = editingItems[0];
+            offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+        }
+
         var orderBy = $("#order-by").val();
         sortList($('ul#list-container'));
+        addZebraStripesToParents();
+
+        if (offset !== null) {
+            // Restore offset
+            var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+            if (newOffset.top != offset.top) {
+                // Restore focus
+                var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
+                $(window).scrollTop(newPos);
+                inputFocus[0].focus();
+            }
+            offset = null;
+        }
+
         $.unblockUI();        
-        
+
         if (orderBy == "prio") {
             $("#list-container").sortable("option", "disabled", false);
         } else {
@@ -1099,6 +1092,13 @@ $(document).ready(function () {
         selectedItems.remove({id:id});
     };
 
+    var unselectAll = function() {
+        for(var i = 0; i < selectedItems.length; i++) {
+            $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected over");
+        }
+        selectedItems = new Array();
+    };
+
     var editingItems = new Array();
     var lastPressed = null;
 
@@ -1175,13 +1175,6 @@ $(document).ready(function () {
         return null;
     };
     
-    var unselectAll = function() {
-        for(var i = 0; i < selectedItems.length; i++) {
-            $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected over");
-        }
-        selectedItems = new Array();
-    };
-    
     /**
      * Gets the last selected item and returns it directly if it's a parent.
      * If it's a child, then it returns the parent of that item.
@@ -1204,7 +1197,6 @@ $(document).ready(function () {
 
     var createTask = function(event) {
         displayUpdateMsg();
-//        ignorePush = true;
         var task = new Object();
         task.parentId = event.target.id;
         task.lastItem = getLastSelected("child");
@@ -1242,7 +1234,6 @@ $(document).ready(function () {
 
     var createStory = function(event) {
         displayUpdateMsg();
-//        ignorePush = true;
         var storyContainer = new Object();
         storyContainer.added = new Date();
         
@@ -1296,7 +1287,6 @@ $(document).ready(function () {
 
     var createEpic = function(event) {
         displayUpdateMsg();
-//        ignorePush = true;
         var epicContainer = new Object();
         
         var theme = null;
@@ -1348,7 +1338,6 @@ $(document).ready(function () {
 
     var createTheme = function(event) {
         displayUpdateMsg();
-//        ignorePush = true;
         var themeContainer = new Object();
         themeContainer.lastItem = getParentOfLastSelected();
 
@@ -1792,18 +1781,12 @@ $(document).ready(function () {
             data: JSON.stringify(story),
             contentType: "application/json; charset=utf-8",
             success: function (updatedStory) {
-                //Set updated values, we prefer to not reload the whole page.
                 if (view == "story-task") {
-                    //If story was moved,
-                    //check if this story is in list-container or in archived.list-container and moves it.
-                    if (getParent(storyId).archived != updatedStory.archived) { // we just archived it
+                    if (getParent(storyId).archived != updatedStory.archived) { // we changed archived status
                         removeItem($("li#" + storyId));
                     } else {
                         updateStoryLi(updatedStory);
-                        replaceParent(storyId, updatedStory);
                     }
-                    addZebraStripesToParents();
-                    //Replacing story with a new one
                     if (archivedView && !updatedStory.archived) {
                         //Story was hidden from the current view;
                         //we need to add a new element
@@ -2012,7 +1995,6 @@ $(document).ready(function () {
             success: function (updatedTask) {
                 //Set the updated values
                 updateTaskLi(updatedTask);
-                replaceChild(taskId, updatedTask);
                 exitEditMode(taskId);
             },
             error: function (request, status, error) {
@@ -2123,7 +2105,6 @@ $(document).ready(function () {
         if (isGoingIntoEdit(taskId)) {
             $("li#"+taskId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:taskId, type:"task"});
-//            ignorePush = true;
             $('button.'+taskId).button();
             $('button.'+taskId).unbind();
             $('.cancelButton.'+taskId).click({id: taskId},cancel);
@@ -2189,17 +2170,12 @@ $(document).ready(function () {
             contentType: "application/json; charset=utf-8",
             success: function (updatedEpic) {
                 if (view == "epic-story") {
-                    //If epic was moved,
-                    //check if this epic is in list-container or in archived.list-container and moves it.
                     if (getParent(epicId).archived != updatedEpic.archived) {
                         removeItem($("li#" + epicId));
                     } else {
                         updateEpicLi(updatedEpic);
-                        //Replacing story with a new one
-                        replaceParent(epicId, updatedEpic);
                         exitEditMode(epicId);
                     }
-                    addZebraStripesToParents();
                 } else {
                     replaceChild(epicId, updatedEpic);
                     exitEditMode(epicId);
@@ -2311,7 +2287,6 @@ $(document).ready(function () {
         if (isGoingIntoEdit(epicId)) {
             $("li#"+epicId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:epicId, type:"epic"});
-//            ignorePush = true;
 
             $('button.'+epicId).button();
             $('button.'+epicId).unbind();
@@ -2379,11 +2354,9 @@ $(document).ready(function () {
             success: function (updatedTheme) {
                 //if theme was moved from or to archive
                 if (getParent(themeId).archived != updatedTheme.archived) {
-                    //Checks if this theme is in list-container or in archived.list-container and moves it.
                     removeItem($("li#" + themeId));
                 } else {
                     updateThemeLi(updatedTheme);
-                    replaceParent(themeId, updatedTheme);
                     exitEditMode(themeId);
                 }
                 if (archivedView && !updatedTheme.archived) {
@@ -2391,7 +2364,6 @@ $(document).ready(function () {
                     //we need to add a new element
                     reBuildArchivedList();
                 }
-                addZebraStripesToParents();
             },
             error: function (request, status, error) {
                 alert(error);
@@ -2471,7 +2443,6 @@ $(document).ready(function () {
         if (isGoingIntoEdit(themeId)) {
             $("li#"+themeId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:themeId, type:"theme"});
-//            ignorePush = true;
 
             $('button.'+themeId).button();
             $('button.'+themeId).unbind();
@@ -2807,7 +2778,6 @@ $(document).ready(function () {
         });
         elem.mouseup(function () {
             $(".parent-child-list").children("li").removeClass("over");
-//            $(".parent-child-list", elem).children("li").removeClass("over");
         });
 
         $(".bindChange").change( function(event){
@@ -3048,7 +3018,6 @@ $(document).ready(function () {
             return container;
         },
         start: function (event, ui) {
-//            ignorePush = true;
             var pressed = $(ui.item);
             pressed.addClass("moving");
 
