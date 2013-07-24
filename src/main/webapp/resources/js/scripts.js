@@ -1415,10 +1415,9 @@ $(document).ready(function () {
             data: clonedItem,
             success : function(newObj) {
                 if (newObj != null) {
-                    newObj = JSON.parse(newObj);
                     visible[newObj.id] = true;
                     unselectAll();
-                    selectedItems.push({id : newObj.id, type : familyMember});
+                    selectItem({id : newObj.id, type : familyMember});
                     updateCookie();
                 }
                 $.unblockUI();

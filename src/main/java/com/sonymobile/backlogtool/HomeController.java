@@ -374,12 +374,12 @@ public class HomeController {
                             "|customer|contributorSite|customerSite")) {
                         queryString = "select distinct s from Story s "
                                 + "left join fetch s.children "
-                                + "where s.area = ? " + "and s.archived = false "
+                                + "where s.area = ? and s.archived = false "
                                 + "order by s." + order;
                     } else { // Fall back to sorting by prio
                         queryString = "select distinct s from Story s "
                                 + "left join fetch s.children "
-                                + "where s.area = ? and " + "s.archived = false "
+                                + "where s.area = ? and s.archived = false "
                                 + "order by s.prio";
                     }
                     Query query = session.createQuery(queryString);
@@ -467,12 +467,12 @@ public class HomeController {
                     if (order.matches("title|description")) {
                         queryString = "select distinct e from Epic e "
                                 + "left join fetch e.children "
-                                + "where e.area = ? and " + "e.archived=false "
+                                + "where e.area = ? and e.archived=false "
                                 + "order by e." + order;
                     } else { // Fall back to sorting by prio
                         queryString = "select distinct e from Epic e "
                                 + "left join fetch e.children "
-                                + "where e.area = ? and " + "e.archived = false "
+                                + "where e.area = ? and e.archived = false "
                                 + "order by e.prio";
                     }
 
@@ -561,12 +561,12 @@ public class HomeController {
                     if (order.matches("title||description")) {
                         queryString = "select distinct t from Theme t "
                                 + "left join fetch t.children "
-                                + "where t.area = ? and " + "t.archived = false "
+                                + "where t.area = ? and t.archived = false "
                                 + "order by t." + order;
                     } else { // Fall back to sorting by prio
                         queryString = "select distinct t from Theme t "
                                 + "left join fetch t.children "
-                                + "where t.area = ? and " + "t.archived = false "
+                                + "where t.area = ? and t.archived = false "
                                 + "order by t.prio";
                     }
                     Query query = session.createQuery(queryString);
