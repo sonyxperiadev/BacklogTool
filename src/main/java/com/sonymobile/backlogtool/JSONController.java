@@ -453,7 +453,7 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtask/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String createTask(@PathVariable String areaName, @RequestBody NewTaskContainer newTask) throws Exception {
+    public @ResponseBody Task createTask(@PathVariable String areaName, @RequestBody NewTaskContainer newTask) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -503,15 +503,13 @@ public class JSONController {
             session.close();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(Task.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(newTask);
+        return newTask;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createstory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String createStory(@PathVariable String areaName, @RequestBody NewStoryContainer newStory) throws Exception {
+    public @ResponseBody Story createStory(@PathVariable String areaName, @RequestBody NewStoryContainer newStory) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -598,16 +596,14 @@ public class JSONController {
         } finally {
             session.close();
         }
-        
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(newStory);
+
+        return newStory;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createepic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
+    public @ResponseBody Epic createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -689,15 +685,13 @@ public class JSONController {
             session.close();
         }
         
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(newEpic);
+        return newEpic;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
+    public @ResponseBody Theme createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -754,9 +748,7 @@ public class JSONController {
             session.close();
         }
         
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(Theme.class, ChildrenExcluder.class);
-        return mapper.writeValueAsString(newTheme);
+        return newTheme;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
@@ -1271,7 +1263,7 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneStory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String cloneStory(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
+    public @ResponseBody Story cloneStory(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -1336,14 +1328,13 @@ public class JSONController {
             session.close();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(storyToPush);
+        return storyToPush;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneEpic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String cloneEpic(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
+    public @ResponseBody Epic cloneEpic(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -1411,14 +1402,13 @@ public class JSONController {
             session.close();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(epicToPush);
+        return epicToPush;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneTheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody String cloneTheme(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
+    public @ResponseBody Theme cloneTheme(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -1470,8 +1460,7 @@ public class JSONController {
             session.close();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(themeToPush);
+        return themeToPush;
     }
 
 
