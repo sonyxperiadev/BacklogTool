@@ -57,7 +57,12 @@ public class NewEpicContainer extends Epic {
     public void setThemeTitle(String themeTitle) {
         this.themeTitle = StringEscapeUtils.unescapeHtml(themeTitle);
     }
-    
+
+    /**
+     * Copies all values from the specified Epic to this NewEpicContainer,
+     * including IDs, priorities and children (and their IDs and priorities)
+     * @param e The Epic to copy the values from
+     */
     public void fromEpic(Epic e) {
         setArchived(e.isArchived());
         setArea(e.getArea());

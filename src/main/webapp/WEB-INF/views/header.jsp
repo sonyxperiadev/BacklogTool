@@ -91,7 +91,7 @@ THE SOFTWARE.
         <tr>
             <td>
                 <input type="radio" id="active" name="radio" 
-                    <c:if test="${archivedView != true}">
+                    <c:if test="${!archivedView}">
                         checked="checked"
                     </c:if>
                 />
@@ -99,7 +99,7 @@ THE SOFTWARE.
             </td>
             <td>
                 <input type="radio" id="archive" name="radio" 
-                    <c:if test="${archivedView == true}">
+                    <c:if test="${archivedView}">
                         checked="checked"
                     </c:if>
                 />
@@ -108,7 +108,7 @@ THE SOFTWARE.
         </tr>
     </table>
 </div>
-<c:if test="${archivedView != true}">
+<c:if test="${!archivedView}">
     <button title="Create a new story" id="create-parent" class="fff"></button>
 </c:if>
 <button id="filter-button" title="Filter selected items">FILTER SELECTED</button>
@@ -116,7 +116,7 @@ THE SOFTWARE.
     <p class="headerText textstyle">FILTER BY ID</p>
     <input title="Filter by ID, comma-separated" id="filter" class="filter"/>
 </div>
-<c:if test="${archivedView != true}">
+<c:if test="${!archivedView}">
     <div class="order-by">
         <p class="headerText textstyle">ORDER BY</p>
         <select name="order-by" id="order-by"

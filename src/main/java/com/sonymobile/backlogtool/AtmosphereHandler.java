@@ -102,8 +102,8 @@ public final class AtmosphereHandler implements HandlerMethodArgumentResolver {
      */
     public static void pushJsonMessages(String area, List<String> messages) {
         StringBuilder sb = new StringBuilder();
-        if(messages != null) {
-            for(String s : messages) {
+        if (messages != null) {
+            for (String s : messages) {
                 sb.append(s).append(',');
             }
         }

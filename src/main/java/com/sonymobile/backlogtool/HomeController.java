@@ -388,7 +388,7 @@ public class HomeController {
                 }
                 ObjectMapper mapper = new ObjectMapper();
 
-                for(Story s : nonArchivedStories) {
+                for (Story s : nonArchivedStories) {
                     map.put(s.getId(), s);
                 }
                 try {
@@ -483,7 +483,7 @@ public class HomeController {
 
                 ObjectMapper mapper = new ObjectMapper();
 
-                for(Epic e : nonArchivedEpics) {
+                for (Epic e : nonArchivedEpics) {
                     map.put(e.getId(), e);
                 }
                 try {
@@ -574,7 +574,7 @@ public class HomeController {
 
                     nonArchivedThemes = Util.castList(Theme.class, query.list());
 
-                    for(Theme t : nonArchivedThemes) {
+                    for (Theme t : nonArchivedThemes) {
                         map.put(t.getId(), t);
                     }
                 }

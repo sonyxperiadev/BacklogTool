@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%> <%-- Library used in included placeholder-files --%>
 <%@ page session="false"%>
 <!DOCTYPE html>
 <html>
@@ -86,7 +86,7 @@ THE SOFTWARE.
                 </ul>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
-            <c:if test="${archivedView == true}">
+            <c:if test="${archivedView}">
                 <div id="pagination"></div>
             </c:if>
         </div>

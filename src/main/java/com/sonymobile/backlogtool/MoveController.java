@@ -93,7 +93,7 @@ public class MoveController {
                     lastParent = (Story) session.get(Story.class, lastItem.getId());
                 }
             }
-
+            // Maps a parents id to its prio
             HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
@@ -199,23 +199,22 @@ public class MoveController {
                     }
                 }
 
-                for(Story parent : allParents) {
+                for (Story parent : allParents) {
                     movedParentsPrio.put(parent.getId(), parent.getPrio());
                 }
 
             }
+            HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+            moveActionMap.put("lastItem", lastItem);
+            if (itemTypes.equals("child")) {
+                moveActionMap.put("objects", parentsToPush);
+            } else {
+                moveActionMap.put("objects", movedParentsPrio);
+            }
+            String jsonString = JSONController.getJsonStringInclChildren(itemTypes + "Move", moveActionMap, JSONController.STORY_TASK_VIEW);
 
             tx.commit();
-            HashMap<String, Object> hm = new HashMap<String, Object>();
-            hm.put("lastItem", lastItem);
-            if(itemTypes.equals("child")) {
-                hm.put("objects", parentsToPush);
-            } else {
-                hm.put("objects", movedParentsPrio);
-            }
-            List<String> messages = new ArrayList<String>();
-            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", hm, JSONController.STORY_TASK_VIEW));
-            AtmosphereHandler.pushJsonMessages(areaName, messages);
+            AtmosphereHandler.push(areaName, jsonString);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -258,7 +257,7 @@ public class MoveController {
                     lastParent = (Epic) session.get(Epic.class, lastItem.getId());
                 }
             }
-
+            // Maps a parents id to its prio
             HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             List<Story> movedChildren = new ArrayList<Story>();
             if (itemTypes.equals("child")) {
@@ -363,24 +362,24 @@ public class MoveController {
                     }
                 }
 
-                for(Epic parent : allParents) {
+                for (Epic parent : allParents) {
                     movedParentsPrio.put(parent.getId(), parent.getPrio());
                 }
             }
 
             List<String> messages = new ArrayList<String>();
-            HashMap<String, Object> hm = new HashMap<String, Object>();
-            hm.put("lastItem", lastItem);
-            if(itemTypes.equals("child")) {
-                hm.put("objects", parentsToPush);
+            HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+            moveActionMap.put("lastItem", lastItem);
+            if (itemTypes.equals("child")) {
+                moveActionMap.put("objects", parentsToPush);
                 
-                for(Story s : movedChildren) {
+                for (Story s : movedChildren) {
                     messages.add(JSONController.getJsonStringExclChildren(Story.class, s, JSONController.STORY_TASK_VIEW));
                 }
             } else {
-                hm.put("objects", movedParentsPrio);
+                moveActionMap.put("objects", movedParentsPrio);
             }
-            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", hm, JSONController.EPIC_STORY_VIEW));
+            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", moveActionMap, JSONController.EPIC_STORY_VIEW));
             tx.commit();
             AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
@@ -425,7 +424,7 @@ public class MoveController {
                     lastParent = (Theme) session.get(Theme.class, lastItem.getId());
                 }
             }
-
+            // Maps a parents id to its prio
             HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             List<Epic> movedChildren = new ArrayList<Epic>();
             if (itemTypes.equals("child")) {
@@ -533,24 +532,24 @@ public class MoveController {
                     }
                 }
 
-                for(Theme parent : allParents) {
+                for (Theme parent : allParents) {
                     movedParentsPrio.put(parent.getId(), parent.getPrio());
                 }
             }
 
             List<String> messages = new ArrayList<String>();
-            HashMap<String, Object> hm = new HashMap<String, Object>();
-            hm.put("lastItem", lastItem);
-            if(itemTypes.equals("child")) {
-                hm.put("objects", parentsToPush);
+            HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+            moveActionMap.put("lastItem", lastItem);
+            if (itemTypes.equals("child")) {
+                moveActionMap.put("objects", parentsToPush);
 
-                for(Epic e : movedChildren) {
+                for (Epic e : movedChildren) {
                     messages.add(JSONController.getJsonStringExclChildren(Epic.class, e, JSONController.EPIC_STORY_VIEW));
                 }
             } else {
-                hm.put("objects", movedParentsPrio);
+                moveActionMap.put("objects", movedParentsPrio);
             }
-            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", hm, JSONController.THEME_EPIC_VIEW));
+            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", moveActionMap, JSONController.THEME_EPIC_VIEW));
 
             tx.commit();
             AtmosphereHandler.pushJsonMessages(areaName, messages);

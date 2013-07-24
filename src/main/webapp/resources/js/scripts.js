@@ -1556,6 +1556,9 @@ $(document).ready(function () {
                 }
             }
         }
+        if(typeof itemId !== "undefined") {
+            editingItems.remove({id:itemId});
+        }
     };
     
     /**

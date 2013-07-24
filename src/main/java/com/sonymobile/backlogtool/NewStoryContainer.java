@@ -97,7 +97,12 @@ public class NewStoryContainer extends Story {
     public void setStoryAttr3Id(String storyAttr3Id) {
         this.storyAttr3Id = storyAttr3Id;
     }
-    
+
+    /**
+     * Copies all values from the specified Story to this NewStoryContainer,
+     * including IDs, priorities and children (and their IDs and priorities)
+     * @param s The Story to copy the values from
+     */
     public void fromStory(Story s) {
         setDescription(s.getDescription());
         setTitle(s.getTitle());
