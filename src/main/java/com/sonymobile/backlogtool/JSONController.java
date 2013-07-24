@@ -910,14 +910,6 @@ public class JSONController {
             }
 
             List<String> messages = new ArrayList<String>();
-            String updatedStoryViews = EPIC_STORY_VIEW;
-            if (movedToArchived) {
-                messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
-            } else {
-                updatedStoryViews += "|" + STORY_TASK_VIEW;
-            }
-            messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
-            
             if (theme != null) {
                 messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
             }
@@ -927,7 +919,14 @@ public class JSONController {
                 moveActionMap.put("objects", parentsToPush);
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
-
+            String updatedStoryViews = EPIC_STORY_VIEW;
+            if (movedToArchived) {
+                messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
+            } else {
+                updatedStoryViews += "|" + STORY_TASK_VIEW;
+            }
+            messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
+            
             tx.commit();
             AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {

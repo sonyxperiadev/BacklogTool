@@ -451,10 +451,10 @@ $(document).ready(function () {
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
             } else if(jsonObj.type == "AreaDelete") {
-                var invalidDialog = $(document.createElement('div'));
-                $(invalidDialog).attr('title', 'Area removed');
-                $(invalidDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
-                invalidDialog.dialog({
+                var areaErrorDialog = $(document.createElement('div'));
+                $(areaErrorDialog).attr('title', 'Area removed');
+                $(areaErrorDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
+                areaErrorDialog.dialog({
                     modal: true,
                     width: 325,
                     resizable: false,
@@ -500,9 +500,9 @@ $(document).ready(function () {
         var ulObj = $('ul#list-container');
 
         if(moveType == "parentMove") {
-            for(var key in objList) {
-                var p = getParent(key);
-                p.prio = objList[key];
+            for(var id in objList) {
+                var p = getParent(id);
+                p.prio = objList[id];
             }
         } else { // child-move
             for(var i = 0; i < objList.length; i++) {
@@ -510,7 +510,13 @@ $(document).ready(function () {
                 var children = p.children;
                 // The children should be sorted in correct prio-order in the parent
                 children.sort(function(a, b) {
-                    return a[childAttr] > b[childAttr] ? 1 : (a[childAttr] < b[childAttr] ? -1 : 0);
+                    if (a[childAttr] > b[childAttr]) {
+                        return 1;
+                    } else if (a[childAttr] < b[childAttr]){
+                        return -1;
+                    } else {
+                        return 0;
+                    }
                 });
                 var parentObj = getParent(p.id);
                 if(parentObj == null) {
@@ -538,7 +544,7 @@ $(document).ready(function () {
                     }
                     childLi.attr('parentid', p.id);
 
-                    // If the prio* is 1, it should be placed immediately after it's parent
+                    // If the prioIn* is 1, it should be placed immediately after it's parent
                     if(children[j][childAttr] == 1) {
                         parentLi.after(childLi);
                     } else {
@@ -580,12 +586,19 @@ $(document).ready(function () {
         }
     }
     
+    /**
+     * Get the parent that has the specified id
+     * @param id The id of the parent to get
+     * @returns The parent if found, otherwise null
+     */
     var getParent = function(id) {
         var p = parentsMap[id];
         if(typeof p !== "undefined" && p != null) {
             if(typeof p.children === "undefined") {
                 p.children = new Array();
             }
+        } else {
+            p = null;
         }
         return p;
     };
@@ -827,30 +840,60 @@ $(document).ready(function () {
           return baseComparator(a, b, attr);
       };
     };
-
+    
+    /**
+     * Compares the attribute attr of the two object a and b
+     * and returns a number depending on the outcome
+     * @param a Object one
+     * @param b Object two
+     * @param attr The attribute of the objects to compare
+     * @returns A number < 0 if a < b, > 0 if a > b or 0 if a == b 
+     */
     var baseComparator = function(a, b, attr) {
         var v1 = getParent(a.id)[attr];
         var v2 = getParent(b.id)[attr];
 
-        if(attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
-            v1 = (v1 !== null) ? v1.compareValue : null;
-            v2 = (v2 !== null) ? v2.compareValue : null;
+        if (attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
+            if(v1 !== null) {
+                v1 = v1.compareValue;
+            }
+            if(v2 !== null) {
+                v2 = v2.compareValue;
+            }
         }
 
-        if(isNumeric(v1) && isNumeric(v2)) {
+        if (isNumeric(v1) && isNumeric(v2)) {
             return (attr == "dateArchived") ? v2 - v1 : v1 - v2;
         }
-
-        v1 = (v1 === "") ? null : v1; // E.g. empty descriptions should be further down in the list
-        v2 = (v2 === "") ? null : v2;
-        // Null-values should be further back in the list
-        return v1 == null ? 1 : (v2 == null ? -1 : v1.localeCompare(v2));
+        
+        // For e.g. empty descriptions, these should be further down in the list
+        if (v1 === "") {
+            v1 = null;
+        }
+        if (v2 === "") {
+            v2 = null;
+        }
+        
+        if (v1 == null) {
+            return 1;
+        } else if (v2 == null) {
+            return -1;
+        } else {
+            return v1.localeCompare(v2);
+        }
     };
 
     var prioComparator = function(a, b) {
         var p1 = getParent(a.id);
         var p2 = getParent(b.id);
-        return p1.prio > p2.prio ? 1 : (p2.prio > p1.prio ? -1 : 0);
+        
+        if (p1.prio > p2.prio) {
+            return 1;
+        } else if (p2.prio > p1.prio) {
+            return -1;
+        } else {
+            return 0;
+        }
     };
 
     Array.prototype.remove = function (value) {
@@ -1150,8 +1193,7 @@ $(document).ready(function () {
      */
     $(document).click(function(event) {
         if ($(event.target).closest('li, a, input, button, select').length == 0) {
-            selectedItems = new Array();
-            $("ul > li.ui-selected").removeClass("ui-selected");
+            unselectAll();
             updateCookie();
         }
     });
@@ -1211,7 +1253,7 @@ $(document).ready(function () {
                 if (newTask != null) {
                     newTask.lastItem = task.lastItem;
                     updateTaskLi(newTask);
-                    expandParent(newTask.id);
+                    expandParentForChild(newTask.id);
                     visible[newTask.id] = true;
 
                     unselectAll();
@@ -1237,10 +1279,9 @@ $(document).ready(function () {
         var storyContainer = new Object();
         storyContainer.added = new Date();
         
-        var epic = null;
         if (view == "epic-story") {
             newStoryEpicID = event.target.id;
-            epic = getParent(newStoryEpicID);
+            var epic = getParent(newStoryEpicID);
             storyContainer.epicTitle = epic.title;
             storyContainer.themeTitle = epic.themeTitle;
             storyContainer.lastItem = getLastSelected("child");
@@ -1268,7 +1309,7 @@ $(document).ready(function () {
                     }
                     updateCookie();
 
-                    expandParent(newStory.id);
+                    expandParentForChild(newStory.id);
                     visible[newStory.id] = true;
                     editStory(newStory.id);
                     scrollTo(newStory.id);
@@ -1318,7 +1359,7 @@ $(document).ready(function () {
                     }
                     updateCookie();
 
-                    expandParent(newEpic.id);
+                    expandParentForChild(newEpic.id);
                     visible[newEpic.id] = true;
                     editEpic(newEpic.id);
                     $.unblockUI();
@@ -1357,7 +1398,7 @@ $(document).ready(function () {
                     updateCookie();
 
                     $.unblockUI();
-                    expandParent(newTheme.id);
+                    expandParentForChild(newTheme.id);
                     visible[newTheme.id] = true;
                     editTheme(newTheme.id);
                     scrollTo(newTheme.id);
@@ -1823,7 +1864,15 @@ $(document).ready(function () {
             sortList(ulObj);
         } 
     };
-    
+
+    /**
+     * Put the specified li-element (and, if any, children) in the correct position 
+     * in the specified ul-list. If an lastItemObj isn't specified the li-element 
+     * will simply be put last in the list
+     * @param ulObj The ul-element to put the li-element in
+     * @param lastItemObj An optional object with an id of the element after which to put the li-element
+     * @param liObj The li-element to put in the list
+     */
     var putInCorrPrioPos = function(ulObj, lastItemObj, liObj) {
         var items = $('li#' + liObj.attr("id") + ', [parentId="'+ liObj.attr("id") +'"]');
         if(items.length == 0) {
@@ -1831,7 +1880,7 @@ $(document).ready(function () {
         }
         if(items != null) {
             if(typeof lastItemObj !== "undefined" && lastItemObj != null) {
-                var putAfter = getParentOrLastChildElement(lastItemObj);
+                var putAfter = getParentOrLastChildElement(lastItemObj.id);
 
                 if(putAfter != null) {
                     putAfter.after(items);
@@ -1843,11 +1892,19 @@ $(document).ready(function () {
             }
         }
     };
-    
-    var getParentOrLastChildElement = function(itemObj) {
-        var elem = getParent(itemObj.id);
+
+    /**
+     * Get the last element belonging to the specified id, i.e. either the
+     * parent if the id belongs to a child-less parent, or the last child
+     * of the parent if the parent has children. If the id belongs to a 
+     * child, the last child of the same parent will be returned.
+     * @param itemId The id of a parent or child
+     * @returns The last element that corresponds to the specified id
+     */
+    var getParentOrLastChildElement = function(itemId) {
+        var elem = getParent(itemId);
         if(elem == null) {
-            findChild(itemObj.id, function(childObj, parentObj, posInParent) {
+            findChild(itemId, function(childObj, parentObj, posInParent) {
                 elem = parentObj;
             });
         }
@@ -2015,8 +2072,6 @@ $(document).ready(function () {
         var visibleChild;
         if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
             visibleChild = true;
-            //TODO: Should be removeClass(ui-hidden). However a bug is causing
-            //moved children to get hidden if they are moved to a parent with other hidden children.
             childLi.css('display', 'list-item');
             childLi.removeClass("ui-hidden");
         } else {
@@ -2040,7 +2095,11 @@ $(document).ready(function () {
         }
     };
     
-    var expandParent = function(childId) {
+    /**
+     * Expand the parent that the specified childId belongs to
+     * @param childId The id of the child whose parent to expand
+     */
+    var expandParentForChild = function(childId) {
         findChild(childId, function(childObj, parentObj, posInParent) {
             var iconDiv = $("li#" + parentObj.id).find("div.icon");
             if(iconDiv.hasClass("ui-icon-triangle-1-e")) {
@@ -2986,7 +3045,7 @@ $(document).ready(function () {
                         dataObj.view = view;
                         handleMovePush(moveType, dataObj);
 
-                        expandParent(selectedItems[0].id);
+                        expandParentForChild(selectedItems[0].id);
                     }
                 }
 
