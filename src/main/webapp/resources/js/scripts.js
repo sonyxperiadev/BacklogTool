@@ -219,17 +219,6 @@ $(document).ready(function () {
         return '<img src="../resources/image/'+storyAttr.icon+'" title="' + getNameIfExists(storyAttr) + '"/> ';
     };
 
-    /**
-     * Used to tick checkboxes on archived parent's.
-     */
-    var getArchived = function(archived) {
-        if (archived) {
-            return 'checked="checked"';
-        } else {
-            return '';
-        }
-    };
-
     //fix for trim
     if (typeof String.prototype.trim !== 'function') {
         String.prototype.trim = function () {
@@ -286,14 +275,6 @@ $(document).ready(function () {
      */
     var escapeHtml = function(text) {
         return $("<div/>").html(text).text();
-    };
-
-    var replaceNullWithEmpty = function (object) {
-        if (object == null) {
-            return '';
-        } else {
-            return object;
-        }
     };
 
     var getNameIfExists = function (object) {
@@ -364,7 +345,6 @@ $(document).ready(function () {
         createCookie("backlogtool-selectedItems", JSON.stringify(selectedCookie), 1);
     };
 
-    var ignorePush;
     var socket;
     /**
      * Registers for push-notifications for the current area
@@ -901,44 +881,6 @@ $(document).ready(function () {
         var p2 = getParent(b.id);
         return p1.prio > p2.prio ? 1 : (p2.prio > p1.prio ? -1 : 0);
     };
-
-    var populateStoryAttrs = function populateStoryAttrs() {
-        storyAttr1Options = "";
-        for (var i=0; i<area.storyAttr1.options.length; ++i) {
-            storyAttr1Options += '<option value="'+ area.storyAttr1.options[i].id+ '">'
-            + area.storyAttr1.options[i].name + '</option>';
-        }
-        storyAttr2Options = "";
-        for (var i=0; i<area.storyAttr2.options.length; ++i) {
-            storyAttr2Options += '<option value="'+ area.storyAttr2.options[i].id+ '">'
-            + area.storyAttr2.options[i].name + '</option>';
-        }
-        storyAttr3Options = "";
-        for (var i=0; i<area.storyAttr3.options.length; ++i) {
-            storyAttr3Options += '<option value="'+ area.storyAttr3.options[i].id+ '">'
-            + area.storyAttr3.options[i].name + '</option>';
-        }
-        taskAttr1Options = "";
-        for (var i=0; i<area.taskAttr1.options.length; ++i) {
-            taskAttr1Options += '<option value="'+ area.taskAttr1.options[i].id+ '">'
-            + area.taskAttr1.options[i].name + '</option>';
-        }
-        var emptyOption = '<option value=""></option>';
-
-        $("#storyAttr1").empty().append(emptyOption);
-        $("#storyAttr1").append(storyAttr1Options);
-
-        $("#storyAttr2").empty().append(emptyOption);
-        $("#storyAttr2").append(storyAttr2Options);
-
-        $("#storyAttr3").empty().append(emptyOption);
-        $("#storyAttr3").append(storyAttr3Options);
-
-        $("#taskAttr1").empty().append(emptyOption);
-        $("#taskAttr1").append(taskAttr1Options);
-
-    };
-    populateStoryAttrs();
 
     Array.prototype.remove = function (value) {
         for (var i = 0; i < this.length; i++) {
