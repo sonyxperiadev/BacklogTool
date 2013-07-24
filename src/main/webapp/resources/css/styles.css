@@ -278,6 +278,14 @@ p.description {
     color: #494949;
 }
 
+p.story-description, p.epic-description, p.theme-description {
+	font-weight: normal !important;
+}
+
+li * a {
+	font-weight: bold;
+}
+
 .title {
     height: 19px;
     color: #494949;
@@ -410,7 +418,6 @@ div.titles-theme-epic {
 
 .titleText {
     font-size: 1.3em;
-    font-weight: bold;
     color: black;
 }
 
