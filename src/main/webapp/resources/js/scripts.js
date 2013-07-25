@@ -473,11 +473,13 @@ $(document).ready(function () {
             if(offset !== null) {
                 // Restore offset
                 var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-                if(newOffset.top != offset.top) {
-                    // Restore focus
-                    var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
-                    $(window).scrollTop(newPos);
-                    inputFocus[0].focus();
+                if(typeof newOffset !== "undefined") {
+                    if(newOffset.top != offset.top) {
+                        // Restore scroll
+                        var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
+                        $(window).scrollTop(newPos);
+                    }
+                    inputFocus[0].focus(); // Restore focus
                 }
                 offset = null;
             }
@@ -970,8 +972,8 @@ $(document).ready(function () {
                 // Restore focus
                 var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
                 $(window).scrollTop(newPos);
-                inputFocus[0].focus();
             }
+            inputFocus[0].focus();
             offset = null;
         }
 
