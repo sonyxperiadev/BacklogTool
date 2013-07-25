@@ -86,34 +86,56 @@ THE SOFTWARE.
     </ul>
 </div>
 <button title="Save all changes" id="save-all" class="save-button fff" disabled>#</button>
-<button title="Create a new story" id="create-parent" class="fff"></button>
+<div class="showArchive">
+    <table>
+        <tr>
+            <td>
+                <input type="radio" id="active" name="radio" 
+                    <c:if test="${!archivedView}">
+                        checked="checked"
+                    </c:if>
+                />
+                <label for="active">Active</label>
+            </td>
+            <td>
+                <input type="radio" id="archive" name="radio" 
+                    <c:if test="${archivedView}">
+                        checked="checked"
+                    </c:if>
+                />
+            <label for="archive">Archive</label>
+            </td>
+        </tr>
+    </table>
+</div>
+<c:if test="${!archivedView}">
+    <button title="Create a new story" id="create-parent" class="fff"></button>
+</c:if>
 <button id="filter-button" title="Filter selected items">FILTER SELECTED</button>
 <div class="filter">
     <p class="headerText textstyle">FILTER BY ID</p>
     <input title="Filter by ID, comma-separated" id="filter" class="filter"/>
 </div>
-<div class="order-by">
-    <p class="headerText textstyle">ORDER BY</p>
-    <select name="order-by" id="order-by"
-        class="text ui-widget-content ui-corner-all">
-        <option selected value="prio">Rank</option>
-        <option value="title">Title</option>
-        <option value="description">Description</option>
-        <c:if test="${view == 'story-task'}">
-            <option value="contributor">Contributor</option>
-            <option value="customer">Customer</option>
-            <option value="contributorSite">Contributor site</option>
-            <option value="customerSite">Customer site</option>
-            <option value="storyAttr1">${area.storyAttr1.name}</option>
-            <option value="storyAttr2">${area.storyAttr2.name}</option>
-            <option value="storyAttr3">${area.storyAttr3.name}</option>
-        </c:if>
-    </select>
-</div>
-<div class="showArchive">
-    <p class="headerText textstyle">ARCHIVE</p>
-    <input type="checkbox" id="archived-checkbox" name="archived-checkbox" />
-</div>
+<c:if test="${!archivedView}">
+    <div class="order-by">
+        <p class="headerText textstyle">ORDER BY</p>
+        <select name="order-by" id="order-by"
+            class="text ui-widget-content ui-corner-all">
+            <option selected value="prio">Rank</option>
+            <option value="title">Title</option>
+            <option value="description">Description</option>
+            <c:if test="${view == 'story-task'}">
+                <option value="contributor">Contributor</option>
+                <option value="customer">Customer</option>
+                <option value="contributorSite">Contributor site</option>
+                <option value="customerSite">Customer site</option>
+                <option value="storyAttr1">${area.storyAttr1.name}</option>
+                <option value="storyAttr2">${area.storyAttr2.name}</option>
+                <option value="storyAttr3">${area.storyAttr3.name}</option>
+            </c:if>
+        </select>
+    </div>
+</c:if>
 <div class="navigation-links">
     <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="../story-task/${area.name}">STORY TASK </a> 
     <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="../epic-story/${area.name}">EPIC STORY /&nbsp</a> 

@@ -58,4 +58,32 @@ public class NewEpicContainer extends Epic {
         this.themeTitle = StringEscapeUtils.unescapeHtml(themeTitle);
     }
 
+    /**
+     * Copies all values from the specified Epic to this NewEpicContainer,
+     * including IDs, priorities and children (and their IDs and priorities)
+     * @param e The Epic to copy the values from
+     */
+    public void fromEpic(Epic e) {
+        setArchived(e.isArchived());
+        setArea(e.getArea());
+        setDateArchived(e.getDateArchived());
+        setDescription(e.getDescription());
+        setTheme(e.getTheme());
+        setTitle(e.getTitle());
+        
+        setId(e.getId());
+        setPrio(e.getPrio());
+        setPrioInTheme(e.getPrioInTheme());
+        setThemeTitle(e.getThemeTitle());
+        
+        for (Story s : e.getChildren()) {
+            Story copiedStory = s.copy(false);
+            copiedStory.setEpic(this);
+            copiedStory.setPrioInEpic(s.getPrioInEpic());
+            copiedStory.setPrio(s.getPrio());
+            copiedStory.setId(s.getId());
+            getChildren().add(copiedStory);
+        }
+    }
+
 }

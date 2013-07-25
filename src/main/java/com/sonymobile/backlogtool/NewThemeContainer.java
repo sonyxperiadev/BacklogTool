@@ -45,4 +45,28 @@ public class NewThemeContainer extends Theme {
     public void setLastItem(ListItem lastItem) {
         this.lastItem = lastItem;
     }
+
+    /**
+     * Copies all values from the specified Theme to this NewThemeContainer,
+     * including IDs, priorities and children (and their IDs and priorities)
+     * @param t The Theme to copy the values from
+     */
+    public void fromTheme(Theme t) {
+        setArchived(t.isArchived());
+        setArea(t.getArea());
+        setDateArchived(t.getDateArchived());
+        setDescription(t.getDescription());
+        setTitle(t.getTitle());
+
+        setPrio(t.getPrio());
+        setId(t.getId());
+
+        for (Epic e : t.getChildren()) {
+            Epic copiedEpic = e.copy(false);
+            copiedEpic.setTheme(this);
+            copiedEpic.setPrioInTheme(e.getPrioInTheme());
+            copiedEpic.setId(e.getId());
+            getChildren().add(copiedEpic);
+        }
+    }
 }

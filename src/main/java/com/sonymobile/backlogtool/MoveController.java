@@ -24,12 +24,14 @@
 package com.sonymobile.backlogtool;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
 
+import org.codehaus.jackson.annotate.JsonContentClass;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -69,9 +71,11 @@ public class MoveController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/movestory-task/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean moveStory(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
+    public @ResponseBody Set<Story> moveStory(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        List<Story> affectedStories = new ArrayList<Story>();
+        Set<Story> parentsToPush = new HashSet<Story>();
         try {
             tx = session.beginTransaction();
 
@@ -89,11 +93,12 @@ public class MoveController {
                     lastParent = (Story) session.get(Story.class, lastItem.getId());
                 }
             }
-
+            // Maps a parents id to its prio
+            HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
-                    return false;
+                    return parentsToPush;
                 }
 
                 //Get all moved children from db.
@@ -136,7 +141,8 @@ public class MoveController {
                 }
 
                 Set<Story> oldParents = new HashSet<Story>();
-
+                parentsToPush.add(lastParent);
+                affectedStories.add(lastParent);
                 //Move all tasks to the new parent
                 for (Task child : movedChildren) {
                     Story oldParent = child.getStory();
@@ -144,6 +150,7 @@ public class MoveController {
                     lastParent.getChildren().add(child);
                     child.setStory(lastParent);
                     oldParents.add(oldParent);
+                    parentsToPush.add(oldParent);
                 }
 
                 for (Story oldStory : oldParents) {
@@ -191,9 +198,23 @@ public class MoveController {
                         }
                     }
                 }
+
+                for (Story parent : allParents) {
+                    movedParentsPrio.put(parent.getId(), parent.getPrio());
+                }
+
             }
+            HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+            moveActionMap.put("lastItem", lastItem);
+            if (itemTypes.equals("child")) {
+                moveActionMap.put("objects", parentsToPush);
+            } else {
+                moveActionMap.put("objects", movedParentsPrio);
+            }
+            String jsonString = JSONController.getJsonStringInclChildren(itemTypes + "Move", moveActionMap, JSONController.STORY_TASK_VIEW);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, jsonString);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -203,9 +224,7 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        
-        return true;
+        return parentsToPush;
     }
 
     /**
@@ -217,9 +236,10 @@ public class MoveController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/moveepic-story/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean moveEpic(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
+    public @ResponseBody Set<Epic> moveEpic(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Set<Epic> parentsToPush = new HashSet<Epic>();
         try {
             tx = session.beginTransaction();
 
@@ -237,15 +257,16 @@ public class MoveController {
                     lastParent = (Epic) session.get(Epic.class, lastItem.getId());
                 }
             }
-
+            // Maps a parents id to its prio
+            HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
+            List<Story> movedChildren = new ArrayList<Story>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
-                    return false;
+                    return parentsToPush;
                 }
 
                 //Get all moved children from db.
-                List<Story> movedChildren = new ArrayList<Story>();
                 for (ListItem movedItem : moveContainer.getMovedItems()) {
                     Story movedChild = (Story) session.get(Story.class, movedItem.getId());
                     if (!movedChild.getEpic().getArea().getName().equals(areaName)) {
@@ -284,7 +305,7 @@ public class MoveController {
                 }
 
                 Set<Epic> oldParents = new HashSet<Epic>();
-
+                parentsToPush.add(lastParent);
                 //Move all tasks to the new parent
                 for (Story child : movedChildren) {
                     Epic oldParent = child.getEpic();
@@ -292,6 +313,7 @@ public class MoveController {
                     lastParent.getChildren().add(child);
                     child.setEpic(lastParent);
                     oldParents.add(oldParent);
+                    parentsToPush.add(oldParent);
                 }
 
                 for (Epic oldEpic : oldParents) {
@@ -339,9 +361,27 @@ public class MoveController {
                         }
                     }
                 }
+
+                for (Epic parent : allParents) {
+                    movedParentsPrio.put(parent.getId(), parent.getPrio());
+                }
             }
 
+            List<String> messages = new ArrayList<String>();
+            HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+            moveActionMap.put("lastItem", lastItem);
+            if (itemTypes.equals("child")) {
+                moveActionMap.put("objects", parentsToPush);
+                
+                for (Story s : movedChildren) {
+                    messages.add(JSONController.getJsonStringExclChildren(Story.class, s, JSONController.STORY_TASK_VIEW));
+                }
+            } else {
+                moveActionMap.put("objects", movedParentsPrio);
+            }
+            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", moveActionMap, JSONController.EPIC_STORY_VIEW));
             tx.commit();
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -351,9 +391,7 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        
-        return true;
+        return parentsToPush;
     }
 
     /**
@@ -365,9 +403,10 @@ public class MoveController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/movetheme-epic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean moveTheme(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
+    public @ResponseBody Set<Theme> moveTheme(@PathVariable String areaName, @RequestBody MoveContainer moveContainer) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Set<Theme> parentsToPush = new HashSet<Theme>();
         try {
             tx = session.beginTransaction();
 
@@ -385,15 +424,16 @@ public class MoveController {
                     lastParent = (Theme) session.get(Theme.class, lastItem.getId());
                 }
             }
-
+            // Maps a parents id to its prio
+            HashMap<Integer, Integer> movedParentsPrio = new HashMap<Integer, Integer>();
+            List<Epic> movedChildren = new ArrayList<Epic>();
             if (itemTypes.equals("child")) {
                 if (lastParent == null) {
                     //The children were placed first in list, don't do anything
-                    return false;
+                    return parentsToPush;
                 }
 
                 //Get all moved children from db.
-                List<Epic> movedChildren = new ArrayList<Epic>();
                 for (ListItem movedItem : moveContainer.getMovedItems()) {
                     Epic movedChild = (Epic) session.get(Epic.class, movedItem.getId());
                     if (!movedChild.getTheme().getArea().getName().equals(areaName)) {
@@ -432,7 +472,7 @@ public class MoveController {
                 }
 
                 Set<Theme> oldParents = new HashSet<Theme>();
-
+                parentsToPush.add(lastParent);
                 //Move all children to the new parent
                 for (Epic child : movedChildren) {
                     Theme oldParent = child.getTheme();
@@ -443,6 +483,7 @@ public class MoveController {
                         grandChild.setTheme(lastParent);
                     }
                     oldParents.add(oldParent);
+                    parentsToPush.add(oldParent);
                 }
 
                 for (Theme oldTheme : oldParents) {
@@ -490,9 +531,28 @@ public class MoveController {
                         }
                     }
                 }
+
+                for (Theme parent : allParents) {
+                    movedParentsPrio.put(parent.getId(), parent.getPrio());
+                }
             }
 
+            List<String> messages = new ArrayList<String>();
+            HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+            moveActionMap.put("lastItem", lastItem);
+            if (itemTypes.equals("child")) {
+                moveActionMap.put("objects", parentsToPush);
+
+                for (Epic e : movedChildren) {
+                    messages.add(JSONController.getJsonStringExclChildren(Epic.class, e, JSONController.EPIC_STORY_VIEW));
+                }
+            } else {
+                moveActionMap.put("objects", movedParentsPrio);
+            }
+            messages.add(JSONController.getJsonStringInclChildren(itemTypes + "Move", moveActionMap, JSONController.THEME_EPIC_VIEW));
+
             tx.commit();
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -502,8 +562,7 @@ public class MoveController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return true;
+        return parentsToPush;
     }
 
     /**
