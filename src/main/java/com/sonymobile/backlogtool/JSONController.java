@@ -89,6 +89,9 @@ public class JSONController {
     public static final String THEME_EPIC_VIEW = "theme-epic";
     public static final String PUSH_ACTION_DELETE = "Delete";
     public static final String ALL_VIEWS = "*";
+    
+    private static final int UPDATE_ITEM_ARCHIVED = 1;
+    private static final int UPDATE_ITEM_UNARCHIVED = 2;
 
     @Autowired
     SessionFactory sessionFactory;
@@ -831,9 +834,9 @@ public class JSONController {
                     }
                 }
             }
-            boolean movedToArchived = false;
+            int archivedStatus = 0;
             if (updatedStory.isArchived() && !story.isArchived()) {
-                movedToArchived = true;
+                archivedStatus = UPDATE_ITEM_ARCHIVED;
                 //Was moved to archive
                 story.setDateArchived(new Date());
 
@@ -848,6 +851,7 @@ public class JSONController {
                 }
                 story.setPrio(-1);
             } else if (!updatedStory.isArchived() && story.isArchived()) {
+                archivedStatus = UPDATE_ITEM_UNARCHIVED;
                 //Was moved from archive
                 story.setDateArchived(null);
 
@@ -920,8 +924,10 @@ public class JSONController {
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
             String updatedStoryViews = EPIC_STORY_VIEW;
-            if (movedToArchived) {
+            if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
                 messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
+            } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
             } else {
                 updatedStoryViews += "|" + STORY_TASK_VIEW;
             }
@@ -972,7 +978,7 @@ public class JSONController {
 
             Set<Theme> affectedThemes = new HashSet<Theme>();
             //Only make changes if the title does not already exist on another object
-            if (sameNameEpic == null || sameNameEpic == epic) {
+            if (sameNameEpic == null || sameNameEpic.getId() == epic.getId()) {
                 Theme oldTheme = epic.getTheme();
                 if (oldTheme != theme) {
                     if (oldTheme != null) {
@@ -993,10 +999,9 @@ public class JSONController {
                         epic.setTheme(theme);
                     }
                 }
-
-                boolean epicArchived = false;
+                int archivedStatus = 0;
                 if (updatedEpic.isArchived() && !epic.isArchived()) {
-                    epicArchived = true;
+                    archivedStatus = UPDATE_ITEM_ARCHIVED;
                     //Was moved to archive
                     epic.setDateArchived(new Date());
 
@@ -1011,6 +1016,7 @@ public class JSONController {
                     }
                     epic.setPrio(-1);
                 } else if (!updatedEpic.isArchived() && epic.isArchived()) {
+                    archivedStatus = UPDATE_ITEM_UNARCHIVED;
                     //Was moved from archive
                     epic.setDateArchived(null);
 
@@ -1035,8 +1041,10 @@ public class JSONController {
                     messages.add(getJsonStringExclChildren(Story.class, s, STORY_TASK_VIEW));
                 }
                 String updatedEpicViews = THEME_EPIC_VIEW;
-                if (epicArchived) {
+                if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
                     messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, epic.getId(), EPIC_STORY_VIEW));
+                } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                    messages.add(getJsonStringInclChildren(Epic.class.getSimpleName(), epic, EPIC_STORY_VIEW));
                 } else {
                     updatedEpicViews += "|" + EPIC_STORY_VIEW;
                 }
@@ -1050,7 +1058,6 @@ public class JSONController {
                 }
 
                 tx.commit();
-
                 AtmosphereHandler.pushJsonMessages(areaName, messages);
             }
         } catch (Exception e) {
@@ -1090,10 +1097,10 @@ public class JSONController {
             }
 
             Theme sameNameTheme = getTheme(updatedTheme.getTitle(), area, session, false);
-            if (sameNameTheme == null || sameNameTheme == theme) {
-                boolean movedToArchived = false;
+            if (sameNameTheme == null || sameNameTheme.getId() == theme.getId()) {
+                int archivedStatus = 0;
                 if (updatedTheme.isArchived() && !theme.isArchived()) {
-                    movedToArchived = true;
+                    archivedStatus = UPDATE_ITEM_ARCHIVED;
                     //Was moved to archive
                     theme.setDateArchived(new Date());
 
@@ -1108,6 +1115,7 @@ public class JSONController {
                     }
                     theme.setPrio(-1);
                 } else if (!updatedTheme.isArchived() && theme.isArchived()) {
+                    archivedStatus = UPDATE_ITEM_UNARCHIVED;
                     //Was moved from archive
                     theme.setDateArchived(null);
 
@@ -1136,8 +1144,10 @@ public class JSONController {
                     }
                 }
 
-                if (movedToArchived) {
+                if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
                     messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, theme.getId(), THEME_EPIC_VIEW));
+                } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                    messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
                 } else {
                     messages.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
                 }
