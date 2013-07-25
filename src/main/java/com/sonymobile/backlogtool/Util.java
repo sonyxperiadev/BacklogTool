@@ -163,6 +163,7 @@ public final class Util {
             return "";
         }
         return text.replaceAll("(?i)(http:\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
+                .replaceAll("(?i)(https:\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
                 .replaceAll("\\n", "<br />");
     }
 }

@@ -267,7 +267,9 @@ $(document).ready(function () {
      * Adding line breaks and <a> tags for the param text.
      */
     var addLinksAndLineBreaks = function(text) {
-        return text.replace( /(http:\/\/[^\s]+)/gi , '<a href="$1">$1</a>' ).replace(/\n/g, '<br />');
+        return text.replace(/(http:\/\/[^\s]+)/gi, '<a href="$1">$1</a>')
+                .replace(/(https:\/\/[^\s]+)/gi, '<a href="$1">$1</a>')
+                .replace(/\n/g, '<br />');
     };
 
     /**
