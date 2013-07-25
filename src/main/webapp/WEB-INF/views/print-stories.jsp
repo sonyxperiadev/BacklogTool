@@ -38,30 +38,45 @@ THE SOFTWARE.
             font-size: 8px;
             line-height: 1.6;
         }
-        
+
         p {
             margin: 0.1em;
         }
-        
+
         #story-container {
             border: 2px solid;
             width: 450px;
             height: 245px;
             padding: 5px;
         }
-        
+
         #theme-epic {
             height: 40px;
         }
-        
+
         #epic,#theme {
             float: left;
             display: inline-block;
-            width: 220px;
+            width: 170px;
             height: 40px;
             text-indent: 2px;
         }
-        
+
+        #story-id-box {
+            float: left;
+            display: inline-block;
+            margin-right: 20px;
+            height: 40px;
+            text-indent: 2px;
+        }
+
+        #task-id-box {
+            float: left;
+            display: inline-block;
+            margin-right: 20px;
+            text-indent: 2px;
+        }
+
         #title,#effort-prio {
             float: left;
             border: 1px solid;
@@ -69,7 +84,7 @@ THE SOFTWARE.
             height: 85px;
             text-indent: 2px;
         }
-        
+
         .dotted {
             border: 1px dashed #2F6FAB;
         }
@@ -161,6 +176,9 @@ THE SOFTWARE.
     <c:forEach var="story" items="${stories}" varStatus="rowCounter">
         <div id="story-container">
             <div id="theme-epic">
+                <div id="story-id-box">
+                    <p class="title">#${story.id}</p>
+                </div>
                 <div id="theme">
                     <p>Theme:</p>
                     <p class="content">${story.themeTitle}</p>
@@ -215,6 +233,9 @@ THE SOFTWARE.
         <div style="page-break-after: always"></div>
         <c:forEach var="task" items="${story.children}"  varStatus="rowCounter">
             <div id="story-container">
+                <div id="task-id-box">
+                    <p class="title">#${task.id}</p>
+                </div>
                 <div id="task-story">
                     <p>Story:</p>
                     <p class="task-story">${story.title}</p>
