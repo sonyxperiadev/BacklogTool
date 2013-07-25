@@ -62,19 +62,19 @@ THE SOFTWARE.
             text-indent: 2px;
         }
 
-        #story-id-box {
+        div.id-box {
             float: left;
             display: inline-block;
             margin-right: 20px;
-            height: 40px;
             text-indent: 2px;
         }
 
-        #task-id-box {
-            float: left;
-            display: inline-block;
-            margin-right: 20px;
-            text-indent: 2px;
+        div.id-box p {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 85px;
+            display: block;
+            white-space: nowrap;
         }
 
         #title,#effort-prio {
@@ -88,35 +88,35 @@ THE SOFTWARE.
         .dotted {
             border: 1px dashed #2F6FAB;
         }
-        
+
         #title {
             width: 255px;
         }
-        
+
         #effort-prio {
             border: 1px solid;
             width: 185px;
         }
-        
+
         #effort {
             margin: 5px;
         }
-        
+
         #prio {
             margin: 5px;
         }
-        
+
         #task-story {
             font-size: 12px;
             overflow: hidden;
             max-height: 20px;
         }
-        
+
         #task-id {
             float: right;
             padding-right: 10px;
         }
-        
+
         #task-description {
             width: 440px;
             height: 170px;
@@ -124,38 +124,38 @@ THE SOFTWARE.
             border-top: 1px solid;
             overflow: hidden;
         }
-        
+
         #task-footer {
             border: 1px solid;
         }
-        
+
         #footer-owner {
             float: left;
         }
-        
+
         #footer-time {
             float: right;
         }
-        
+
         p {
             display: inline;
             word-wrap: break-word;
         }
-        
+
         p.content {
             font-weight: bold;
         }
-        
+
         p.title {
             font-size: 14px;
             font-weight: bold;
         }
-        
+
         p.task {
             font-size: 12px;
             font-weight: bold;
         }
-        
+
         td.timebox {
             border: 1px solid;
             width: 25px;
@@ -164,7 +164,7 @@ THE SOFTWARE.
             font-weight: bold;
             padding: 2px;
         }
-        
+
         p.task-story {
             font-weight: bold;
             font-size: 14px;
@@ -176,7 +176,7 @@ THE SOFTWARE.
     <c:forEach var="story" items="${stories}" varStatus="rowCounter">
         <div id="story-container">
             <div id="theme-epic">
-                <div id="story-id-box">
+                <div id="story-id-box" class="id-box">
                     <p class="title">#${story.id}</p>
                 </div>
                 <div id="theme">
@@ -233,7 +233,7 @@ THE SOFTWARE.
         <div style="page-break-after: always"></div>
         <c:forEach var="task" items="${story.children}"  varStatus="rowCounter">
             <div id="story-container">
-                <div id="task-id-box">
+                <div class="id-box">
                     <p class="title">#${task.id}</p>
                 </div>
                 <div id="task-story">
