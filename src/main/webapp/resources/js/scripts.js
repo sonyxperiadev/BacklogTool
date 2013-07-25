@@ -2827,6 +2827,14 @@ $(document).ready(function () {
             disableEdits();
         }
 
+        $(".title-text").click(function() {
+            var li = $(this).closest("li");
+            var id = li.attr("id");
+            li.remove();
+            updateStoryLi(getParent(id));
+            sortList($('ul#list-container'));
+        });
+
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
@@ -2852,6 +2860,10 @@ $(document).ready(function () {
 
         $(".bindChange").bind('input propertychange', function(event) {
             $("#save-all").button( "option", "disabled", false );
+        });
+
+        $(".title-text", elem).click(function(event) {
+            alert(event.attr("id"));
         });
 
         $("a.createEpic", elem).click(createEpic);

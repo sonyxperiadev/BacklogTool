@@ -755,3 +755,50 @@ p.addOptionSeries, p.addOption {
     text-decoration: none;
     color: #1c94c4;
 }
+
+.oneline {
+  display: inline-block;
+}
+
+.oneline.title-text {
+  white-space: nowrap;
+  width: 30%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 6px;
+  font-size: 1em;
+  text-decoration: underline;
+  cursor: pointer;
+  cursor: hand;
+}
+
+.oneline.attr-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 12%;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.attr-div {
+  width: 14%;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.oneline-li {
+  padding-top: 2px;
+  padding-bottom: 4px;
+}
+
+.oneline.date-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 12%;
+  white-space:nowrap;
+  height: 100%;
+}
+
+.attr-icon {
+  vertical-align: sub;
+}
