@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *  Copyright 2013 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,24 @@
  */
 package com.sonymobile.backlogtool;
 
-import java.io.IOException;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import org.atmosphere.cpr.BroadcastFilter;
+import static org.atmosphere.cpr.BroadcastFilter.BroadcastAction.ACTION;
 
 /**
- * This class enables UTF-8 character encoding.
+ * Filter for adding a delimiter after every pushed message.
+ * Used for pushing several JSON objects like {msg1},{msg2},
+ * where the last delimiter can be removed and the whole message placed
+ * within [ ] in order to create a valid JSON array.
+ * @author Fredrik Persson &lt;fredrik6.persson@sonymobile.com&gt;
+ *
  */
-public class CharsetFilter implements Filter {
-    private String encoding;
+public class BroadcastDelimiter implements BroadcastFilter {
+    
+    private static final String DELIMITER = ",";
 
-    public void init(FilterConfig config) throws ServletException {
-        encoding = config.getInitParameter("requestEncoding");
-        if (encoding == null) encoding="UTF-8";
+    @Override
+    public BroadcastAction filter(Object originalMessage, Object message) {
+        return new BroadcastAction(ACTION.CONTINUE, message.toString() + DELIMITER);
     }
-
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain next) throws IOException, ServletException {
-        if (null == request.getCharacterEncoding())
-            request.setCharacterEncoding(encoding);
-
-        /*
-         * Set the default response content type and encoding
-         */
-        response.setContentType("text/html; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-
-        next.doFilter(request, response);
-    }
-    public void destroy(){}
 
 }

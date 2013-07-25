@@ -23,8 +23,8 @@
  */
 package com.sonymobile.backlogtool;
 
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
@@ -78,6 +78,7 @@ public final class AtmosphereHandler implements HandlerMethodArgumentResolver {
         if (bc == null) {
             bc = BroadcasterFactory.getDefault().get();
             bc.setID(areaName);
+            bc.getBroadcasterConfig().addFilter(new BroadcastDelimiter());
             BroadcasterFactory.getDefault().add(bc, bc.getID());
         }
         return bc;
@@ -92,6 +93,22 @@ public final class AtmosphereHandler implements HandlerMethodArgumentResolver {
      */
     public static void push(String areaName) {
         push(areaName, "{\"hello\":1}");
+    }
+
+    /**
+     * Send several messages in one push
+     * @param area Area to send push-messages to
+     * @param messages A List of text-messages
+     */
+    public static void pushJsonMessages(String area, List<String> messages) {
+        StringBuilder sb = new StringBuilder();
+        if (messages != null) {
+            for (String s : messages) {
+                sb.append(s).append(',');
+            }
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        push(area, sb.toString());
     }
 
     /**

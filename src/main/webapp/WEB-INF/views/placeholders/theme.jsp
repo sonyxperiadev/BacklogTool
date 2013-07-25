@@ -1,4 +1,10 @@
-<li class="parentLi theme ui-state-default editTheme" id="${theme.id}">
+<li class="parentLi theme ui-state-default editTheme 
+    <c:if test='${hidden}'>
+        ui-hidden
+    </c:if>
+    " 
+    id="${theme.id}"
+>
     <div id="icons">
         <div title="Show epics"
         class="icon 
@@ -57,12 +63,12 @@
     <br>
     <button class="save-button hidden-edit ${theme.id}" title="Save">Save</button>
     <button class="cancelButton hidden-edit ${theme.id}" title="Cancel">Cancel</button>
-    <c:if test='${theme.archived}'>
-        <p class="title ${theme.id}">
-            Archived
-        </p>
-    </c:if>
-    <p class="description ${theme.id}">
+    <p id="archived-text${theme.id}" class="title ${theme.id}">
+        <c:if test='${theme.archived}'>
+                Archived
+        </c:if>
+    </p>
+    <p id="date-archived${theme.id}" class="description ${theme.id}">
         <fmt:formatDate value="${theme.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
     <br style="clear: both" />

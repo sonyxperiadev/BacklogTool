@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
  -->
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%> <%-- Library used in included placeholder-files --%>
 <%@ page session="false"%>
 <!DOCTYPE html>
 <html>
@@ -34,6 +35,7 @@ THE SOFTWARE.
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/styles.css?v=${versionNoDots}" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/jquery.dropdown.css" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/fff-silk.min.css" />"></link>
+    <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/simplePagination.css" />"></link>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-2.0.1.min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.blockUI-2.61.0.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery-ui-1.10.3.custom.min.js" />"></script>
@@ -42,11 +44,15 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.truncator.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.dropdown.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere-min.js" />"></script>
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.simplePagination.js" />"></script>
 
     <script type="text/javascript">
         var areaName = "${area.name}";
         var view = "${view}";
+        var archivedView = "${archivedView}" == "true" ? true : false;
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
+        var parentsMap = ${jsonDataNonArchivedEpics};
+        var area = ${jsonAreaData};
     </script>
 </head>
 
@@ -70,17 +76,19 @@ THE SOFTWARE.
                 <ul class="parent-child-list" id="list-container">
 
                     <c:forEach var="epic" items="${nonArchivedEpics}">
-                        <c:if test="${filterIds == null || filterIds.contains(epic.id)}">
-                            <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
-                            <c:forEach var="story" items="${epic.children}">
-                                <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
-                            </c:forEach>
-                        </c:if>
+                        <c:set var="hidden" value="${filterIds != null && !filterIds.contains(epic.id)}"/>
+                        <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
+                        <c:set var="hidden" value="${true}"/>
+                        <c:forEach var="story" items="${epic.children}">
+                            <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                        </c:forEach>
                     </c:forEach>
                 </ul>
-                <p id="list-divider"></p>
                 <ul class="parent-child-list" id="archived-list-container"></ul>
             </div>
+            <c:if test="${archivedView}">
+                <div id="pagination"></div>
+            </c:if>
         </div>
 
     </div>

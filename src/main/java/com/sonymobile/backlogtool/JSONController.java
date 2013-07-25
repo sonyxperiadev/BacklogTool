@@ -83,6 +83,16 @@ import com.sonymobile.backlogtool.permission.User;
 @RequestMapping(value="/json")
 public class JSONController {
 
+    public static final int ELEMENTS_PER_ARCHIVED_PAGE = 10;
+    public static final String STORY_TASK_VIEW = "story-task";
+    public static final String EPIC_STORY_VIEW = "epic-story";
+    public static final String THEME_EPIC_VIEW = "theme-epic";
+    public static final String PUSH_ACTION_DELETE = "Delete";
+    public static final String ALL_VIEWS = "*";
+    
+    private static final int UPDATE_ITEM_ARCHIVED = 1;
+    private static final int UPDATE_ITEM_UNARCHIVED = 2;
+
     @Autowired
     SessionFactory sessionFactory;
 
@@ -137,17 +147,17 @@ public class JSONController {
                 list = Util.castList(Story.class, query1.list());
             } else if (order.equals("prio")) {
                 String nonArchivedQueryString = "select distinct s from Story s " +
-                		"left join fetch s.children " +
-                		"where s.area.name like ? and " +
-                		"s.archived=false " +
-                		"order by s.prio";
+                        "left join fetch s.children " +
+                        "where s.area.name like ? and " +
+                        "s.archived=false " +
+                        "order by s.prio";
                 
                 //Since the archived stories don't have any prio, we order them by their date archived.
                 String archivedQueryString = "select distinct s from Story s " +
-                		"left join fetch s.children " +
-                		"where s.area.name like ? " +
-                		"and s.archived=true " +
-                		"order by s.dateArchived desc";
+                        "left join fetch s.children " +
+                        "where s.area.name like ? " +
+                        "and s.archived=true " +
+                        "order by s.dateArchived desc";
 
                 Query nonArchivedQuery = session.createQuery(nonArchivedQueryString);
                 Query archivedQuery = session.createQuery(archivedQueryString);
@@ -159,9 +169,9 @@ public class JSONController {
                 list.addAll(Util.castList(Story.class, archivedQuery.list()));
             } else {
                 String queryString = "select distinct s from Story s " +
-                		"left join fetch s.children " +
-                		"where s.area.name like ? " +
-                		"order by s." + order;
+                        "left join fetch s.children " +
+                        "where s.area.name like ? " +
+                        "order by s." + order;
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, areaName);
 
@@ -297,6 +307,89 @@ public class JSONController {
         }
         return new ResponseEntity<String>(mapper.writeValueAsString(themes), responseHeaders, HttpStatus.CREATED);
     }
+    
+    @RequestMapping(value="/read-archived/{areaName}", method=RequestMethod.GET)
+    @Transactional
+    public @ResponseBody String readArchived(@PathVariable String areaName,
+           @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
+           @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
+
+        List<Object> archivedItems = new ArrayList<Object>();
+        int nbrOfPages = 0;
+        Area area = null;
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            area = (Area) session.get(Area.class, areaName);
+            if (area != null && type.matches("Story|Epic|Theme")) {
+                Query archivedQuery = null;
+                if (filterIds == null || filterIds.isEmpty()) {
+                    archivedQuery = session.createQuery("from " + type + " " +
+                            "where area = ? " +
+                            "and archived=true " +
+                            "order by dateArchived desc");
+                } else {
+                    archivedQuery = session.createQuery("from " + type + " " +
+                            "where area = ? " +
+                            "and archived=true " +
+                            "and id in (:filterIds) " +
+                            "order by dateArchived desc");
+                    archivedQuery.setParameterList("filterIds", filterIds);
+                }
+
+                archivedQuery.setParameter(0, area);
+                archivedQuery.setFirstResult(ELEMENTS_PER_ARCHIVED_PAGE * (page-1));
+                archivedQuery.setMaxResults(ELEMENTS_PER_ARCHIVED_PAGE);
+
+                Query countQuery = null;
+                if (filterIds == null || filterIds.isEmpty()) {
+                    countQuery = session.createQuery("select count(*) from " + type 
+                            + " where archived = true and area = ?");
+                } else {
+                    countQuery = session.createQuery("select count(*) from " + type  +
+                            " where archived = true and area = ? "+
+                            " and id in (:filterIds)");
+                    countQuery.setParameterList("filterIds", filterIds);
+                }
+                countQuery.setParameter(0, area);
+
+                long nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
+                nbrOfPages = (int) Math.ceil((double) nbrOfItems / JSONController.ELEMENTS_PER_ARCHIVED_PAGE);
+
+                archivedItems = Util.castList(Object.class, archivedQuery.list());
+
+                for (Object item : archivedItems) {
+                    if (type.equals("Story")) {
+                        Hibernate.initialize(((Story) item).getChildren());
+                    } else if (type.equals("Epic")) {
+                        Hibernate.initialize(((Epic) item).getChildren());
+                    } else if (type.equals("Theme")) {
+                        Hibernate.initialize(((Theme) item).getChildren());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        if (type.equals("Epic")) {
+            mapper.getSerializationConfig().addMixInAnnotations(Story.class, ChildrenExcluder.class);
+        } else if (type.equals("Theme")) {
+            mapper.getSerializationConfig().addMixInAnnotations(Epic.class, ChildrenExcluder.class);
+        }
+        Map<String,Object> archivedInfo = new HashMap<String, Object>();
+        archivedInfo.put("nbrOfPages", nbrOfPages);
+        archivedInfo.put("archivedItems", archivedItems);
+        return mapper.writeValueAsString(archivedInfo);
+    }
 
     @RequestMapping(value="/autocompletethemes/{areaName}", method=RequestMethod.GET)
     @Transactional
@@ -363,7 +456,7 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtask/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createTask(@PathVariable String areaName, @RequestBody NewTaskContainer newTask) {
+    public @ResponseBody Task createTask(@PathVariable String areaName, @RequestBody NewTaskContainer newTask) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -403,6 +496,7 @@ public class JSONController {
             story.addTask(newTask);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, newTask, STORY_TASK_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -412,14 +506,13 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return newTask.getId();
+        return newTask;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createstory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createStory(@PathVariable String areaName, @RequestBody NewStoryContainer newStory) throws Exception {
+    public @ResponseBody Story createStory(@PathVariable String areaName, @RequestBody NewStoryContainer newStory) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -497,7 +590,7 @@ public class JSONController {
             }
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonString(Story.class, newStory));
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Story.class, newStory, STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -507,14 +600,13 @@ public class JSONController {
             session.close();
         }
 
-
-        return newStory.getId();
+        return newStory;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createepic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
+    public @ResponseBody Epic createEpic(@PathVariable String areaName, @RequestBody NewEpicContainer newEpic) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -584,10 +676,9 @@ public class JSONController {
             newEpic.setTheme(theme);
             session.save("com.sonymobile.backlogtool.Epic", newEpic);
             newEpic.setTitle("New epic " + newEpic.getId());
+
             tx.commit();
-
-            AtmosphereHandler.push(areaName);
-
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Epic.class, newEpic, EPIC_STORY_VIEW + "|" + THEME_EPIC_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -596,13 +687,14 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return newEpic.getId();
+        
+        return newEpic;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/createtheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody Integer createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
+    public @ResponseBody Theme createTheme(@PathVariable String areaName, @RequestBody NewThemeContainer newTheme) throws Exception {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -647,9 +739,9 @@ public class JSONController {
             newTheme.setArea(area);
             session.save("com.sonymobile.backlogtool.Theme", newTheme);
             newTheme.setTitle("New theme " + newTheme.getId());
-            tx.commit();
 
-            AtmosphereHandler.push(areaName);
+            tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Theme.class, newTheme, THEME_EPIC_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -658,14 +750,15 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return newTheme.getId();
+        
+        return newTheme;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/updatetask/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Task updateTask(@PathVariable String areaName,
-            @RequestBody NewTaskContainer updatedTask, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
+            @RequestBody NewTaskContainer updatedTask) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Task task = null;
@@ -689,6 +782,7 @@ public class JSONController {
             task.setTaskAttr1(attr1);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, task, STORY_TASK_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -697,9 +791,6 @@ public class JSONController {
         } finally {
             session.close();
         }
-        if (pushUpdate) {
-            AtmosphereHandler.push(areaName, getJsonString(Task.class, task));
-        }
         return task;
     }
 
@@ -707,7 +798,7 @@ public class JSONController {
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
-            @RequestBody NewStoryContainer updatedStory, @RequestParam boolean pushUpdate) throws JsonGenerationException, JsonMappingException, IOException {
+           @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
@@ -725,6 +816,7 @@ public class JSONController {
             Theme theme = getTheme(updatedStory.getThemeTitle(), story.getArea(), session, createIfDoesNotExist);
             Epic newEpic = getEpic(updatedStory.getEpicTitle(), theme, story.getArea(), session, createIfDoesNotExist);
 
+            Set<Epic> parentsToPush = new HashSet<Epic>();
             //Move story from old epic if it was changed
             if (updatedStory.getEpicTitle() != null) {
                 Epic oldEpic = story.getEpic();
@@ -732,16 +824,19 @@ public class JSONController {
                     if (oldEpic != null) {
                         oldEpic.getChildren().remove(story);
                         oldEpic.rebuildChildrenOrder();
+                        parentsToPush.add(oldEpic);
                     }
                     if (newEpic != null) {
                         newEpic.getChildren().add(story);
                         story.setPrioInEpic(Integer.MAX_VALUE); //The prio gets rebuilt on newEpic.rebuildChildrenOrder().
                         newEpic.rebuildChildrenOrder();
+                        parentsToPush.add(newEpic);
                     }
                 }
             }
-
+            int archivedStatus = 0;
             if (updatedStory.isArchived() && !story.isArchived()) {
+                archivedStatus = UPDATE_ITEM_ARCHIVED;
                 //Was moved to archive
                 story.setDateArchived(new Date());
 
@@ -756,6 +851,7 @@ public class JSONController {
                 }
                 story.setPrio(-1);
             } else if (!updatedStory.isArchived() && story.isArchived()) {
+                archivedStatus = UPDATE_ITEM_UNARCHIVED;
                 //Was moved from archive
                 story.setDateArchived(null);
 
@@ -804,12 +900,41 @@ public class JSONController {
 
             if (updatedStory.getThemeTitle() != null) {
                 story.setTheme(theme);
+
+                if (newEpic != null) {
+                    newEpic.setTheme(theme);
+                }
             }
             if (updatedStory.getEpicTitle() != null) {
                 story.setEpic(newEpic);
+
+                if (theme != null) {
+                    theme.getChildren().add(newEpic);
+                }
             }
 
+            List<String> messages = new ArrayList<String>();
+            if (theme != null) {
+                messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
+            }
+            if (!parentsToPush.isEmpty()) {
+                HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+                moveActionMap.put("lastItem", null);
+                moveActionMap.put("objects", parentsToPush);
+                messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
+            }
+            String updatedStoryViews = EPIC_STORY_VIEW;
+            if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
+                messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
+            } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
+            } else {
+                updatedStoryViews += "|" + STORY_TASK_VIEW;
+            }
+            messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
+            
             tx.commit();
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -817,9 +942,6 @@ public class JSONController {
             }
         } finally {
             session.close();
-        }
-        if (pushUpdate) {
-            AtmosphereHandler.push(areaName, getJsonString(Story.class, story));
         }
 
         return story;
@@ -829,7 +951,7 @@ public class JSONController {
     @RequestMapping(value="/updateepic/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody String updateEpic(@PathVariable String areaName,
-            @RequestBody NewEpicContainer updatedEpic, @RequestParam boolean pushUpdate) throws Exception {
+            @RequestBody NewEpicContainer updatedEpic) throws Exception {
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -854,17 +976,32 @@ public class JSONController {
             boolean createEpicIfDoesNotExist = false;
             Epic sameNameEpic = getEpic(updatedEpic.getTitle(), theme, area, session, createEpicIfDoesNotExist);
 
+            Set<Theme> affectedThemes = new HashSet<Theme>();
             //Only make changes if the title does not already exist on another object
-            if (sameNameEpic == null || sameNameEpic == epic) {
+            if (sameNameEpic == null || sameNameEpic.getId() == epic.getId()) {
+                Theme oldTheme = epic.getTheme();
+                if (oldTheme != theme) {
+                    if (oldTheme != null) {
+                        oldTheme.getChildren().remove(epic);
+                        oldTheme.rebuildChildrenOrder();
+                        affectedThemes.add(epic.getTheme());
+                    }
+                    if (theme != null) {
+                        theme.getChildren().add(epic);
+                        epic.setPrioInTheme(Integer.MAX_VALUE);
+                        theme.rebuildChildrenOrder();
+                        affectedThemes.add(theme);
 
-                if (updatedEpic.getThemeTitle() != null) {
-                    epic.setTheme(theme);
-                    for (Story story : epic.getChildren()) {
-                        story.setTheme(theme);
+                        epic.setTheme(theme);
+                        for (Story story : epic.getChildren()) {
+                            story.setTheme(theme);
+                        }
+                        epic.setTheme(theme);
                     }
                 }
-
+                int archivedStatus = 0;
                 if (updatedEpic.isArchived() && !epic.isArchived()) {
+                    archivedStatus = UPDATE_ITEM_ARCHIVED;
                     //Was moved to archive
                     epic.setDateArchived(new Date());
 
@@ -879,6 +1016,7 @@ public class JSONController {
                     }
                     epic.setPrio(-1);
                 } else if (!updatedEpic.isArchived() && epic.isArchived()) {
+                    archivedStatus = UPDATE_ITEM_UNARCHIVED;
                     //Was moved from archive
                     epic.setDateArchived(null);
 
@@ -897,10 +1035,30 @@ public class JSONController {
                 epic.setTitle(updatedEpic.getTitle());
                 epic.setDescription(updatedEpic.getDescription());
                 epic.setArchived(updatedEpic.isArchived());
-                tx.commit();
-                if (pushUpdate) {
-                    AtmosphereHandler.push(areaName, getJsonString(Epic.class, epic));
+
+                List<String> messages = new ArrayList<String>();
+                for (Story s : epic.getChildren()) {
+                    messages.add(getJsonStringExclChildren(Story.class, s, STORY_TASK_VIEW));
                 }
+                String updatedEpicViews = THEME_EPIC_VIEW;
+                if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
+                    messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, epic.getId(), EPIC_STORY_VIEW));
+                } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                    messages.add(getJsonStringInclChildren(Epic.class.getSimpleName(), epic, EPIC_STORY_VIEW));
+                } else {
+                    updatedEpicViews += "|" + EPIC_STORY_VIEW;
+                }
+                messages.add(getJsonStringExclChildren(Epic.class, epic, updatedEpicViews));
+
+                if (!affectedThemes.isEmpty()) {
+                    HashMap<String, Object> moveActionMap = new HashMap<String, Object>();
+                    moveActionMap.put("lastItem", null);
+                    moveActionMap.put("objects", affectedThemes);
+                    messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, THEME_EPIC_VIEW));
+                }
+
+                tx.commit();
+                AtmosphereHandler.pushJsonMessages(areaName, messages);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -919,7 +1077,7 @@ public class JSONController {
     @RequestMapping(value="/updatetheme/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody String updateTheme(@PathVariable String areaName,
-            @RequestBody Theme updatedTheme, @RequestParam boolean pushUpdate) throws Exception {
+            @RequestBody Theme updatedTheme) throws Exception {
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -939,8 +1097,10 @@ public class JSONController {
             }
 
             Theme sameNameTheme = getTheme(updatedTheme.getTitle(), area, session, false);
-            if (sameNameTheme == null || sameNameTheme == theme) {
+            if (sameNameTheme == null || sameNameTheme.getId() == theme.getId()) {
+                int archivedStatus = 0;
                 if (updatedTheme.isArchived() && !theme.isArchived()) {
+                    archivedStatus = UPDATE_ITEM_ARCHIVED;
                     //Was moved to archive
                     theme.setDateArchived(new Date());
 
@@ -955,6 +1115,7 @@ public class JSONController {
                     }
                     theme.setPrio(-1);
                 } else if (!updatedTheme.isArchived() && theme.isArchived()) {
+                    archivedStatus = UPDATE_ITEM_UNARCHIVED;
                     //Was moved from archive
                     theme.setDateArchived(null);
 
@@ -973,10 +1134,26 @@ public class JSONController {
                 theme.setTitle(updatedTheme.getTitle());
                 theme.setDescription(updatedTheme.getDescription());
                 theme.setArchived(updatedTheme.isArchived());
-                tx.commit();
-                if (pushUpdate) {
-                    AtmosphereHandler.push(areaName, getJsonString(Theme.class, theme));
+
+                List<String> messages = new ArrayList<String>();
+                for (Epic e : theme.getChildren()) {
+                    messages.add(getJsonStringExclChildren(Epic.class, e, EPIC_STORY_VIEW));
+
+                    for (Story s : e.getChildren()) {
+                        messages.add(getJsonStringExclChildren(Story.class, s, STORY_TASK_VIEW));
+                    }
                 }
+
+                if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
+                    messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, theme.getId(), THEME_EPIC_VIEW));
+                } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                    messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
+                } else {
+                    messages.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
+                }
+                tx.commit();
+
+                AtmosphereHandler.pushJsonMessages(areaName, messages);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1087,12 +1264,6 @@ public class JSONController {
                 }
 
                 session.save(epic);
-                if (theme != null) {
-                    theme.getChildren().add(epic);
-                    epic.setPrioInTheme(Integer.MAX_VALUE); //This changes in theme.rebuildChildrenOrder().
-                    theme.rebuildChildrenOrder();
-                    epic.setTheme(theme);
-                }
             }
         }
         return epic;
@@ -1101,10 +1272,12 @@ public class JSONController {
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneStory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody int cloneStory(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) {
+    public @ResponseBody Story cloneStory(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Story clone = null;
+        NewStoryContainer storyToPush = null;
         try {
             tx = session.beginTransaction();
 
@@ -1112,8 +1285,7 @@ public class JSONController {
             if (!storyToClone.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
-
-            Story clone = storyToClone.copy(withChildren);
+            clone = storyToClone.copy(withChildren);
             clone.setPrio(storyToClone.getPrio() + 1);
 
             //Move down all stories in the current epic
@@ -1145,7 +1317,17 @@ public class JSONController {
                 session.save(task);
             }
 
+            ListItem lastItem = new ListItem();
+            lastItem.setId(storyToClone.getId());
+            storyToPush = new NewStoryContainer();
+            storyToPush.fromStory(clone);
+            storyToPush.setLastItem(lastItem);
+            List<String> messages = new ArrayList<String>();
+            messages.add(getJsonStringExclChildren(Story.class, storyToPush, EPIC_STORY_VIEW));
+            messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), storyToPush, STORY_TASK_VIEW));
             tx.commit();
+            
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1155,17 +1337,18 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return clonedId;
+        return storyToPush;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneEpic/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody int cloneEpic(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) {
+    public @ResponseBody Epic cloneEpic(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Epic clone = null;
+        NewEpicContainer epicToPush = null;
         try {
             tx = session.beginTransaction();
 
@@ -1174,7 +1357,7 @@ public class JSONController {
                 throw new Error("Trying to modify unauthorized object");
             }
 
-            Epic clone = epicToClone.copy(withChildren);
+            clone = epicToClone.copy(withChildren);
             clone.setPrio(epicToClone.getPrio() + 1);
 
             //Move down all epics in the current theme
@@ -1206,7 +1389,19 @@ public class JSONController {
                 session.save(story);
             }
 
+            ListItem lastItem = new ListItem();
+            lastItem.setId(epicToClone.getId());
+            epicToPush = new NewEpicContainer();
+            epicToPush.fromEpic(clone);
+            epicToPush.setLastItem(lastItem);
+
+            List<String> messages = new ArrayList<String>();
+
+            messages.add(getJsonStringExclChildren(Epic.class, epicToPush, THEME_EPIC_VIEW));
+            messages.add(getJsonStringInclChildren(Epic.class.getSimpleName(), epicToPush, EPIC_STORY_VIEW));
             tx.commit();
+
+            AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1216,17 +1411,18 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return clonedId;
+        return epicToPush;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/cloneTheme/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody int cloneTheme(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) {
+    public @ResponseBody Theme cloneTheme(@PathVariable String areaName, @RequestParam int id, @RequestParam boolean withChildren) throws Exception {
         int clonedId = -1;
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        Theme clone = null;
+        NewThemeContainer themeToPush = null;
         try {
             tx = session.beginTransaction();
 
@@ -1235,7 +1431,7 @@ public class JSONController {
                 throw new Error("Trying to modify unauthorized object");
             }
 
-            Theme clone = themeToClone.copy(withChildren);
+            clone = themeToClone.copy(withChildren);
             clone.setPrio(themeToClone.getPrio() + 1);
 
             //Move down all themes under this theme
@@ -1256,7 +1452,14 @@ public class JSONController {
                 session.save(epic);
             }
 
+            ListItem lastItem = new ListItem();
+            lastItem.setId(themeToClone.getId());
+            themeToPush = new NewThemeContainer();
+            themeToPush.fromTheme(clone);
+            themeToPush.setLastItem(lastItem);
+
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(Theme.class.getSimpleName(), themeToPush, THEME_EPIC_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1266,8 +1469,7 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-        return clonedId;
+        return themeToPush;
     }
 
 
@@ -1275,11 +1477,14 @@ public class JSONController {
      * Used when deleting a story.
      * @param storyId id of the story to remove
      * @return true if everything was ok
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonGenerationException 
      */
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
     @RequestMapping(value="/deletestory/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean deleteStory(@PathVariable String areaName, @RequestBody int storyId) {
+    public @ResponseBody boolean deleteStory(@PathVariable String areaName, @RequestBody int storyId) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -1312,6 +1517,7 @@ public class JSONController {
             session.delete(storyToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(PUSH_ACTION_DELETE, storyId, ALL_VIEWS));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1321,7 +1527,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1360,6 +1565,7 @@ public class JSONController {
             session.delete(epicToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(PUSH_ACTION_DELETE, epicId, ALL_VIEWS));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1369,7 +1575,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1421,6 +1626,7 @@ public class JSONController {
             session.delete(themeToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(PUSH_ACTION_DELETE, themeId, ALL_VIEWS));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1430,7 +1636,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1467,6 +1672,7 @@ public class JSONController {
             session.delete(taskToRemove);
 
             tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(PUSH_ACTION_DELETE, taskId, ALL_VIEWS));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1476,7 +1682,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
         return true;
     }
 
@@ -1505,6 +1710,8 @@ public class JSONController {
             Area newArea = (Area) session.get(Area.class, newAreaName);
             User user = (User) session.get(User.class, username);
 
+            List<String> pushMsgsOldArea = new ArrayList<String>();
+            List<String> pushMsgsNewArea = new ArrayList<String>();
             //Check that the user has rights for the new area as well
             if ((newArea != null && (newArea.isAdmin(username) || newArea.isEditor(username)))
                     || (user != null && user.isMasterAdmin())) {
@@ -1621,9 +1828,27 @@ public class JSONController {
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
                     }
+                    pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
+                    pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
                 }
                 Util.rebuildRanks(BacklogType.STORY, oldArea, session);
+
+                //Push out all affected themes and epics
+                Set<Epic> updatedEpics = new HashSet<Epic>();
+                Set<Theme> updatedThemes = new HashSet<Theme>();
+                for (Story story : storiesToMove) {
+                    Theme theme = story.getTheme();
+                    Epic epic = story.getEpic();
+                    if (theme != null && updatedThemes.add(theme)) {
+                        pushMsgsNewArea.add(getJsonStringExclChildren(Theme.class, theme, THEME_EPIC_VIEW));
+                    }
+                    if (epic != null && updatedEpics.add(epic)) {
+                        pushMsgsNewArea.add(getJsonStringExclChildren(Epic.class, epic, EPIC_STORY_VIEW));
+                    }
+                }
             }
+            AtmosphereHandler.pushJsonMessages(areaName, pushMsgsOldArea);
+            AtmosphereHandler.pushJsonMessages(newAreaName, pushMsgsNewArea);
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -1812,11 +2037,14 @@ public class JSONController {
     /**
      * Used when deleting an area
      * @return true if everything was ok
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonGenerationException 
      */
     @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
     @RequestMapping(value="/deleteArea/{areaName}", method = RequestMethod.POST)
     @Transactional
-    public @ResponseBody boolean deleteArea(@PathVariable String areaName) {
+    public @ResponseBody boolean deleteArea(@PathVariable String areaName) throws JsonGenerationException, JsonMappingException, IOException {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -1900,8 +2128,7 @@ public class JSONController {
         } finally {
             session.close();
         }
-
-        AtmosphereHandler.push(areaName);
+        AtmosphereHandler.push(areaName, getJsonStringInclChildren("AreaDelete", "{}", ALL_VIEWS));
         return true;
     }
 
@@ -2164,8 +2391,6 @@ public class JSONController {
             session.close();
         }
 
-        AtmosphereHandler.push(areaName);
-
         return true;
     }
 
@@ -2186,20 +2411,41 @@ public class JSONController {
     }
 
     /**
-     * Generates a JSON-string from the specified data
+     * Generates a JSON-string from the specified data, but does <b>not</b> include children
      * @param clazz The class (e.g. Task.class)
      * @param data The object-data
+     * @param viewParam The views that this data is intended for
      * @return A String in JSON-format
      * @throws JsonGenerationException
      * @throws JsonMappingException
      * @throws IOException
      */
-    private <T> String getJsonString(Class<T> clazz, Object data) throws JsonGenerationException, JsonMappingException, IOException {
+    public static <T> String getJsonStringExclChildren(Class<T> clazz, Object data, String viewParam) throws JsonGenerationException, JsonMappingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(clazz, ChildrenExcluder.class);
+        return generateJsonString(mapper, clazz.getSimpleName(), data, viewParam);
+    }
+
+    /**
+     * Generates a JSON-string from the specified data, and includes children
+     * @param type The type of event (e.g. "Delete")
+     * @param data The object-data
+     * @param viewParam The views that this data is intended for
+     * @return A String in JSON-format
+     * @throws JsonGenerationException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
+    public static <T> String getJsonStringInclChildren(String type, Object data, String viewParam) throws JsonGenerationException, JsonMappingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return generateJsonString(mapper, type, data, viewParam);
+    }
+
+    private static <T> String generateJsonString(ObjectMapper mapper, String type, Object data, String viewParam) throws JsonGenerationException, JsonMappingException, IOException {
         HashMap<String, Object> typeMapper = new HashMap<String, Object>();
-        typeMapper.put("type", clazz.getSimpleName());
+        typeMapper.put("type", type);
         typeMapper.put("data", data);
+        typeMapper.put("views", viewParam);
         return mapper.writeValueAsString(typeMapper);
     }
 
