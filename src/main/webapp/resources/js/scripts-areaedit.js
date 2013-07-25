@@ -250,11 +250,6 @@ $(document).ready(function() {
                         return false; //Breaks li.each function
                     } else {
                         var option = new Object();
-                        option.iconEnabled = iconEnabled;
-                        option.icon = icon;
-                        option.seriesIncrement = seriesIncrement;
-                        option.name = name + " " + number.toFixed();
-                        option.compareValue = compareValue++;
                         var series = seriesIds[id];
                         if (series != null) {
                             option.id = seriesIds[id][number];
@@ -262,6 +257,11 @@ $(document).ready(function() {
                         if (option.id == null) {
                             option.id = -compareValue;
                         }
+                        option.iconEnabled = iconEnabled;
+                        option.icon = icon;
+                        option.seriesIncrement = seriesIncrement;
+                        option.name = name + " " + number.toFixed();
+                        option.compareValue = compareValue++;
                         options.push(option);
                     }
                 };
