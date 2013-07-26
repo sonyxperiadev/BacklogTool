@@ -25,11 +25,9 @@ package com.sonymobile.backlogtool;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +57,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.sonymobile.backlogtool.permission.User;
@@ -620,6 +619,95 @@ public class HomeController {
         view.addObject("loggedInUser", SecurityContextHolder.getContext()
                 .getAuthentication().getName());
         return view;
+    }
+
+    @RequestMapping(value = "/text-list", method = RequestMethod.GET)
+    @ResponseBody
+    public String getCommaSepList(@RequestParam(required = false, value = "archived") Integer archived, @RequestParam(required = false, value = "fields") List<String> fields) {
+        if (fields == null || fields.isEmpty()) { // If no fields specified, show instructions
+            return "<p>Call with: ?fields={field1},{field2},{field3}&archived={0|1} (<i>archived</i> is optional)</p> "
+                    + "<p>For example: <a href=\"?fields=id,title,dateadded&archived=0\">?fields=id,title,dateadded&archived=0</a></p>"
+                    + "<p>Available fields: id, title, dateadded, contributor, contributorsite, datearchived, attr1, attr2, attr3, area, deadline, customer, customersite</p>";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            Session session = sessionFactory.openSession();
+            Transaction tx = null;
+            try {
+                tx = session.beginTransaction();
+
+                String queryString = null;
+                if (archived == null) {
+                    queryString = "select distinct s from Story s";
+                } else {
+                    String archivedStr = (archived.equals(1) ? "true" : "false");
+                    
+                    queryString = "select distinct s from Story s "
+                            + "where s.archived = " + archivedStr;
+                }
+
+                Query query = session.createQuery(queryString);
+                List<Story> stories = Util.castList(Story.class, query.list());
+
+                SimpleDateFormat sdf = new SimpleDateFormat("M/d/yy HH:mm:ss.SS");
+                for (Story s : stories) {
+                    for (String field : fields) {
+                        field = field.toLowerCase();
+                        sb.append('"');
+                        if (field.equals("id")) {
+                            sb.append(s.getId());
+                        } else if (field.equals("title")) {
+                            sb.append(s.getTitle());
+                        } else if (field.equals("dateadded")) {
+                            sb.append(sdf.format(s.getAdded()));
+                        } else if (field.equals("contributor")) {
+                            sb.append(s.getContributor());
+                        } else if (field.equals("contributorsite")) {
+                            sb.append(s.getContributorSite());
+                        } else if (field.equals("datearchived")) {
+                            if (s.getDateArchived() != null) {
+                                sb.append(sdf.format(s.getDateArchived()));
+                            }
+                        } else if (field.equals("attr1")) {
+                            AttributeOption attr = s.getStoryAttr1();
+                            String attrStr = (attr != null) ? attr.getName() : "";
+                            sb.append(attrStr);
+                        } else if (field.equals("attr2")) {
+                            AttributeOption attr = s.getStoryAttr2();
+                            String attrStr = (attr != null) ? attr.getName() : "";
+                            sb.append(attrStr);
+                        } else if (field.equals("attr3")) {
+                            AttributeOption attr = s.getStoryAttr3();
+                            String attrStr = (attr != null) ? attr.getName() : "";
+                            sb.append(attrStr);
+                        } else if (field.equals("area")) {
+                            sb.append(s.getArea().getName());
+                        } else if (field.equals("deadline")) {
+                            if (s.getDeadline() != null) {
+                                sb.append(sdf.format(s.getDeadline()));
+                            }
+                        } else if (field.equals("customer")) {
+                            sb.append(s.getCustomer());
+                        } else if (field.equals("customersite")) {
+                            sb.append(s.getCustomerSite());
+                        }
+                        sb.append('"');
+                        sb.append(',');
+                    }
+                    sb.deleteCharAt(sb.length() - 1); // remove last comma-character
+                    sb.append('\n');
+                }
+
+                tx.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (tx != null) {
+                    tx.rollback();
+                }
+            } finally {
+                session.close();
+            }
+            return sb.toString();
+        }
     }
 
     /**
