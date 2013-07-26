@@ -38,30 +38,45 @@ THE SOFTWARE.
             font-size: 8px;
             line-height: 1.6;
         }
-        
+
         p {
             margin: 0.1em;
         }
-        
+
         #story-container {
             border: 2px solid;
             width: 450px;
             height: 245px;
             padding: 5px;
         }
-        
+
         #theme-epic {
             height: 40px;
         }
-        
+
         #epic,#theme {
             float: left;
             display: inline-block;
-            width: 220px;
+            width: 170px;
             height: 40px;
             text-indent: 2px;
         }
-        
+
+        div.id-box {
+            float: left;
+            display: inline-block;
+            margin-right: 20px;
+            text-indent: 2px;
+        }
+
+        div.id-box p {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 85px;
+            display: block;
+            white-space: nowrap;
+        }
+
         #title,#effort-prio {
             float: left;
             border: 1px solid;
@@ -69,39 +84,39 @@ THE SOFTWARE.
             height: 85px;
             text-indent: 2px;
         }
-        
+
         .dotted {
             border: 1px dashed #2F6FAB;
         }
-        
+
         #title {
             width: 255px;
         }
-        
+
         #effort-prio {
             border: 1px solid;
             width: 185px;
         }
-        
+
         #effort {
             margin: 5px;
         }
-        
+
         #prio {
             margin: 5px;
         }
-        
+
         #task-story {
             font-size: 12px;
             overflow: hidden;
             max-height: 20px;
         }
-        
+
         #task-id {
             float: right;
             padding-right: 10px;
         }
-        
+
         #task-description {
             width: 440px;
             height: 170px;
@@ -109,38 +124,38 @@ THE SOFTWARE.
             border-top: 1px solid;
             overflow: hidden;
         }
-        
+
         #task-footer {
             border: 1px solid;
         }
-        
+
         #footer-owner {
             float: left;
         }
-        
+
         #footer-time {
             float: right;
         }
-        
+
         p {
             display: inline;
             word-wrap: break-word;
         }
-        
+
         p.content {
             font-weight: bold;
         }
-        
+
         p.title {
             font-size: 14px;
             font-weight: bold;
         }
-        
+
         p.task {
             font-size: 12px;
             font-weight: bold;
         }
-        
+
         td.timebox {
             border: 1px solid;
             width: 25px;
@@ -149,7 +164,7 @@ THE SOFTWARE.
             font-weight: bold;
             padding: 2px;
         }
-        
+
         p.task-story {
             font-weight: bold;
             font-size: 14px;
@@ -161,6 +176,9 @@ THE SOFTWARE.
     <c:forEach var="story" items="${stories}" varStatus="rowCounter">
         <div id="story-container">
             <div id="theme-epic">
+                <div id="story-id-box" class="id-box">
+                    <p class="title">#${story.id}</p>
+                </div>
                 <div id="theme">
                     <p>Theme:</p>
                     <p class="content">${story.themeTitle}</p>
@@ -215,6 +233,9 @@ THE SOFTWARE.
         <div style="page-break-after: always"></div>
         <c:forEach var="task" items="${story.children}"  varStatus="rowCounter">
             <div id="story-container">
+                <div class="id-box">
+                    <p class="title">#${task.id}</p>
+                </div>
                 <div id="task-story">
                     <p>Story:</p>
                     <p class="task-story">${story.title}</p>
