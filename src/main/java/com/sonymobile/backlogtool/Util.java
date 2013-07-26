@@ -162,8 +162,7 @@ public final class Util {
         if (text == null) {
             return "";
         }
-        return text.replaceAll("(?i)(http:\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
-                .replaceAll("(?i)(https:\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
+        return text.replaceAll("(?i)((https|http):\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
                 .replaceAll("\\n", "<br />");
     }
 }
