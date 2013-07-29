@@ -621,14 +621,10 @@ public class HomeController {
         return view;
     }
 
-    @RequestMapping(value = "/text-list", method = RequestMethod.GET)
-    @ResponseBody
-    public String getCommaSepList(@RequestParam(required = false, value = "archived") Integer archived, @RequestParam(required = false, value = "fields") List<String> fields) {
-        if (fields == null || fields.isEmpty()) { // If no fields specified, show instructions
-            return "<p>Call with: ?fields={field1},{field2},{field3}&archived={0|1} (<i>archived</i> is optional)</p> "
-                    + "<p>For example: <a href=\"?fields=id,title,dateadded&archived=0\">?fields=id,title,dateadded&archived=0</a></p>"
-                    + "<p>Available fields: id, title, dateadded, contributor, contributorsite, datearchived, attr1, attr2, attr3, area, deadline, customer, customersite</p>";
-        } else {
+    @RequestMapping(value = "/comma-separated-data", method = RequestMethod.GET)
+    public ModelAndView getCommaSepList(@RequestParam(required = false, value = "archived") Boolean archived, @RequestParam(required = false, value = "fields") List<String> fields) {
+        String data = null;
+        if (fields != null && !fields.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             Session session = sessionFactory.openSession();
             Transaction tx = null;
@@ -639,10 +635,8 @@ public class HomeController {
                 if (archived == null) {
                     queryString = "select distinct s from Story s";
                 } else {
-                    String archivedStr = (archived.equals(1) ? "true" : "false");
-                    
                     queryString = "select distinct s from Story s "
-                            + "where s.archived = " + archivedStr;
+                            + "where s.archived = " + archived;
                 }
 
                 Query query = session.createQuery(queryString);
@@ -656,7 +650,7 @@ public class HomeController {
                         if (field.equals("id")) {
                             sb.append(s.getId());
                         } else if (field.equals("title")) {
-                            sb.append(s.getTitle());
+                            sb.append(s.getTitle().replaceAll("/\r\n+|\r+|\n+|\t+/i", ""));
                         } else if (field.equals("dateadded")) {
                             sb.append(sdf.format(s.getAdded()));
                         } else if (field.equals("contributor")) {
@@ -667,17 +661,26 @@ public class HomeController {
                             if (s.getDateArchived() != null) {
                                 sb.append(sdf.format(s.getDateArchived()));
                             }
-                        } else if (field.equals("attr1")) {
+                        } else if (field.equals("storyattr1")) {
                             AttributeOption attr = s.getStoryAttr1();
-                            String attrStr = (attr != null) ? attr.getName() : "";
+                            String attrStr = "";
+                            if(attr != null) {
+                                attrStr = attr.getName();
+                            }
                             sb.append(attrStr);
-                        } else if (field.equals("attr2")) {
+                        } else if (field.equals("storyattr2")) {
                             AttributeOption attr = s.getStoryAttr2();
-                            String attrStr = (attr != null) ? attr.getName() : "";
+                            String attrStr = "";
+                            if(attr != null) {
+                                attrStr = attr.getName();
+                            }
                             sb.append(attrStr);
-                        } else if (field.equals("attr3")) {
+                        } else if (field.equals("storyattr3")) {
                             AttributeOption attr = s.getStoryAttr3();
-                            String attrStr = (attr != null) ? attr.getName() : "";
+                            String attrStr = "";
+                            if(attr != null) {
+                                attrStr = attr.getName();
+                            }
                             sb.append(attrStr);
                         } else if (field.equals("area")) {
                             sb.append(s.getArea().getName());
@@ -689,6 +692,8 @@ public class HomeController {
                             sb.append(s.getCustomer());
                         } else if (field.equals("customersite")) {
                             sb.append(s.getCustomerSite());
+                        } else if (field.equals("description")) {
+                            sb.append(s.getDescription().replaceAll("/\r\n+|\r+|\n+|\t+/i", ""));
                         }
                         sb.append('"');
                         sb.append(',');
@@ -696,7 +701,7 @@ public class HomeController {
                     sb.deleteCharAt(sb.length() - 1); // remove last comma-character
                     sb.append('\n');
                 }
-
+                data = sb.toString();
                 tx.commit();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -706,8 +711,11 @@ public class HomeController {
             } finally {
                 session.close();
             }
-            return sb.toString();
         }
+        ModelAndView view = new ModelAndView();
+        view.addObject("dataString", data);
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        return view;
     }
 
     /**
