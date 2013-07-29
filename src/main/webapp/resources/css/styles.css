@@ -90,6 +90,7 @@ form {
     background-color: #eeeeee;
     min-width: 90%;
     border-bottom: 1px solid #DDD;
+    height: 87px;
 }
 
 a {
@@ -184,6 +185,10 @@ select#order-by {
     -moz-transition: .3s;
     -webkit-transition: .3s;
     transition: .1s;
+}
+
+#header-buttons {
+    float: left;
 }
 
 .error-message {
@@ -557,7 +562,7 @@ div.navigation-links a {
 
 #list-container-div {
     width: 90%;
-    margin: 50px auto;
+    margin: 87px auto;
 }
 #left-panel, #right-panel {
     float: left;
@@ -623,6 +628,10 @@ fieldset {
     padding: 0;
     border: 0;
     margin-top: 25px;
+}
+
+.elem-hidden {
+    visibility: hidden;
 }
 
 .ui-dialog .ui-state-error {

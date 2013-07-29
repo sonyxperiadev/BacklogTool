@@ -172,6 +172,8 @@ $(document).ready(function () {
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
 
+    $("#header-buttons").removeClass("elem-hidden");
+
     /**
      * Formats a date as string
      * @returns {String} date string
@@ -2940,6 +2942,7 @@ $(document).ready(function () {
     };
 
     $(window).resize(function() {
+        $("#header").css("height", "auto");
         setHeightAndMargin($("#header").height());
     });
 
@@ -3263,7 +3266,8 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
-
+    
+    $("#header").css("height", "auto");
     setHeightAndMargin($("#header").height());
 
 });
