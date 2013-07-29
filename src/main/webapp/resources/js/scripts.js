@@ -546,6 +546,8 @@ $(document).ready(function () {
                         } else if(view == "theme-epic") {
                             updateEpicLi(children[j]);
                         }
+                    } else if (view == "epic-story") {
+                        updateStoryLiContent(children[j]); // Keeping Theme-box up-to-date
                     }
                     childLi.attr('parentid', p.id);
 

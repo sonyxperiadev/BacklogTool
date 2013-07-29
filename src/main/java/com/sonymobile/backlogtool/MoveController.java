@@ -312,6 +312,7 @@ public class MoveController {
                     oldParent.getChildren().remove(child);
                     lastParent.getChildren().add(child);
                     child.setEpic(lastParent);
+                    child.setTheme(lastParent.getTheme());
                     oldParents.add(oldParent);
                     parentsToPush.add(oldParent);
                 }
