@@ -172,6 +172,8 @@ $(document).ready(function () {
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
 
+    $("#header-buttons").removeClass("elem-hidden-children elem-loading");
+
     /**
      * Formats a date as string
      * @returns {String} date string
@@ -267,8 +269,7 @@ $(document).ready(function () {
      * Adding line breaks and <a> tags for the param text.
      */
     var addLinksAndLineBreaks = function(text) {
-        return text.replace(/(http:\/\/[^\s]+)/gi, '<a href="$1">$1</a>')
-                .replace(/(https:\/\/[^\s]+)/gi, '<a href="$1">$1</a>')
+        return text.replace(/((https|http):\/\/[^\s]+)/gi, '<a href="$1">$1</a>')
                 .replace(/\n/g, '<br />');
     };
 
@@ -545,6 +546,8 @@ $(document).ready(function () {
                         } else if(view == "theme-epic") {
                             updateEpicLi(children[j]);
                         }
+                    } else if (view == "epic-story") {
+                        updateStoryLiContent(children[j]); // Keeping Theme-box up-to-date
                     }
                     childLi.attr('parentid', p.id);
 
@@ -3095,6 +3098,7 @@ $(document).ready(function () {
     };
 
     $(window).resize(function() {
+        $("#header").css("height", "auto");
         setHeightAndMargin($("#header").height());
     });
 
@@ -3418,7 +3422,8 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
-
+    
+    $("#header").css("height", "auto");
     setHeightAndMargin($("#header").height());
 
 });
