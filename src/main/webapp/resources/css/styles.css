@@ -90,6 +90,9 @@ form {
     background-color: #eeeeee;
     min-width: 90%;
     border-bottom: 1px solid #DDD;
+}
+
+#header.initial-fixed-height {
     height: 87px;
 }
 
