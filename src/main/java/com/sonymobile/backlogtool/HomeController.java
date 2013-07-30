@@ -622,7 +622,9 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/comma-separated-data", method = RequestMethod.GET)
-    public ModelAndView getCommaSepList(@RequestParam(required = false, value = "archived") Boolean archived, @RequestParam(required = false, value = "fields") List<String> fields) {
+    public ModelAndView getCommaSepList(
+            @RequestParam(required = false, value = "archived") Boolean archived,
+            @RequestParam(required = false, value = "fields") List<String> fields) {
         String data = null;
         if (fields != null && !fields.isEmpty()) {
             StringBuilder sb = new StringBuilder();
@@ -642,7 +644,8 @@ public class HomeController {
                 Query query = session.createQuery(queryString);
                 List<Story> stories = Util.castList(Story.class, query.list());
 
-                SimpleDateFormat sdf = new SimpleDateFormat("M/d/yy HH:mm:ss.SS");
+                SimpleDateFormat sdf = new SimpleDateFormat(
+                        "M/d/yy HH:mm:ss.SS");
                 for (Story s : stories) {
                     for (String field : fields) {
                         field = field.toLowerCase();
@@ -650,9 +653,12 @@ public class HomeController {
                         if (field.equals("id")) {
                             sb.append(s.getId());
                         } else if (field.equals("title")) {
-                            sb.append(s.getTitle().replaceAll("/\r\n+|\r+|\n+|\t+/i", ""));
+                            sb.append(s.getTitle().replaceAll(
+                                    "/\r\n+|\r+|\n+|\t+/i", ""));
                         } else if (field.equals("dateadded")) {
-                            sb.append(sdf.format(s.getAdded()));
+                            if(s.getAdded() != null) {
+                                sb.append(sdf.format(s.getAdded()));
+                            }
                         } else if (field.equals("contributor")) {
                             sb.append(s.getContributor());
                         } else if (field.equals("contributorsite")) {
@@ -664,21 +670,21 @@ public class HomeController {
                         } else if (field.equals("storyattr1")) {
                             AttributeOption attr = s.getStoryAttr1();
                             String attrStr = "";
-                            if(attr != null) {
+                            if (attr != null) {
                                 attrStr = attr.getName();
                             }
                             sb.append(attrStr);
                         } else if (field.equals("storyattr2")) {
                             AttributeOption attr = s.getStoryAttr2();
                             String attrStr = "";
-                            if(attr != null) {
+                            if (attr != null) {
                                 attrStr = attr.getName();
                             }
                             sb.append(attrStr);
                         } else if (field.equals("storyattr3")) {
                             AttributeOption attr = s.getStoryAttr3();
                             String attrStr = "";
-                            if(attr != null) {
+                            if (attr != null) {
                                 attrStr = attr.getName();
                             }
                             sb.append(attrStr);
@@ -693,12 +699,14 @@ public class HomeController {
                         } else if (field.equals("customersite")) {
                             sb.append(s.getCustomerSite());
                         } else if (field.equals("description")) {
-                            sb.append(s.getDescription().replaceAll("/\r\n+|\r+|\n+|\t+/i", ""));
+                            sb.append(s.getDescription().replaceAll(
+                                    "/\r\n+|\r+|\n+|\t+/i", ""));
                         }
                         sb.append('"');
                         sb.append(',');
                     }
-                    sb.deleteCharAt(sb.length() - 1); // remove last comma-character
+                    sb.deleteCharAt(sb.length() - 1); // remove last
+                                                      // comma-character
                     sb.append('\n');
                 }
                 data = sb.toString();
