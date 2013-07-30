@@ -55,7 +55,7 @@ THE SOFTWARE.
 </head>
 <body>
     <div id="wrap">
-        <div id="header">
+        <div id="header" class="initial-fixed-height">
             <c:import url="header.jsp" />
         </div>
         <div id="main">
