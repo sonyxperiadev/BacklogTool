@@ -635,9 +635,9 @@ public class HomeController {
 
                 String queryString = null;
                 if (archived == null) {
-                    queryString = "select distinct s from Story s";
+                    queryString = "from Story s";
                 } else {
-                    queryString = "select distinct s from Story s "
+                    queryString = "from Story s "
                             + "where s.archived = " + archived;
                 }
 
