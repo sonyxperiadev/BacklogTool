@@ -202,6 +202,7 @@ textarea {
     width: 99%;
 }
 
+
 textarea:focus {
     border-color: #f00;
 }
@@ -269,6 +270,7 @@ p.description {
     font-size: 0.85em;
     font-weight: bold;
     color: #494949;
+    margin-top: 5px;
 }
 
 .title {
@@ -279,10 +281,14 @@ p.description {
 p.theme,p.epic,p.typeMark {
     color: black;
     display: inline;
-    float: left;
     font-size: 0.75em;
     padding: 0.3em;
     text-align: center;
+    float: left;
+}
+
+p.typeMark {
+	vertical-align: middle;
 }
 
 .well > *:not(#save-div) {
@@ -404,8 +410,15 @@ div.titles-theme-epic {
 
 .titleText {
     font-size: 1.3em;
-    font-weight: bold;
+/*     font-weight: bold; */
     color: black;
+    vertical-align: middle;
+}
+
+p.titleText {
+	cursor: pointer;
+	cursor: hand;
+	display: inline;
 }
 
 .taskHeading {
@@ -767,9 +780,9 @@ p.addOptionSeries, p.addOption {
   text-overflow: ellipsis;
   margin-left: 6px;
   font-size: 1em;
-  text-decoration: underline;
   cursor: pointer;
   cursor: hand;
+  vertical-align: middle;
 }
 
 .oneline.attr-text {
@@ -799,6 +812,12 @@ p.addOptionSeries, p.addOption {
   height: 100%;
 }
 
+.oneline.icon {
+    width: 20px;
+    margin: 5px;
+}
+
 .attr-icon {
   vertical-align: sub;
 }
+
