@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -626,6 +627,7 @@ public class HomeController {
             @RequestParam(required = false, value = "archived") Boolean archived,
             @RequestParam(required = false, value = "fields") List<String> fields) {
         String data = null;
+        String error = null;
         if (fields != null && !fields.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             Session session = sessionFactory.openSession();
@@ -637,12 +639,13 @@ public class HomeController {
                 if (archived == null) {
                     queryString = "from Story s";
                 } else {
-                    queryString = "from Story s "
-                            + "where s.archived = " + archived;
+                    queryString = "from Story s " + "where s.archived = "
+                            + archived;
                 }
 
                 Query query = session.createQuery(queryString);
                 List<Story> stories = Util.castList(Story.class, query.list());
+                HashSet<String> invalidFields = new HashSet<String>();
 
                 SimpleDateFormat sdf = new SimpleDateFormat(
                         "M/d/yy HH:mm:ss.SS");
@@ -656,7 +659,7 @@ public class HomeController {
                             sb.append(s.getTitle().replaceAll(
                                     "/\r\n+|\r+|\n+|\t+/i", ""));
                         } else if (field.equals("dateadded")) {
-                            if(s.getAdded() != null) {
+                            if (s.getAdded() != null) {
                                 sb.append(sdf.format(s.getAdded()));
                             }
                         } else if (field.equals("contributor")) {
@@ -701,6 +704,8 @@ public class HomeController {
                         } else if (field.equals("description")) {
                             sb.append(s.getDescription().replaceAll(
                                     "/\r\n+|\r+|\n+|\t+/i", ""));
+                        } else {
+                            invalidFields.add(field);
                         }
                         sb.append('"');
                         sb.append(',');
@@ -709,7 +714,17 @@ public class HomeController {
                                                       // comma-character
                     sb.append('\n');
                 }
-                data = sb.toString();
+
+                if (invalidFields.isEmpty()) {
+                    data = sb.toString();
+                } else {
+                    StringBuilder errSB = new StringBuilder();
+                    for (String s : invalidFields) {
+                        errSB.append("'").append(s).append("', ");
+                    }
+                    errSB.append("are not valid field(s)");
+                    error = errSB.toString();
+                }
                 tx.commit();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -721,6 +736,7 @@ public class HomeController {
             }
         }
         ModelAndView view = new ModelAndView();
+        view.addObject("errorStr", error);
         view.addObject("dataString", data);
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         return view;

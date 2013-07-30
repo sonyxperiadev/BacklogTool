@@ -38,10 +38,22 @@ p.link-box {
     margin: 10px;
     font-family: Courier New;
 }
+
+p.error {
+    border: 1px dotted red;
+    padding: 10px;
+    background-color: #f8dcdc;
+    margin: 10px;
+}
 </style>
 </head>
 <body>
     <h1>Backlog Tool - Exporting data</h1>
+
+    <c:if test="${errorStr != null}">
+        <p class="error"><strong>Error:</strong> ${errorStr}</p>
+    </c:if>
+
     <p>A comma-separated list with data from Backlog Tool can be
         retrieved by passing url-parameters to this page:</p>
     <p class="link-box">?fields={field1},{field2},{field3}&archived={true|false}</p>
