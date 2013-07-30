@@ -55,7 +55,7 @@ THE SOFTWARE.
     </c:if>
 </div>
 <br style="clear: both" />
-<div id="header-buttons" class="elem-hidden">
+<div id="header-buttons" class="elem-hidden-children elem-loading">
     <button id="settings" data-dropdown="#settings-div" class="fff" title="More options">#</button>
     <div id="settings-div" class="dropdown dropdown-tip dropdown-relative">
         <ul class="dropdown-menu">

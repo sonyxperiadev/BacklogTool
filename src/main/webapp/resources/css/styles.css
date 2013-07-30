@@ -630,8 +630,14 @@ fieldset {
     margin-top: 25px;
 }
 
-.elem-hidden {
+.elem-hidden-children * {
     visibility: hidden;
+}
+
+.elem-loading {
+    background-image: url(../image/ajax-loader.gif);
+    background-repeat: no-repeat;
+    background-position: center top;
 }
 
 .ui-dialog .ui-state-error {

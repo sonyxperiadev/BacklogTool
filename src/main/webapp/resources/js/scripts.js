@@ -172,7 +172,7 @@ $(document).ready(function () {
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
 
-    $("#header-buttons").removeClass("elem-hidden");
+    $("#header-buttons").removeClass("elem-hidden-children elem-loading");
 
     /**
      * Formats a date as string
