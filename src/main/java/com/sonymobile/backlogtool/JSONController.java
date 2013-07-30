@@ -249,6 +249,35 @@ public class JSONController {
 
     }
 
+    @RequestMapping(value="/read-notes/{storyid}", method=RequestMethod.GET)
+    @Transactional
+    public @ResponseBody List<Note> printNotes(@PathVariable Integer storyid) {
+        List<Note> list = null;
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            
+            String queryString1 = "from Note " +
+                    "where story.id = ? " +
+                    "order by created";
+            Query query1 = session.createQuery(queryString1);
+            query1.setParameter(0, storyid);
+            query1.setMaxResults(10);
+            list = Util.castList(Note.class, query1.list());
+            tx.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+        return list;
+    }  
+
     @RequestMapping(value="/readtheme-epic/{areaName}", method=RequestMethod.GET)
     @Transactional
     public @ResponseBody ResponseEntity<String> printJsonThemes(@PathVariable String areaName, @RequestParam String order)

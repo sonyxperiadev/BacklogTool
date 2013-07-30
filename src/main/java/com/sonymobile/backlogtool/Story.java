@@ -83,7 +83,11 @@ public class Story {
     @OneToMany(fetch = FetchType.LAZY, mappedBy="story")
     @OrderBy("prioInStory")
     private Set<Task> children = new HashSet<Task>();
-
+    
+    @OneToMany(fetch = FetchType.LAZY, mappedBy="story")
+    @OrderBy("created")
+    private Set<Note> notes = new HashSet<Note>();
+    
     @JoinColumn(name="themeId")
     @ManyToOne
     private Theme theme;

@@ -334,28 +334,39 @@ p.typeMark {
 
 div.story-attr3 {
     display: inline-block;
-    width: 18%;
+    width: 36%;
     float: left;
     word-wrap: break-word;
 }
 
 div.story-attr1-2 {
     display: inline-block;
-    width: 10%;
+    width: 20%;
     float: left;
     word-wrap: break-word;
 }
 div.times{
     display: inline-block;
-    width: 7%;
+    width: 14%;
     float: left;
     word-wrap: break-word;
 }
 
 div.stakeholders {
     display: inline-block;
-    width: 15%;
+    width: 30%;
     float: left;
+}
+
+div.story-right-content {
+    float: left;
+    width: 50%;
+}
+
+div.notes-container {
+/*     float: right; */
+    margin: auto 0;
+    padding: 10px;
 }
 
 select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
@@ -755,3 +766,21 @@ p.addOptionSeries, p.addOption {
     text-decoration: none;
     color: #1c94c4;
 }
+
+div.note {
+    border: 1px solid #a9a9a9;
+    margin: 5px;
+    padding: 5px;
+    background-color: #E6E6FA;
+    font-size: 0.9em;
+}
+    div.note span.user {
+        font-weight: bold;
+    }
+    
+    div.note span.date {
+        width: 100%;
+        text-align: right;
+        font-size: 0.8em;
+        color: #606060;
+    }
