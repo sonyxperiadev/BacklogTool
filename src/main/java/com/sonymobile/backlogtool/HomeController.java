@@ -25,9 +25,8 @@ package com.sonymobile.backlogtool;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -59,6 +58,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.sonymobile.backlogtool.permission.User;
@@ -619,6 +619,126 @@ public class HomeController {
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("loggedInUser", SecurityContextHolder.getContext()
                 .getAuthentication().getName());
+        return view;
+    }
+
+    @RequestMapping(value = "/comma-separated-data", method = RequestMethod.GET)
+    public ModelAndView getCommaSepList(
+            @RequestParam(required = false, value = "archived") Boolean archived,
+            @RequestParam(required = false, value = "fields") List<String> fields) {
+        String data = null;
+        String error = null;
+        if (fields != null && !fields.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            Session session = sessionFactory.openSession();
+            Transaction tx = null;
+            try {
+                tx = session.beginTransaction();
+
+                String queryString = null;
+                if (archived == null) {
+                    queryString = "from Story s";
+                } else {
+                    queryString = "from Story s " + "where s.archived = "
+                            + archived;
+                }
+
+                Query query = session.createQuery(queryString);
+                List<Story> stories = Util.castList(Story.class, query.list());
+                HashSet<String> invalidFields = new HashSet<String>();
+
+                SimpleDateFormat sdf = new SimpleDateFormat(
+                        "M/d/yy HH:mm:ss.SS");
+                for (Story s : stories) {
+                    for (String field : fields) {
+                        field = field.toLowerCase();
+                        sb.append('"');
+                        if (field.equals("id")) {
+                            sb.append(s.getId());
+                        } else if (field.equals("title")) {
+                            sb.append(s.getTitle().replaceAll(
+                                    "/\r\n+|\r+|\n+|\t+/i", ""));
+                        } else if (field.equals("dateadded")) {
+                            if (s.getAdded() != null) {
+                                sb.append(sdf.format(s.getAdded()));
+                            }
+                        } else if (field.equals("contributor")) {
+                            sb.append(s.getContributor());
+                        } else if (field.equals("contributorsite")) {
+                            sb.append(s.getContributorSite());
+                        } else if (field.equals("datearchived")) {
+                            if (s.getDateArchived() != null) {
+                                sb.append(sdf.format(s.getDateArchived()));
+                            }
+                        } else if (field.equals("storyattr1")) {
+                            AttributeOption attr = s.getStoryAttr1();
+                            String attrStr = "";
+                            if (attr != null) {
+                                attrStr = attr.getName();
+                            }
+                            sb.append(attrStr);
+                        } else if (field.equals("storyattr2")) {
+                            AttributeOption attr = s.getStoryAttr2();
+                            String attrStr = "";
+                            if (attr != null) {
+                                attrStr = attr.getName();
+                            }
+                            sb.append(attrStr);
+                        } else if (field.equals("storyattr3")) {
+                            AttributeOption attr = s.getStoryAttr3();
+                            String attrStr = "";
+                            if (attr != null) {
+                                attrStr = attr.getName();
+                            }
+                            sb.append(attrStr);
+                        } else if (field.equals("area")) {
+                            sb.append(s.getArea().getName());
+                        } else if (field.equals("deadline")) {
+                            if (s.getDeadline() != null) {
+                                sb.append(sdf.format(s.getDeadline()));
+                            }
+                        } else if (field.equals("customer")) {
+                            sb.append(s.getCustomer());
+                        } else if (field.equals("customersite")) {
+                            sb.append(s.getCustomerSite());
+                        } else if (field.equals("description")) {
+                            sb.append(s.getDescription().replaceAll(
+                                    "/\r\n+|\r+|\n+|\t+/i", ""));
+                        } else {
+                            invalidFields.add(field);
+                        }
+                        sb.append('"');
+                        sb.append(',');
+                    }
+                    sb.deleteCharAt(sb.length() - 1); // remove last
+                                                      // comma-character
+                    sb.append('\n');
+                }
+
+                if (invalidFields.isEmpty()) {
+                    data = sb.toString();
+                } else {
+                    StringBuilder errSB = new StringBuilder();
+                    for (String s : invalidFields) {
+                        errSB.append("'").append(s).append("', ");
+                    }
+                    errSB.append("are not valid field(s)");
+                    error = errSB.toString();
+                }
+                tx.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (tx != null) {
+                    tx.rollback();
+                }
+            } finally {
+                session.close();
+            }
+        }
+        ModelAndView view = new ModelAndView();
+        view.addObject("errorStr", error);
+        view.addObject("dataString", data);
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         return view;
     }
 
