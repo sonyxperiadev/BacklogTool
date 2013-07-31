@@ -788,46 +788,52 @@ p.addOptionSeries, p.addOption {
 }
 
 .oneline {
-  display: inline-block;
+   display: inline-block;
 }
 
 .oneline.title-text {
-  white-space: nowrap;
-  width: 30%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-left: 6px;
-  font-size: 1em;
-  cursor: pointer;
-  cursor: hand;
-  vertical-align: middle;
+    width: 30%;
+    margin-left: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+span.oneline.title-span {
+    cursor: pointer;
+    cursor: hand;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .oneline.attr-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 12%;
-  white-space: nowrap;
-  height: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 12%;
+    white-space: nowrap;
+    height: 100%;
 }
 
 .attr-div {
-  width: 14%;
-  white-space: nowrap;
-  height: 100%;
+    width: 14%;
+    white-space: nowrap;
+    height: 100%;
 }
 
 .oneline-li {
-  padding-top: 2px;
-  padding-bottom: 4px;
+    padding-top: 2px;
+    padding-bottom: 4px;
 }
 
 .oneline.date-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 12%;
-  white-space:nowrap;
-  height: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 12%;
+    white-space:nowrap;
+    height: 100%;
 }
 
 .oneline.icon {
@@ -836,6 +842,6 @@ p.addOptionSeries, p.addOption {
 }
 
 .attr-icon {
-  vertical-align: sub;
+    vertical-align: sub;
 }
 

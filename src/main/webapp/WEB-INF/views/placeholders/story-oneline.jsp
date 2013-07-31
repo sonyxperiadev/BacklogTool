@@ -1,11 +1,17 @@
-<li class="story ui-state-default oneline-li parentLi" id="${story.id}">
+<li class="story ui-state-default oneline-li parentLi editStory" id="${story.id}">
 
     <div title="Show tasks"
             class="oneline icon <c:if test="${story.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
     </div>
 
     <p class="typeMark oneline">Story ${story.id}</p>
-    <p class="title-text oneline">${story.title}</p>
+
+    <p class="title-text oneline">
+        <span class="title-span oneline">
+            ${story.title}
+        </span>
+    </p>
+
 
     <p class="oneline attr-text story-attr1">
         <c:if test='${story.storyAttr1 != null && story.storyAttr1.iconEnabled}'>
@@ -29,13 +35,14 @@
             ${story.storyAttr3.name}
     </p>
 
-    <p class="oneline date-text">
+    <p class="oneline date-text deadline">
         <fmt:formatDate value="${story.deadline}" pattern="yyyy-MM-dd" />
     </p>
+
     <c:if test='${story.archived}'>
         <p class="title oneline">Archived:</p>
     </c:if>
-    <p class="oneline">
+    <p class="oneline date-text date-archived">
         <fmt:formatDate value="${story.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
 </li>

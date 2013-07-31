@@ -1682,8 +1682,13 @@ $(document).ready(function () {
         if (typeof event == "number") {
             storyId = event;
         } else {
-            storyId = $(this).attr('id');
+            storyId = parseInt($(this).attr('id'));
         }
+
+        if ($("li#" + storyId).hasClass("oneline-li")) {
+            expandOneline(storyId);
+        }
+
         if (view == "story-task") {
             var story = getParent(storyId);
         } else {
@@ -1864,9 +1869,9 @@ $(document).ready(function () {
     var handleNewParentItem = function(lastItemObj, newItemLi, newItemObj, ulObj) {
         incrPrioForParents(newItemObj.prio);
         putParent(newItemObj.id, newItemObj);
-        
+
         putInCorrPrioPos(ulObj, lastItemObj, newItemLi);
-        
+
         if($('#order-by').val() != "prio") {
             sortList(ulObj);
         } 
@@ -1886,19 +1891,21 @@ $(document).ready(function () {
         if (parent.length == 0) {
             parent = liObj;
         }
-        if (typeof lastItemObj !== "undefined" && lastItemObj != null) {
-            var putAfter = getParentOrLastChildElement(lastItemObj.id);
+        if (parent != null) {
+            if (typeof lastItemObj !== "undefined" && lastItemObj != null) {
+                var putAfter = getParentOrLastChildElement(lastItemObj.id);
 
-            if (putAfter != null) {
-                putAfter.after(children);
-                putAfter.after(parent);
-            } else {
+                if (putAfter != null) {
+                    putAfter.after(children);
+                    putAfter.after(parent);
+                } else {
+                    ulObj.append(parent);
+                    ulObj.append(children);
+                }
+            } else if ($('li.parentLi#' + liObj.attr("id")).length == 0) {
                 ulObj.append(parent);
                 ulObj.append(children);
             }
-        } else {
-            ulObj.append(parent);
-            ulObj.append(children);
         }
     };
 
@@ -2031,11 +2038,12 @@ $(document).ready(function () {
         }
 
         var oneline = $("li#" + storyId + ".oneline-li");
-        oneline.find("p.title-text").html(story.title);
-        oneline.find('p.attr1').empty().append(getAttrImage(story.storyAttr1)).append(getNameIfExists(story.storyAttr1));
-        oneline.find('p.attr2').empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
-        oneline.find('p.attr3').empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
-        oneline.find('p.date-text').html(getDate(story.deadline));
+        oneline.find("span.title-span").html(story.title);
+        oneline.find('p.story-attr1').empty().append(getAttrImage(story.storyAttr1)).append(getNameIfExists(story.storyAttr1));
+        oneline.find('p.story-attr2').empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
+        oneline.find('p.story-attr3').empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
+        oneline.find('p.deadline').html(getDate(story.deadline));
+        oneline.find('p.date-archived').html(getDate(story.dateArchived));
     };
 
     /**
@@ -2182,7 +2190,7 @@ $(document).ready(function () {
             taskId = event;
         }
         else {
-            taskId = $(this).closest('li').attr('id');
+            taskId = parseInt($(this).closest('li').attr('id'));
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
@@ -2359,7 +2367,7 @@ $(document).ready(function () {
             epicId = event;
         }
         else {
-            epicId = $(this).closest('li').attr('id');
+            epicId = parseInt($(this).closest('li').attr('id'));
         }
         if (view == "epic-story") {
             var epic = getParent(epicId);
@@ -2516,7 +2524,7 @@ $(document).ready(function () {
         if (typeof event == "number") {
             themeId = event;
         } else {
-            themeId = $(this).closest('li').attr('id');
+            themeId = parseInt($(this).closest('li').attr('id'));
         }
         if (view == "theme-epic") {
             var theme = getParent(themeId);
@@ -2692,7 +2700,7 @@ $(document).ready(function () {
 
                 }
 
-                $(".typeMark").width(getTypeMarkWidth());
+                $(".typeMark, #id-header").width(getTypeMarkWidth());
             }
         });
     };
@@ -2846,52 +2854,9 @@ $(document).ready(function () {
             disableEdits();
         }
 
-        $(".oneline.title-text").click(function() {
-            var li = $(this).closest("li");
-            var id = li.attr("id");
-            var lastId = li.prev("li").attr("id");
-            var jsonData = getParent(id);
-            if (lastId != null) {
-                var lastItem = new Object();
-                lastItem.id = lastId;
-                jsonData.lastItem = lastItem;
-            }
-            li.remove();
-            updateStoryLi(jsonData);
+        $(".oneline.title-span").click(expandOneline);
 
-            li = $("li#" + id);
-            if (lastId == null) {
-                //Move the item to top.
-                li.prependTo(li.parent());
-                var children = $('li.childLi[parentId="'+ id +'"]');
-                li.after(children);
-            }
-
-            var height = li.height();
-            li.height("20px");
-            
-            li.animate({height: height}, 200, function(){
-                li.css("height", "auto");
-            });
-
-            if (jsonData.children.length > 0) {
-                var iconDiv = li.find('div.icon');
-                if (visible[jsonData.children[0].id]) {
-                    iconDiv.addClass('ui-icon-triangle-1-s');
-                } else {
-                    iconDiv.addClass('ui-icon-triangle-1-e');
-                }
-                iconDiv.addClass('expand-icon ui-icon');
-                $('.expand-icon', li).bind('click', expandClick);
-            }
-
-            unselectAll();
-            selectItem({id:id, type:"parent"});
-            updateCookie();
-            addZebraStripesToParents();
-        });
-        
-        $(".typeMark").width(getTypeMarkWidth());
+        $(".typeMark, #id-header").width(getTypeMarkWidth());
 
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
@@ -2919,6 +2884,101 @@ $(document).ready(function () {
             }
         });
         return maxWidth;
+    };
+
+    var expandOneline = function(event) {
+        var li = null;
+        var id = null;
+
+        if (typeof event == "number") {
+            id = event;
+            li = $("li#" + id);
+        } else {
+            li = $(this).closest("li");
+            id = li.attr("id");
+        }
+
+        var lastId = li.prev("li").attr("id");
+        var jsonData = getParent(id);
+        if (lastId != null) {
+            var lastItem = new Object();
+            lastItem.id = lastId;
+            jsonData.lastItem = lastItem;
+        }
+        li.remove();
+        updateStoryLi(jsonData);
+
+        li = $("li#" + id);
+        if (lastId == null) {
+            //Move the item to top.
+            li.prependTo(li.parent());
+            var children = $('li.childLi[parentId="'+ id +'"]');
+            li.after(children);
+        }
+
+        var height = li.height();
+        li.height("20px");
+
+        li.animate({height: height}, 200, function(){
+            li.css("height", "auto");
+        });
+
+        if (jsonData.children.length > 0) {
+            var iconDiv = li.find('div.icon');
+            if (visible[jsonData.children[0].id]) {
+                iconDiv.addClass('ui-icon-triangle-1-s');
+            } else {
+                iconDiv.addClass('ui-icon-triangle-1-e');
+            }
+            iconDiv.addClass('expand-icon ui-icon');
+            $('.expand-icon', li).bind('click', expandClick);
+        }
+
+        unselectAll();
+        selectItem({id:id, type:"parent"});
+        updateCookie();
+        addZebraStripesToParents();
+    };
+
+    var collapseOneline = function() {
+        var li = $(this).closest("li");
+        var id = li.attr("id");
+        var lastId = li.prev("li").attr("id");
+        var jsonData = getParent(id);
+        if (lastId != null) {
+            var lastItem = new Object();
+            lastItem.id = lastId;
+            jsonData.lastItem = lastItem;
+        }
+
+        li.animate({height: 20}, 200, function(){
+            li.remove();
+            updateStoryLi(jsonData, true);
+            li = $("li#" + id);
+
+            if (lastId == null) {
+                //Move the item to top.
+                li.prependTo(li.parent());
+                var children = $('li.childLi[parentId="'+ id +'"]');
+                li.after(children);
+            }
+
+            if (jsonData.children.length > 0) {
+                var iconDiv = li.find('div.icon');
+                if (visible[jsonData.children[0].id]) {
+                    iconDiv.addClass('ui-icon-triangle-1-s');
+                } else {
+                    iconDiv.addClass('ui-icon-triangle-1-e');
+                }
+                iconDiv.addClass('expand-icon ui-icon');
+                $('.expand-icon', li).bind('click', expandClick);
+            }
+
+            unselectAll();
+            selectItem({id:id, type:"parent"});
+            updateCookie();
+            addZebraStripesToParents();
+        });
     };
 
     bindEventsToItem = function (elem) {
@@ -3021,92 +3081,9 @@ $(document).ready(function () {
         if (disableEditsBoolean) {
             disableEdits();
         }
-        
-        $("p.titleText", elem).click(function() {
-            var li = $(this).closest("li");
-            var id = li.attr("id");
-            var lastId = li.prev("li").attr("id");
-            var jsonData = getParent(id);
-            if (lastId != null) {
-                var lastItem = new Object();
-                lastItem.id = lastId;
-                jsonData.lastItem = lastItem;
-            }
 
-            li.animate({height: 20}, 200, function(){
-                li.remove();
-                updateStoryLi(jsonData, true);
-                li = $("li#" + id);
-
-                if (lastId == null) {
-                    //Move the item to top.
-                    li.prependTo(li.parent());
-                    var children = $('li.childLi[parentId="'+ id +'"]');
-                    li.after(children);
-                }
-
-                if (jsonData.children.length > 0) {
-                    var iconDiv = li.find('div.icon');
-                    if (visible[jsonData.children[0].id]) {
-                        iconDiv.addClass('ui-icon-triangle-1-s');
-                    } else {
-                        iconDiv.addClass('ui-icon-triangle-1-e');
-                    }
-                    iconDiv.addClass('expand-icon ui-icon');
-                    $('.expand-icon', li).bind('click', expandClick);
-                }
-
-                unselectAll();
-                selectItem({id:id, type:"parent"});
-                updateCookie();
-                addZebraStripesToParents();
-            });
-        });
-        
-        $(".oneline.title-text", elem).click(function() {
-            var li = $(this).closest("li");
-            var id = li.attr("id");
-            var lastId = li.prev("li").attr("id");
-            var jsonData = getParent(id);
-            if (lastId != null) {
-                var lastItem = new Object();
-                lastItem.id = lastId;
-                jsonData.lastItem = lastItem;
-            }
-            li.remove();
-            updateStoryLi(jsonData);
-
-            li = $("li#" + id);
-            if (lastId == null) {
-                //Move the item to top.
-                li.prependTo(li.parent());
-                var children = $('li.childLi[parentId="'+ id +'"]');
-                li.after(children);
-            }
-
-            var height = li.height();
-            li.height("20px");
-
-            li.animate({height: height}, 200, function(){
-                li.css("height", "auto");
-            });
-
-            if (jsonData.children.length > 0) {
-                var iconDiv = li.find('div.icon');
-                if (visible[jsonData.children[0].id]) {
-                    iconDiv.addClass('ui-icon-triangle-1-s');
-                } else {
-                    iconDiv.addClass('ui-icon-triangle-1-e');
-                }
-                iconDiv.addClass('expand-icon ui-icon');
-                $('.expand-icon', li).bind('click', expandClick);
-            }
-
-            unselectAll();
-            selectItem({id:id, type:"parent"});
-            updateCookie();
-            addZebraStripesToParents();
-        });
+        $("p.titleText", elem).click(collapseOneline);
+        $(".oneline.title-span", elem).click(expandOneline);
     };
 
     var setHeightAndMargin = function (value) {

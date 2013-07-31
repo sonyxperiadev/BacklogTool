@@ -74,8 +74,8 @@ THE SOFTWARE.
 
             <div id="list-container-div">
 
-            <div id="table-header" style="margin-left:20px;width:100%">
-            	<p class="oneline" style="width:20ex;padding:0.3em;font-size:0.75em;vertical-align:top;font-weight: bold;">ID</p>
+            <div id="table-header" style="margin-left:40px;width:100%">
+            	<p id="id-header" class="oneline" style="width: 55px; padding-top:0.3em;font-size:0.75em;font-weight: bold;">ID</p>
             	<p class="oneline" style="margin-left:4px;width:30%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Title</p>
             	<p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr1.name}</p>
             	<p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr2.name}</p>
