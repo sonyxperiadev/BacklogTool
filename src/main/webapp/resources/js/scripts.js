@@ -2673,7 +2673,7 @@ $(document).ready(function () {
                     var childData = archivedItems[i].children;
                     archivedItems[i].children = new Array();
                     if (type == "Story") {
-                        updateStoryLi(archivedItems[i]);
+                        updateStoryLi(archivedItems[i],true);
                         for (var k = 0; k < childData.length; k++) {
                             updateTaskLi(childData[k]);
                         }
@@ -2691,6 +2691,8 @@ $(document).ready(function () {
                     //TODO: Make sure that sort is not called several times
 
                 }
+
+                $(".typeMark").width(getTypeMarkWidth());
             }
         });
     };
@@ -2886,9 +2888,10 @@ $(document).ready(function () {
             unselectAll();
             selectItem({id:id, type:"parent"});
             updateCookie();
+            addZebraStripesToParents();
         });
         
-        $(".typeMark").width(getTypeMarkWidth);
+        $(".typeMark").width(getTypeMarkWidth());
 
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
@@ -2896,12 +2899,23 @@ $(document).ready(function () {
         firstBuild = false;
         addZebraStripesToParents();
     };
-    
+
     var getTypeMarkWidth = function() {
+        $(".typeMark").css("width", "auto");
         var maxWidth = 0;
         $(".typeMark").each(function (index) {
-            if ($(this).width() > maxWidth) {
-                maxWidth = $(this).width();
+            var width = $(this).width();
+            if (width == 0) {
+                //The item is probably in a hidden container;
+                //clone it and get the width.
+                var clone = $(this).clone();
+                clone.attr("style", "position: absolute !important; top: -100px !important;");
+                clone.appendTo("body");
+                width = clone.width();
+                clone.remove();
+            }
+            if (width > maxWidth) {
+                maxWidth = width;
             }
         });
         return maxWidth;
@@ -3045,6 +3059,7 @@ $(document).ready(function () {
                 unselectAll();
                 selectItem({id:id, type:"parent"});
                 updateCookie();
+                addZebraStripesToParents();
             });
         });
         
@@ -3090,6 +3105,7 @@ $(document).ready(function () {
             unselectAll();
             selectItem({id:id, type:"parent"});
             updateCookie();
+            addZebraStripesToParents();
         });
     };
 
