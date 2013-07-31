@@ -370,7 +370,7 @@ public class HomeController {
                                 + "left join fetch s." + order + " as attr "
                                 + "where s.area = ? " + "and s.archived = false "
                                 + "order by attr.compareValue";
-                    } else if (order.matches("description|contributor" +
+                    } else if (order.matches("title|description|contributor" +
                             "|customer|contributorSite|customerSite")) {
                         queryString = "select distinct s from Story s "
                                 + "left join fetch s.children "
