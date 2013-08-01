@@ -46,10 +46,11 @@
         <p class="typeMark">
             Story ${story.id}
         </p>
+        <!-- TYPE MARK END -->
+        <!-- THEME START -->
         <p class="theme ${story.id}">
             ${story.themeTitle}
         </p>
-        <!-- THEME START -->
         <textarea placeholder="Theme" id="theme${story.id}"
             class="bindChange theme hidden-edit ${story.id}" rows="1"
             maxlength="100">${story.themeTitle}</textarea>
@@ -62,7 +63,6 @@
             class="bindChange epic hidden-edit ${story.id}" rows="1"
             maxlength="100">${story.epicTitle}</textarea>
         <!-- EPIC END -->
-        <!-- TYPE MARK END -->
         <br style="clear: both" />
         <!-- STORY TITLE START -->
         <p class="titleText ${story.id}">

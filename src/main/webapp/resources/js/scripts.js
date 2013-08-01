@@ -2869,6 +2869,9 @@ $(document).ready(function () {
         addZebraStripesToParents();
     };
 
+    /**
+     * Sets the same width for all typemarks (for example "Story 42")
+     */
     var updateTypeMarkWidth = function() {
         $(".typeMark").css("width", "auto");
         var maxWidth = 0;
@@ -2890,6 +2893,9 @@ $(document).ready(function () {
         $(".typeMark, #id-header").width(maxWidth);
     };
 
+    /**
+     * Expands a backlogitem from oneline mode.
+     */
     var expandOneline = function(event, ignoreEffects) {
         var li = null;
         var id = null;
@@ -2944,6 +2950,9 @@ $(document).ready(function () {
         }
     };
 
+    /**
+     * Collapses a backlog item to oneline mode.
+     */
     var collapseOneline = function() {
         var li = $(this).closest("li");
         var id = li.attr("id");

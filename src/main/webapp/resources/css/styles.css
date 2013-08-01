@@ -210,7 +210,6 @@ textarea {
     width: 99%;
 }
 
-
 textarea:focus {
     border-color: #f00;
 }
@@ -289,10 +288,10 @@ p.description {
 p.theme,p.epic,p.typeMark {
     color: black;
     display: inline;
+    float: left;
     font-size: 0.75em;
     padding: 0.3em;
     text-align: center;
-    float: left;
 }
 
 p.typeMark {
