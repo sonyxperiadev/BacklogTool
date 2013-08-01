@@ -74,15 +74,15 @@ THE SOFTWARE.
 
             <div id="list-container-div">
 
-            <div id="table-header" style="margin-left:40px;width:100%">
-            	<p id="id-header" class="oneline" style="width: 55px; padding-top:0.3em;font-size:0.75em;font-weight: bold;">ID</p>
-            	<p class="oneline" style="margin-left:4px;width:30%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Title</p>
-            	<p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr1.name}</p>
-            	<p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr2.name}</p>
-            	<p class="oneline" style="width:12%;vertical-align:top;padding-top:0.3em;font-weight: bold;">${area.storyAttr3.name}</p>
-            	<p class="oneline" style="width:5%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Deadline</p>
-            	<p class="oneline" style="width:5%;vertical-align:top;padding-top:0.3em;font-weight: bold;">Archived</p>
-            </div>
+                <div id="table-header">
+                    <p class="oneline header-item header-id">ID</p>
+                    <p class="oneline header-item header-title">Title</p>
+                    <p class="oneline header-item small-item">${area.storyAttr1.name}</p>
+                    <p class="oneline header-item small-item">${area.storyAttr2.name}</p>
+                    <p class="oneline header-item small-item">${area.storyAttr3.name}</p>
+                    <p class="oneline header-item small-item">Deadline</p>
+                    <p class="oneline header-item small-item">Archived</p>
+                </div>
 
                 <ul class="parent-child-list" id="list-container">
                     <c:forEach var="story" items="${nonArchivedStories}">

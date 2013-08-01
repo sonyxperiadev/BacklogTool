@@ -792,7 +792,7 @@ p.addOptionSeries, p.addOption {
 }
 
 .oneline.title-text {
-    width: 30%;
+    width: 34%;
     margin-left: 6px;
     white-space: nowrap;
     overflow: hidden;
@@ -812,7 +812,7 @@ span.oneline.title-span {
 .oneline.attr-text {
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 12%;
+    width: 10%;
     white-space: nowrap;
     height: 100%;
 }
@@ -831,7 +831,7 @@ span.oneline.title-span {
 .oneline.date-text {
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 12%;
+    width: 10%;
     white-space:nowrap;
     height: 100%;
 }
@@ -845,3 +845,28 @@ span.oneline.title-span {
     vertical-align: sub;
 }
 
+#table-header {
+    margin-left: 44px;
+    width: 100%
+}
+
+.header-item {
+    margin-left: 0;
+    margin-right: 0;
+    padding-top: 0.3em;
+    font-size: 0.75em;
+    font-weight: bold;
+}
+
+#table-header > .small-item {
+    width: 10%;
+}
+
+#table-header > .header-id {
+    width: 55px;
+}
+
+#table-header > .header-title {
+    margin-left: 4px;
+    width: 34%;
+}

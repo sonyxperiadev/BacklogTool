@@ -172,6 +172,8 @@ $(document).ready(function () {
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
 
+    var allExpanded = false;
+
     $("#header-buttons").removeClass("elem-hidden-children elem-loading");
 
     /**
@@ -433,10 +435,11 @@ $(document).ready(function () {
             }
 
             if(jsonObj.type == "Story") {
-                updateStoryLi(data);
+                updateStoryLi(data, !allExpanded);
                 for(var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
                 }
+                updateTypeMarkWidth();
             } else if(jsonObj.type == "Task") {
                 updateTaskLi(data);
             } else if(jsonObj.type == "Epic") {
@@ -829,7 +832,6 @@ $(document).ready(function () {
                 }
             }
         });
-        $( "#list-container" ).sortable("refresh");
     };
 
     var isNumeric = function(val) {
@@ -1321,6 +1323,7 @@ $(document).ready(function () {
                     editStory(newStory.id);
                     scrollTo(newStory.id);
                     focusAndSelectText("title"+newStory.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(error) {
@@ -2000,12 +2003,13 @@ $(document).ready(function () {
 
     var updateStoryLiContent = function(story) {
         var storyId = story.id;
-        $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(story.title);
-        $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((story.themeTitle != undefined) ? story.themeTitle : "");
-        $('.titles, .titles-epic-story').find('p.epic.'+storyId).html((story.epicTitle != undefined) ? story.epicTitle : "");
+        var storyLi = $("li#" + storyId);
+        storyLi.find('.titleText').html(story.title);
+        storyLi.find('.theme').html((story.themeTitle != undefined) ? story.themeTitle : "");
+        storyLi.find('.epic').html((story.epicTitle != undefined) ? story.epicTitle : "");
 
         //Re-add truncate on the description paragraph
-        var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+        var descriptionParagraph = storyLi.find('.story-description');
         descriptionParagraph = untruncate(descriptionParagraph, story.description);
         descriptionParagraph.truncate(
                 $.extend({}, truncateOptions, {className: 'truncate'+storyId})
@@ -2014,36 +2018,36 @@ $(document).ready(function () {
             $('a.truncate'+storyId, descriptionParagraph.parent()).click();
         }
 
-        $('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(story.customerSite));
-        $('.stakeholders').find('p.customer.'+storyId).html(story.customer);
+        storyLi.find('p.customerSite').html(getSiteImage(story.customerSite));
+        storyLi.find('p.customer').html(story.customer);
 
-        $('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(story.contributorSite));
-        $('.stakeholders').find('p.contributor.'+storyId).html(story.contributor);
+        storyLi.find('p.contributorSite').html(getSiteImage(story.contributorSite));
+        storyLi.find('p.contributor').html(story.contributor);
 
-        $('.times').find('p.added.' + storyId).html(getDate(story.added));
-        $('.times').find('p.deadline.' + storyId).html(getDate(story.deadline));
+        storyLi.find('p.added').html(getDate(story.added));
+        storyLi.find('p.deadline').html(getDate(story.deadline));
 
-        $('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(story.storyAttr1)).append(getNameIfExists(story.storyAttr1));
-        $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
-        $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
+        storyLi.find('p.story-attr1').html(getAttrImage(story.storyAttr1)+getNameIfExists(story.storyAttr1));
+        storyLi.find('p.story-attr2').html(getAttrImage(story.storyAttr2)+getNameIfExists(story.storyAttr2));
+        storyLi.find('p.story-attr3').html(getAttrImage(story.storyAttr3)+getNameIfExists(story.storyAttr3));
 
         if (story.archived == true) {
-            $('p#archived-text' + storyId).text("Archived");
-            $('p#date-archived' + storyId).html(getDate(story.dateArchived));
+            $('#archived-text' + storyId).text("Archived");
+            $('#date-archived' + storyId).html(getDate(story.dateArchived));
             $('#archiveStory' + storyId).attr('checked', true);
         } else {
-            $('p#archived-text' + storyId).text("");
-            $('p#date-archived' + storyId).text("");
+            $('#archived-text' + storyId).text("");
+            $('#date-archived' + storyId).text("");
             $('#archiveStory' + storyId).attr('checked', false);
         }
 
         var oneline = $("li#" + storyId + ".oneline-li");
-        oneline.find("span.title-span").html(story.title);
-        oneline.find('p.story-attr1').empty().append(getAttrImage(story.storyAttr1)).append(getNameIfExists(story.storyAttr1));
-        oneline.find('p.story-attr2').empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
-        oneline.find('p.story-attr3').empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
-        oneline.find('p.deadline').html(getDate(story.deadline));
-        oneline.find('p.date-archived').html(getDate(story.dateArchived));
+        oneline.find(".title-span").html(story.title);
+        oneline.find('.story-attr1').html(getAttrImage(story.storyAttr1)+getNameIfExists(story.storyAttr1));
+        oneline.find('.story-attr2').html(getAttrImage(story.storyAttr2)+getNameIfExists(story.storyAttr2));
+        oneline.find('.story-attr3').html(getAttrImage(story.storyAttr3)+getNameIfExists(story.storyAttr3));
+        oneline.find('.deadline').html(getDate(story.deadline));
+        oneline.find('.date-archived').html(getDate(story.dateArchived));
     };
 
     /**
@@ -2700,7 +2704,7 @@ $(document).ready(function () {
 
                 }
 
-                $(".typeMark, #id-header").width(getTypeMarkWidth());
+                updateTypeMarkWidth();
             }
         });
     };
@@ -2856,7 +2860,7 @@ $(document).ready(function () {
 
         $(".oneline.title-span").click(expandOneline);
 
-        $(".typeMark, #id-header").width(getTypeMarkWidth());
+        updateTypeMarkWidth();
 
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
@@ -2865,7 +2869,7 @@ $(document).ready(function () {
         addZebraStripesToParents();
     };
 
-    var getTypeMarkWidth = function() {
+    var updateTypeMarkWidth = function() {
         $(".typeMark").css("width", "auto");
         var maxWidth = 0;
         $(".typeMark").each(function (index) {
@@ -2883,10 +2887,10 @@ $(document).ready(function () {
                 maxWidth = width;
             }
         });
-        return maxWidth;
+        $(".typeMark, #id-header").width(maxWidth);
     };
 
-    var expandOneline = function(event) {
+    var expandOneline = function(event, ignoreEffects) {
         var li = null;
         var id = null;
 
@@ -2916,13 +2920,18 @@ $(document).ready(function () {
             li.after(children);
         }
 
-        var height = li.height();
-        li.height("20px");
+        if (!ignoreEffects) {
+            var height = li.height();
+            li.height("20px");
 
-        li.animate({height: height}, 200, function(){
-            li.css("height", "auto");
-        });
-
+            li.animate({height: height}, 200, function(){
+                li.css("height", "auto");
+            });
+            unselectAll();
+            selectItem({id:id, type:"parent"});
+            updateCookie();
+            addZebraStripesToParents();
+        }
         if (jsonData.children.length > 0) {
             var iconDiv = li.find('div.icon');
             if (visible[jsonData.children[0].id]) {
@@ -2933,11 +2942,6 @@ $(document).ready(function () {
             iconDiv.addClass('expand-icon ui-icon');
             $('.expand-icon', li).bind('click', expandClick);
         }
-
-        unselectAll();
-        selectItem({id:id, type:"parent"});
-        updateCookie();
-        addZebraStripesToParents();
     };
 
     var collapseOneline = function() {
@@ -2983,7 +2987,11 @@ $(document).ready(function () {
 
     bindEventsToItem = function (elem) {
         var elemId = elem.attr("id");
-        $( "#list-container" ).sortable("refresh");
+
+        //Call refresh when excessive calls for bindEventsToItem has stopped
+        delay(function() {
+            $("#list-container").sortable("refresh");
+        }, 250 );
 
         elem.click(liClick);
         elem.mousedown(function () {
@@ -2993,11 +3001,11 @@ $(document).ready(function () {
             $(".parent-child-list").children("li").removeClass("over");
         });
 
-        $(".bindChange").change( function(event){
+        $(".bindChange", elem).change( function(event){
             $('#save-all').button( "option", "disabled", false );
         });
 
-        $(".bindChange").bind('input propertychange', function(event) {
+        $(".bindChange", elem).bind('input propertychange', function(event) {
             $("#save-all").button( "option", "disabled", false );
         });
 
@@ -3012,15 +3020,17 @@ $(document).ready(function () {
             cloneItem($(this), true);
         });
 
-        $("#" + elemId + ".editTheme").unbind("dblclick");
-        $("#" + elemId + ".editEpic").unbind("dblclick");
-        $("#" + elemId + ".editStory").unbind("dblclick");
-        $("#" + elemId + ".editTask").unbind("dblclick");
+        elem.unbind("dblclick");
 
-        $("#" + elemId + ".editTheme").dblclick(editTheme);
-        $("#" + elemId + ".editEpic").dblclick(editEpic);
-        $("#" + elemId + ".editStory").dblclick(editStory);
-        $("#" + elemId + ".editTask").dblclick(editTask);
+        if (elem.hasClass("editStory")) {
+            elem.dblclick(editStory);
+        } else if (elem.hasClass("editTask")) {
+            elem.dblclick(editTask);
+        } else if (elem.hasClass("editEpic")) {
+            elem.dblclick(editEpic);
+        } else if (elem.hasClass("editTheme")) {
+            elem.dblclick(editTheme);
+        }
         //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
         $(".bindChange", elem).dblclick(function(event) {
             event.stopPropagation();
@@ -3281,28 +3291,36 @@ $(document).ready(function () {
         }
     }).click(bulkSave);
     $("#expand-all").click(function() {
-        iterAllParents(function(parent) {
-            for (var j = 0; j < parent.children.length; ++j) {
-              var currentChildId = parent.children[j].id;
-              visible[currentChildId] = true;
-          }
-          var expBtn = $("li#" + parent.id).find("div.icon");
-          if(expBtn.hasClass("ui-icon-triangle-1-e")) {
-              toggleChildren(expBtn);
-          }
-        });
+        allExpanded = true;
+        displayUpdateMsg();
+        setTimeout(function() {
+            //setTimeout is used in order to let the browser show the updating message
+            //before running heavy operations.
+            $("li.oneline-li").each(function() {
+                var id = parseInt($(this).attr("id"));
+                if (id != -1) {
+                    expandOneline(id, true);
+                }
+            });
+
+            iterAllParents(function(parent) {
+                var expBtn = $("li#" + parent.id).find("div.icon");
+                if(expBtn.hasClass("ui-icon-triangle-1-e")) {
+                    toggleChildren(expBtn);
+                }
+            });
+
+            for (var i = 0; i < selectedItems.length; ++i) {
+                $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
+            }
+            $( "#list-container" ).sortable("refresh");
+
+            addZebraStripesToParents();
+            $.unblockUI();
+        },50);
     });
     $("#collapse-all").click(function() {
-        iterAllParents(function(parent) {
-            for (var j=0; j < parent.children.length; ++j) {
-                var currentChildId = parent.children[j].id;
-                visible[currentChildId] = false;
-            }
-            var expBtn = $("li#" + parent.id).find("div.icon");
-            if(expBtn.hasClass("ui-icon-triangle-1-s")) {
-                toggleChildren(expBtn);
-            }
-        });
+        location.reload();
     });
 
     $(".showArchive").buttonset();
@@ -3399,7 +3417,7 @@ $(document).ready(function () {
             bulkSave();
         }
         if (e.keyCode == KEYCODE_ESC) {
-            bulkCancel();
+            location.reload();
         }
         if (e.which == KEYCODE_CTRL) {
             isCtrl = false;
