@@ -24,6 +24,7 @@
 package com.sonymobile.backlogtool;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -150,7 +151,13 @@ public class HomeController {
         Area area = Util.getArea(areaName, sessionFactory);
 
         File dir = new File(context.getRealPath("/resources/image"));
-        String[] icons = dir.list();
+        String[] icons = dir.list(new FilenameFilter() {
+
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".png");
+            }
+        });
 
         // Maps: SeriesID -> comparevalue -> attributeID
         HashMap<Integer, HashMap<Integer, Integer>> seriesIds = new HashMap<Integer, HashMap<Integer, Integer>>();
