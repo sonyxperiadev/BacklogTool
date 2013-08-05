@@ -47,6 +47,7 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.simplePagination.js" />"></script>
 
     <script type="text/javascript">
+    	var loggedIn = "${isLoggedIn}" == "true" ? true : false;
         var areaName = "${area.name}";
         var view = "${view}";
         var archivedView = "${archivedView}" == "true" ? true : false;

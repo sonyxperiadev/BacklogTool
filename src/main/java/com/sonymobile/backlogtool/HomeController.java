@@ -344,7 +344,12 @@ public class HomeController {
 
             String jsonNonArchivedStories = "";
             String jsonAreaData = "";
+            String jsonNotesData = "";
+
+            // maps Stories to IDs
             HashMap<Integer, Story> map = new HashMap<Integer, Story>();
+            // maps Notes to Story-IDs
+            HashMap<Integer, List<Note>> notesMap = new HashMap<Integer, List<Note>>();
             Session session = sessionFactory.openSession();
             Transaction tx = null;
             try {
@@ -367,6 +372,7 @@ public class HomeController {
                         // compareValues.
                         queryString = "select distinct s from Story s "
                                 + "left join fetch s.children "
+                                + "left join fetch s.notes "
                                 + "left join fetch s." + order + " as attr "
                                 + "where s.area = ? " + "and s.archived = false "
                                 + "order by attr.compareValue";
@@ -374,11 +380,13 @@ public class HomeController {
                             "|customer|contributorSite|customerSite")) {
                         queryString = "select distinct s from Story s "
                                 + "left join fetch s.children "
+                                + "left join fetch s.notes "
                                 + "where s.area = ? and s.archived = false "
                                 + "order by s." + order;
                     } else { // Fall back to sorting by prio
                         queryString = "select distinct s from Story s "
                                 + "left join fetch s.children "
+                                + "left join fetch s.notes "
                                 + "where s.area = ? and s.archived = false "
                                 + "order by s.prio";
                     }
@@ -390,10 +398,12 @@ public class HomeController {
 
                 for (Story s : nonArchivedStories) {
                     map.put(s.getId(), s);
+                    notesMap.put(s.getId(), s.getTenNewestNotes());
                 }
                 try {
                     jsonNonArchivedStories = mapper.writeValueAsString(map);
                     jsonAreaData = mapper.writeValueAsString(area);
+                    jsonNotesData = mapper.writeValueAsString(notesMap);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -410,13 +420,17 @@ public class HomeController {
 
             Story placeholderStory = new Story();
             Task placeholderTask = new Task();
+            Note placeholderNote = new Note();
             placeholderStory.setId(-1);
             placeholderTask.setId(-1);
+            placeholderNote.setId(-1);
             //Prevents NPE from task.getStory().getId():
             placeholderTask.setStory(placeholderStory);
+            placeholderNote.setStory(placeholderStory);
 
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("placeholderTask", placeholderTask);
+            view.addObject("placeholderNote", placeholderNote);
             view.addObject("area", area);
             view.addObject("adminAreas", adminAreas);
             view.addObject("disableEdits", isDisableEdits(areaName));
@@ -426,6 +440,7 @@ public class HomeController {
             view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
             view.addObject("jsonAreaData", jsonAreaData);
             view.addObject("archivedView", archivedView);
+            view.addObject("jsonNotesData", jsonNotesData);
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));

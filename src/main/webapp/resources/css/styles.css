@@ -365,8 +365,7 @@ div.story-right-content {
 
 div.notes-container {
 /*     float: right; */
-    margin: auto 0;
-    padding: 10px;
+    padding: 0 10px;
 }
 
 select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
@@ -754,9 +753,8 @@ p.addOptionSeries, p.addOption {
 }
 
 #releases h3 {
-    margin-bottom: 2px;    
+    margin-bottom: 2px;
 }
-
 
 #create-area {
     margin: 5px;
@@ -769,18 +767,66 @@ p.addOptionSeries, p.addOption {
 
 div.note {
     border: 1px solid #a9a9a9;
-    margin: 5px;
     padding: 5px;
-    background-color: #E6E6FA;
     font-size: 0.9em;
 }
+    div.note:not(.single-note) {
+        border-bottom: 0px;
+    }
+    div.note.single-note {
+        border-radius: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    div.note.single-note a.deleteItem {
+        display: none;
+    }
+    
+    div.note p.user-msg {
+        font-size: 0.95em;
+    }
+    
+    div.note:not(.single-note) p.user-msg {
+        word-wrap: break-word;
+    }
+    
+    div.note.single-note p.user-msg  {
+        text-overflow: ellipsis;
+        max-height: 40px;
+        overflow: hidden;
+        max-width: 100%;
+    }
+    
     div.note span.user {
         font-weight: bold;
     }
     
     div.note span.date {
-        width: 100%;
-        text-align: right;
         font-size: 0.8em;
         color: #606060;
+    }
+    
+    a.notes-link {
+        font-weight: bold;
+        text-decoration: none;
+        color: #1c94c4;
+        font-size: 1.2em;
+    }
+    
+    p.expand-notes-btn {
+        text-align: center;
+        padding: 0;
+        margin: 0;
+    }
+    
+    p.more-notes-loader-p {
+        margin: 0;
+        padding: 0;
+    }
+    
+    .notes-container ul {
+        max-height: 300px;
+        overflow: auto;
+/*         border-bottom: 1px solid #a9a9a9; */
     }

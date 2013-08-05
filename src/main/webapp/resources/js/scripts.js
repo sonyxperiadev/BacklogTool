@@ -172,6 +172,8 @@ $(document).ready(function () {
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
 
+    var MAX_NOTES = 10;
+
     /**
      * Formats a date as string
      * @returns {String} date string
@@ -202,6 +204,34 @@ $(document).ready(function () {
         } else {
             return new Date(dateString).yyyymmdd();
         }
+    };
+
+    /**
+     * Returns a date on the format YYYY-mm-dd HH:ii, or an empty
+     * string if the argument was null
+     * @param milliseconds The milliseconds to turn into a string-representation
+     */
+    var getFullDateAndTime = function(milliseconds) {
+        if (milliseconds == null) {
+            return "";
+        } else {
+            var date = new Date(milliseconds);
+            var h = date.getHours();
+            var mm = date.getMinutes();
+            return date.yyyymmdd() + " " + prependZero(h) + ":" + prependZero(mm);
+        }
+    };
+
+    /**
+     * Prepends a zero to the argument if it is less than 10
+     * @param num The number to prepend a zero to if necessary
+     * @returns The argument with a prepended zero if arg < 10
+     */
+    var prependZero = function(num) {
+        if (num < 10) {
+            num = '0' + num;
+        }
+        return num;
     };
 
     var getSiteImage = function(site) {
@@ -431,6 +461,9 @@ $(document).ready(function () {
             }
 
             if(jsonObj.type == "Story") {
+                if(data.latestNote != null && getNotes(data.id).length == 0) {
+                    getNotes(data.id).push(data.latestNote);
+                }
                 updateStoryLi(data);
                 for(var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
@@ -448,9 +481,15 @@ $(document).ready(function () {
                     updateEpicLi(childData[i]);
                 }
             } else if(jsonObj.type == "Delete") {
-                removeItem($('li#' + data));
+                var item = $('li#' + data);
+                if(item.length == 0) { // not found, see if it's a note
+                    item = $("#note-" + data);
+                }
+                removeItem(item);
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
+            } else if(jsonObj.type == "Note") {
+                updateNoteLi(data);
             } else if(jsonObj.type == "AreaDelete") {
                 var areaErrorDialog = $(document.createElement('div'));
                 $(areaErrorDialog).attr('title', 'Area removed');
@@ -769,7 +808,41 @@ $(document).ready(function () {
             }
         }
     };
-    
+
+    /**
+     * Get the Note-array corresponding to the
+     * specified id
+     * @param id The id of the Story whose Notes to get
+     */
+    var getNotes = function(id) {
+        var notes = notesMap[id];
+        if(notes == null) {
+            notesMap[id] = new Array();
+            notes = notesMap[id];
+        }
+        return notes;
+    };
+
+    /**
+     * Remove the note with the specified id
+     * @param noteId The id of the note to remove
+     * @returns The removed note
+     */
+    var removeNote = function(noteId) {
+        for(var storyId in notesMap) {
+            if(notesMap.hasOwnProperty(storyId)) {
+                var notes = notesMap[storyId];
+                for(var i = 0; i < notes.length; i++) {
+                    if(notes[i].id == noteId) {
+                        var retElem = notes[i];
+                        notes.remove({id:noteId});
+                        return retElem;
+                    }
+                }
+            }
+        }
+    };
+
     /**
      * Add the child to the parent, and update the specified attribute
      * accordingly (e.g. the prioInTheme)
@@ -1509,6 +1582,10 @@ $(document).ready(function () {
             itemType = "epic";
         } else if (item.hasClass("theme")) {
             itemType = "theme";
+        } else if (item.hasClass("note")) {
+            itemType = "note";
+            var splitStr = itemId.split("-");
+            itemId = parseInt(splitStr[splitStr.length - 1]);
         };
 
         $('#delete-item').attr("title","Delete "+itemType);
@@ -1555,14 +1632,24 @@ $(document).ready(function () {
      */
     var removeItem = function(itemLi) {
         var itemId = itemLi.attr('id');
-        if(itemLi.hasClass('parentLi')) { // A parent was removed
+        if (itemLi.hasClass('parentLi')) { // A parent was removed
             var obj = removeParent(itemLi.attr('id'));
             if(typeof obj !== "undefined") {
                 $('li[parentid="' + itemId + '"]').remove();
                 itemLi.remove();
                 decrPrioForParents(obj.prio);
             }
-        } else if(typeof itemId !== "undefined") { // A child was removed
+        } else if (itemLi.hasClass("note")) { // special case: a removed note
+            var splitStr = itemId.split("-");
+            removeNote(splitStr[splitStr.length - 1]);
+            var storyId = itemLi.closest("li.story").attr("id");
+            itemLi.remove();
+            var moreNotesP = $("li#" + storyId + " .more-notes-loader-p");
+            var notes = getNotes(storyId);
+            if(moreNotesP.hasClass("ui-hidden") && notes.length > 0) {
+                updateNoteLi(notes[0]); // A note was removed with the list collapsed
+            }
+        } else if (typeof itemId !== "undefined") { // A child was removed
             var parentLi = $("li#" + itemLi.attr("parentid"));
             var parent = getParent(itemLi.attr("parentid"));
             var children = parent.children;
@@ -1573,7 +1660,7 @@ $(document).ready(function () {
                     break;
                 }
             }
-            if(position >= 0) {
+            if (position >= 0) {
                 children.splice(position, 1);
                 itemLi.remove();
                 toggleExpandBtn(parentLi, itemLi, children);
@@ -1590,7 +1677,7 @@ $(document).ready(function () {
                 }
             }
         }
-        if(typeof itemId !== "undefined") {
+        if (typeof itemId !== "undefined") {
             editingItems.remove({id:itemId});
         }
     };
@@ -1673,6 +1760,57 @@ $(document).ready(function () {
             }
         }
         return true;
+    };
+
+    /**
+     * Click-listener for toggling the Notes-list
+     */
+    var showMoreNotes = function(event) {
+        var item = $(event.target);
+        toggleNotesList(item.closest('li.story'));
+    };
+
+    /**
+     * Toggles the Notes-list for the specified story-element
+     * @param storyLi The story-li-element
+     */
+    var toggleNotesList = function(storyLi) {
+        var moreNotesP = $("li#" + storyLi.attr("id")).find(".more-notes-loader-p");
+        var notesFormDiv = $("#notes-form-" + storyLi.attr("id"));
+
+        if (moreNotesP.hasClass("ui-hidden")) {
+            moreNotesP.removeClass("ui-hidden");
+            if(loggedIn === true) {
+                notesFormDiv.removeClass("ui-hidden");
+                notesFormDiv.find("textarea").autosize('');
+            }
+        } else {
+            moreNotesP.addClass("ui-hidden");
+            notesFormDiv.addClass("ui-hidden");
+        }
+        
+        var notes = getNotes(storyLi.attr("id"));
+        var ul = storyLi.find("div.notes-container ul");
+        var ulChildren = ul.children();
+        if (ulChildren.length > 1) { // list open, close
+            $(ulChildren[ulChildren.length - 1]).find("div.note").addClass("single-note").click(showMoreNotes);
+            for (var i = 0; i < ulChildren.length - 1; i++) {
+                $(ulChildren[i]).remove();
+            }
+        } else { // list closed, open
+            storyLi.find("a.truncate" + storyLi.attr("id")).trigger('click');
+            ul.empty();
+
+            for (var i = notes.length - 1; i >= 0; i--) {
+                var note = notes[i];
+                updateNoteLi(note);
+            }
+            // scroll to bottom where the newest note is
+            ul.animate({ 
+                scrollTop: ul.prop("scrollHeight")},
+                500);
+        }
+
     };
 
     var editStory = function(event) {
@@ -1925,6 +2063,89 @@ $(document).ready(function () {
     };
     
     /**
+     * Finds and updates (or creates) a Note-li with new values
+     */
+    var updateNoteLi = function(updatedNote, appendFirst) {
+        var noteId = updatedNote.id;
+        var notesArray = getNotes(updatedNote.storyId);
+        var notePos = -1;
+
+        for(var i = 0; i < notesArray.length; i++) {
+            if(notesArray[i].id == noteId) {
+                notePos = i;
+                break;
+            }
+        }
+
+        var lastElem = null;
+        var offset = null;
+        var scrollToBottom = false;
+
+        if (notePos < 0) { // new note
+            notesArray.unshift(updatedNote);
+        } else {
+            notesArray[notePos] = updatedNote;
+        }
+
+        var ulList = $("li#" + updatedNote.storyId).find(".notes-container ul");
+        var noteItem = $("#note-" + noteId);
+        if (noteItem.length == 0) { // No html-element exists for the Note
+            var divItem = $('div#note-placeholder').clone();
+            var htmlStr = divItem.html();
+            htmlStr = htmlStr.replace(/-1/g, noteId); // Replace all occurences of -1
+            noteItem = $(htmlStr);
+            noteItem.addClass("ui-hidden");
+            
+            if ($("li#" + updatedNote.storyId + " .more-notes-loader-p").hasClass("ui-hidden")) {
+                // Only showing one note
+                ulList.empty();
+            } else if(ulList.outerHeight() < (ulList.prop("scrollHeight") - ulList.scrollTop() - 40)) {
+                // Several notes in list, but not scrolled to bottom - save current list-position
+                lastElem = ulList.children().last();
+                offset = lastElem.offset();
+                noteItem.find("div.note").removeClass("single-note");
+            } else {
+                // Several notes and scrolled to bottom - scroll along with new elements
+                scrollToBottom = true;
+                noteItem.find("div.note").removeClass("single-note");
+            }
+
+            if (appendFirst === true) {
+                ulList.prepend(noteItem);
+            } else {
+                ulList.append(noteItem);
+            }
+        }
+
+        if (!disableEditsBoolean) {
+            $("a.deleteItem", noteItem).unbind('click');
+            $("a.deleteItem", noteItem).click(deleteItem);
+        } else {
+            $("a.deleteItem", noteItem).addClass('disabled');
+        }
+
+        noteItem.find("span.user").text(updatedNote.user);
+        noteItem.find("span.message").html(addLinksAndLineBreaks(updatedNote.message));
+        noteItem.find("span.date").text(getFullDateAndTime(updatedNote.createdDate));
+        noteItem.fadeIn("slow");
+
+        if (lastElem !== null && offset !== null) {
+            var newOffset = lastElem.offset();
+            if (typeof newOffset !== "undefined") {
+                if (newOffset.top != offset.top) {
+                    // Restore scroll
+                    var newPos = ulList.scrollTop() + (newOffset.top - offset.top);
+                    ulList.scrollTop(newPos);
+                }
+            }
+        }
+
+        if (scrollToBottom) {
+            ulList.scrollTop(ulList.prop("scrollHeight"));
+        }
+    };
+
+    /**
      * Finds and updates a story li-element with new values.
      */
     var updateStoryLi = function(updatedStory) {
@@ -1961,6 +2182,11 @@ $(document).ready(function () {
                     }
                     toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
                 }
+            }
+
+            var notes = getNotes(storyId);
+            if (notes.length > 0) {
+                updateNoteLi(notes[0]);
             }
 
             bindEventsToItem(newItem);
@@ -2019,6 +2245,10 @@ $(document).ready(function () {
             $('p#archived-text' + storyId).text("");
             $('p#date-archived' + storyId).text("");
             $('#archiveStory' + storyId).attr('checked', false);
+        }
+
+        if (story.hasMoreNotes === false) {
+            setLoadNotesBtnState($("#" + storyId + " a.more-notes-loader"), 'all-loaded');
         }
     };
 
@@ -2596,7 +2826,112 @@ $(document).ready(function () {
                 }
             });
         }
-    }; 
+    };
+
+    /**
+     * Set the state of the specified "load-notes"-button
+     * @param btn The button-element
+     * @param state 'loading', 'more-to-load' or 'all-loaded'
+     */
+    var setLoadNotesBtnState = function(btn, state) {
+        btn.unbind('click');
+        btn.removeClass('ui-state-disabled');
+        state = state.toLowerCase();
+        if (state === 'loading') {
+            btn.text('[ LOADING ]');
+        } else if (state === 'more-to-load') {
+            btn.text('Load older notes');
+            btn.click(fetchMoreNotesFromServer);
+        } else if (state === 'all-loaded') {
+            btn.addClass('ui-state-disabled');
+            btn.text('All notes loaded');
+        }
+    };
+
+    /**
+     * Used when posting/creating a new Note
+     * @param storyId The id of the Story to post the Note to
+     * @param message The message of the Note
+     */
+    var postNote = function(storyId, message) {
+        displayUpdateMsg();
+
+        var noteContainer = new Object();
+        noteContainer.id = -1;
+        noteContainer.storyId = storyId;
+        noteContainer.message = message;
+        $.ajax({
+            url : "../json/createnote/" + areaName,
+            type : 'POST',
+            dataType : 'json',
+            data : JSON.stringify(noteContainer),
+            contentType : "application/json; charset=utf-8",
+            success : function(newNote) {
+                if (newNote != null) {
+                    $.unblockUI();
+                    $("#notes-textarea-" + storyId).val("").trigger('autosize.resize');
+                    updateNoteLi(newNote);
+
+                    var newElem = $('#note-' + newNote.id);
+                    var ulList = newElem.closest('ul');
+                    ulList.animate({
+                        // scroll down to the new story
+                        scrollTop: ulList.prop("scrollHeight")},
+                        500);
+                }
+            },
+            error : function(error) {
+                $.unblockUI();
+                alert(error);
+            }
+        });
+        if (event != null) {
+            event.stopPropagation();
+        }
+    };
+
+    /**
+     * Used to get more Notes from the server and put them in the
+     * corresponding note-list
+     */
+    var fetchMoreNotesFromServer = function(event) {
+        var item = $(event.target);
+        setLoadNotesBtnState(item, 'loading');
+        var story = item.closest('li');
+
+        var nbrOfNotes = getNotes(story.attr("id")).length;
+        var part = (nbrOfNotes / MAX_NOTES) + 1;
+        $.ajax({
+            url : "../json/read-notes/" + story.attr("id") + "/" + part,
+            type : 'GET',
+            dataType : 'json',
+            contentType : "application/json; charset=utf-8",
+            success : function(jsonResp) {
+                if (jsonResp != null) {
+                    var moreNotesAvail = jsonResp.moreNotesAvailable;
+                    var notesList = jsonResp.notesList;
+                    getNotes(story.attr("id")).concat(notesList);
+                    $("#notes-textarea-" + story.attr("id")).val("");
+                    for (var i = 0; i < notesList.length; i++) {
+                        updateNoteLi(notesList[i], true);
+                    }
+
+                    if (moreNotesAvail == true) {
+                        setLoadNotesBtnState(item, 'more-to-load');
+                    } else {
+                        setLoadNotesBtnState(item, 'all-loaded');
+                    }
+                }
+            },
+            error : function(error) {
+                $.unblockUI();
+                alert(error);
+            }
+        });
+        if (event != null) {
+            event.stopPropagation();
+        }
+    };
 
     /**
      * Updates save all button when the last editing item is going out of edit mode.
@@ -2657,6 +2992,9 @@ $(document).ready(function () {
                     var childData = archivedItems[i].children;
                     archivedItems[i].children = new Array();
                     if (type == "Story") {
+                        if(archivedItems[i].latestNote != null && getNotes(archivedItems[i].id).length == 0) {
+                            getNotes(archivedItems[i].id).push(archivedItems[i].latestNote);
+                        }
                         updateStoryLi(archivedItems[i]);
                         for (var k = 0; k < childData.length; k++) {
                             updateTaskLi(childData[k]);
@@ -2824,6 +3162,31 @@ $(document).ready(function () {
             //$(".save-button."+id).button( "option", "disabled", false );
         });
 
+        if(loggedIn === true) {
+            $(".note-textarea").keyup(function (e) {
+                if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
+                    var taId = $(this).attr("id");
+                    editingItems.remove({id:taId});
+                    var story = $(this).closest('li.story');
+
+                    postNote(parseInt(story.attr("id")), $(this).val());
+                    e.stopPropagation();
+                }
+            });
+
+            $(".note-textarea").focus(function(event) {
+                editingItems.push({id:$(this).attr("id"), type:"note"}); 
+            });
+            $(".note-textarea").blur(function(event) {
+                editingItems.remove({id:$(this).attr("id")}); 
+            });
+        } else {
+            $("div.notes-form").addClass("ui-hidden");
+        }
+        $(".more-notes-loader").click(fetchMoreNotesFromServer);
+        $("a.more-notes").click(showMoreNotes);
+        $("div.single-note").click(showMoreNotes);
+
         if (disableEditsBoolean) {
             disableEdits();
         }
@@ -2924,6 +3287,30 @@ $(document).ready(function () {
         }).blur(function(){
             $(this).autocomplete('enable');
         });
+
+        if(loggedIn === true) {
+            $(".note-textarea", elem).keyup(function (e) {
+                if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
+                    var taId = $(this).attr("id");
+                    editingItems.remove({id:taId});
+                    var story = $(this).closest('li.story');
+                    
+                    postNote(parseInt(story.attr("id")), $(this).val());
+                    e.stopPropagation();
+                }
+            });
+            $(".note-textarea", elem).focus(function(event) {
+                editingItems.push({id:$(this).attr("id"), type:"note"}); 
+            });
+            $(".note-textarea", elem).blur(function(event) {
+                editingItems.remove({id:$(this).attr("id")}); 
+            });
+        } else {
+            $("div.notes-form").addClass("ui-hidden");
+        }
+        $(".more-notes-loader", elem).click(fetchMoreNotesFromServer);
+        $("a.more-notes", elem).click(showMoreNotes);
+        $("div.single-note", elem).click(showMoreNotes);
 
         //Stops textarea from making a new line when trying to save changes.
         $("textarea", elem).keydown(function(e){

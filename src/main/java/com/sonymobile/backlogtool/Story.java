@@ -30,8 +30,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -63,7 +65,8 @@ import org.hibernate.annotations.Cache;
 public class Story {
     
     public static final int DESCRIPTION_LENGTH = 100000;
-
+    public static final int MAX_START_NOTES = 10;
+    
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)
     private int id;
@@ -85,7 +88,7 @@ public class Story {
     private Set<Task> children = new HashSet<Task>();
     
     @OneToMany(fetch = FetchType.LAZY, mappedBy="story")
-    @OrderBy("created")
+    @OrderBy("created DESC")
     private Set<Note> notes = new HashSet<Note>();
     
     @JoinColumn(name="themeId")
@@ -173,6 +176,53 @@ public class Story {
         this.children = children;
     }
 
+    /**
+     * @return The Notes for this Story
+     */
+    @JsonIgnore
+    public Set<Note> getNotes() {
+        return notes;
+    }
+
+    /**
+     * Get the ten newest/latest notes for this Story
+     * @return A List with the 10 newest notes
+     */
+    @JsonIgnore
+    public List<Note> getTenNewestNotes() {
+        List<Note> list = new ArrayList<Note>();
+        if(notes != null) {
+            Iterator<Note> itr = notes.iterator();
+            int count = 0;
+            while(itr.hasNext() && count < MAX_START_NOTES) {
+                list.add(itr.next());
+                count++;
+            }
+        }
+        return list;
+    }
+
+    /**
+     * @param notes The Notes to set for this Story
+     */
+    public void setNotes(Set<Note> notes) {
+        this.notes = notes;
+    }
+
+    /**
+     * Get the last created Note for this Story
+     * @return The latest Note, or null if no Notes exist
+     */
+    public Note getLatestNote() {
+        if(notes != null) {
+            Iterator<Note> itr = notes.iterator();
+            if(itr.hasNext()) {
+                return itr.next();
+            }
+        }
+        return null;
+    }
+    
     /**
      * @return the description
      */
@@ -424,6 +474,14 @@ public class Story {
 
     public void setDateArchived(Date dateArchived) {
         this.dateArchived = dateArchived;
+    }
+
+    /**
+     * Returns true if this Story has more than one note in total
+     * @return True if more than one note, otherwise false
+     */
+    public boolean hasMoreNotes() {
+        return notes != null && notes.size() > 1;
     }
 
 }

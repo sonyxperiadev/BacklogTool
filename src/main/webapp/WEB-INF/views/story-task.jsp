@@ -29,12 +29,14 @@ THE SOFTWARE.
 <head>
     <title>Backlog Tool - ${area.name}</title>
     <script type="text/javascript">
+    	var loggedIn = "${isLoggedIn}" == "true" ? true : false;
         var areaName = "${area.name}";
         var view = "${view}";
         var archivedView = "${archivedView}" == "true" ? true : false;
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
         var parentsMap = ${jsonDataNonArchivedStories};
         var area = ${jsonAreaData};
+        var notesMap = ${jsonNotesData};
     </script>
     <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
@@ -66,6 +68,10 @@ THE SOFTWARE.
             <div id="task-placeholder" class="placeholder" >
                 <c:set var="task" value="${placeholderTask}"/>
                 <%@ include file="/WEB-INF/views/placeholders/task.jsp"%>
+            </div>
+            <div id="note-placeholder" class="placeholder">
+                <c:set var="note" value="${placeholderNote}" />
+                <%@ include file="/WEB-INF/views/placeholders/note.jsp" %>
             </div>
 
             <div id="list-container-div">

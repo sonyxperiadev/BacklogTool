@@ -84,6 +84,7 @@ import com.sonymobile.backlogtool.permission.User;
 public class JSONController {
 
     public static final int ELEMENTS_PER_ARCHIVED_PAGE = 10;
+    public static final int NOTES_PER_PART = 10;
     public static final String STORY_TASK_VIEW = "story-task";
     public static final String EPIC_STORY_VIEW = "epic-story";
     public static final String THEME_EPIC_VIEW = "theme-epic";
@@ -249,10 +250,11 @@ public class JSONController {
 
     }
 
-    @RequestMapping(value="/read-notes/{storyid}", method=RequestMethod.GET)
+    @RequestMapping(value="/read-notes/{storyid}/{part}", method=RequestMethod.GET)
     @Transactional
-    public @ResponseBody List<Note> printNotes(@PathVariable Integer storyid) {
-        List<Note> list = null;
+    public @ResponseBody Map<String, Object> readNotes(@PathVariable Integer storyid, @PathVariable int part) throws JsonGenerationException, JsonMappingException, IOException {
+        List<Note> list = new ArrayList<Note>();
+        boolean moreNotesAvailable = true;
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -261,11 +263,24 @@ public class JSONController {
             
             String queryString1 = "from Note " +
                     "where story.id = ? " +
-                    "order by created";
+                    "order by created desc";
             Query query1 = session.createQuery(queryString1);
             query1.setParameter(0, storyid);
             query1.setMaxResults(10);
+            query1.setFirstResult(NOTES_PER_PART * (part-1));
+            query1.setMaxResults(NOTES_PER_PART);
             list = Util.castList(Note.class, query1.list());
+            
+            Query countQuery = session.createQuery("select count(id) from Note" + 
+                                        " where story.id = ?");
+            countQuery.setParameter(0, storyid);
+
+            long nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
+            int totalNbrOfParts = (int) Math.ceil((double) nbrOfItems / JSONController.NOTES_PER_PART);
+            if(part >= totalNbrOfParts) {
+                moreNotesAvailable = false;
+            }
+            
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -275,7 +290,10 @@ public class JSONController {
         } finally {
             session.close();
         }
-        return list;
+        Map<String,Object> jsonMap = new HashMap<String, Object>();
+        jsonMap.put("moreNotesAvailable", moreNotesAvailable);
+        jsonMap.put("notesList", list);
+        return jsonMap;
     }  
 
     @RequestMapping(value="/readtheme-epic/{areaName}", method=RequestMethod.GET)
@@ -393,6 +411,7 @@ public class JSONController {
                 for (Object item : archivedItems) {
                     if (type.equals("Story")) {
                         Hibernate.initialize(((Story) item).getChildren());
+                        Hibernate.initialize(((Story) item).getNotes());
                     } else if (type.equals("Epic")) {
                         Hibernate.initialize(((Epic) item).getChildren());
                     } else if (type.equals("Theme")) {
@@ -480,6 +499,48 @@ public class JSONController {
             session.close();
         }
         return titles;
+    }
+
+    @RequestMapping(value="/createnote/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody Note createNote(@PathVariable String areaName, @RequestBody NewNoteContainer newNote) throws Exception {
+        if(!isLoggedIn()) {
+            throw new Error("Trying to create note without being authenticated");
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Story story = (Story) session.get(Story.class, newNote.getStoryId());
+            if (!story.getArea().getName().equals(areaName)) {
+                throw new Error("Trying to modify unauthorized object");
+            }
+
+            newNote.setStory(story);
+            newNote.setUser(username);
+            Date d = new Date();
+            newNote.setCreatedDate(d);
+            newNote.setModifiedDate(d);
+            session.save("com.sonymobile.backlogtool.Note", newNote);
+
+            story.getNotes().add(newNote);
+
+            tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Note.class, newNote, STORY_TASK_VIEW));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+
+        return newNote;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
@@ -828,6 +889,8 @@ public class JSONController {
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
            @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
@@ -952,16 +1015,24 @@ public class JSONController {
                 moveActionMap.put("objects", parentsToPush);
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
+
+            Note note = null;
             String updatedStoryViews = EPIC_STORY_VIEW;
             if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
+                note = Note.genSystemNote(String.format("User %s archived the story", username), story);
+                session.save("com.sonymobile.backlogtool.Note", note);
+
                 messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
             } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                note = Note.genSystemNote(String.format("User %s unarchived the story", username), story);
+                session.save("com.sonymobile.backlogtool.Note", note);
+
                 messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
             } else {
                 updatedStoryViews += "|" + STORY_TASK_VIEW;
             }
             messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
-            
+
             tx.commit();
             AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
@@ -1501,6 +1572,37 @@ public class JSONController {
         return themeToPush;
     }
 
+    @PreAuthorize("hasPermission(#areaName, 'isEditor')")
+    @RequestMapping(value="/deletenote/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody boolean deleteNote(@PathVariable String areaName, @RequestBody int noteId) throws JsonGenerationException, JsonMappingException, IOException {
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Note noteToRemove = (Note) session.get(Note.class, noteId);
+            Story parentStory =  (Story) session.get(Story.class, noteToRemove.getStoryId());
+            if (!parentStory.getArea().getName().equals(areaName)) {
+                throw new Error("Trying to modify unauthorized object");
+            }
+
+            parentStory.getNotes().remove(noteToRemove);
+            session.delete(noteToRemove);
+
+            tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(PUSH_ACTION_DELETE, noteId, STORY_TASK_VIEW));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+
+        return true;
+    }
 
     /**
      * Used when deleting a story.
@@ -1856,6 +1958,11 @@ public class JSONController {
                         story.setEpic(newEpic);
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
+
+                        String noteMsg = String.format("User %s moved the story to area %s", username, newArea.getName());
+                        Note note = Note.genSystemNote(noteMsg, story);
+                        session.save("com.sonymobile.backlogtool.Note", note);
+                        pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
                     }
                     pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
                     pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
