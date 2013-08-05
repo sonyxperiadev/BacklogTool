@@ -482,11 +482,7 @@ $(document).ready(function () {
                     updateEpicLi(childData[i]);
                 }
             } else if(jsonObj.type == "Delete") {
-                var item = $('li#' + data);
-                if(item.length == 0) { // not found, see if it's a note
-                    item = $("#note-" + data);
-                }
-                removeItem(item);
+                removeItem(data);
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
             } else if(jsonObj.type == "Note") {
@@ -816,6 +812,9 @@ $(document).ready(function () {
      * @param id The id of the Story whose Notes to get
      */
     var getNotes = function(id) {
+        if(typeof notesMap === "undefined") {
+            notesMap = {};
+        }
         var notes = notesMap[id];
         if(notes == null) {
             notesMap[id] = new Array();
@@ -1606,7 +1605,7 @@ $(document).ready(function () {
                         contentType: "application/json; charset=utf-8",
                         success: function (data) {
                             $.unblockUI();
-                            removeItem(item);
+                            removeItem(itemId);
                             unselectAll();
                             if (archivedView) {
                                 reBuildArchivedList();
@@ -1628,11 +1627,16 @@ $(document).ready(function () {
     };
     
     /**
-     * Remove the object and the li-element, and if a parent, all the corresponding li-children
+     * Remove the object and the corresponding li-element, and if a parent, all the corresponding li-children
      * from the page
+     * @param itemId The id of the item to remove
      */
-    var removeItem = function(itemLi) {
-        var itemId = itemLi.attr('id');
+    var removeItem = function(itemId) {
+        var itemLi = $("li#" + itemId);
+        if(itemLi.length == 0) { // no match - try note
+            itemLi = $("#note-" + itemId);
+        }
+
         if (itemLi.hasClass('parentLi')) { // A parent was removed
             var obj = removeParent(itemLi.attr('id'));
             if(typeof obj !== "undefined") {
@@ -1640,17 +1644,16 @@ $(document).ready(function () {
                 itemLi.remove();
                 decrPrioForParents(obj.prio);
             }
-        } else if (itemLi.hasClass("note")) { // special case: a removed note
-            var splitStr = itemId.split("-");
-            removeNote(splitStr[splitStr.length - 1]);
-            var storyId = itemLi.closest("li.story").attr("id");
+        } else if (itemLi.hasClass("note")) { // a removed note
+            var note = removeNote(itemId);
+//            var storyId = itemLi.closest("li.story").attr("id");
             itemLi.remove();
-            var moreNotesP = $("li#" + storyId + " .more-notes-loader-p");
-            var notes = getNotes(storyId);
+            var moreNotesP = $("li#" + note.storyId + " .more-notes-loader-p");
+            var notes = getNotes(note.storyId);
             if(moreNotesP.hasClass("ui-hidden") && notes.length > 0) {
                 updateNoteLi(notes[0]); // A note was removed with the list collapsed
             }
-        } else if (typeof itemId !== "undefined") { // A child was removed
+        } else if (itemLi.length > 0) { // A child was removed
             var parentLi = $("li#" + itemLi.attr("parentid"));
             var parent = getParent(itemLi.attr("parentid"));
             var children = parent.children;
@@ -1677,8 +1680,10 @@ $(document).ready(function () {
                     children[i][attr] = i + 1;
                 }
             }
+        } else {
+            removeNote(itemId); // test to see if it's a hidden note
         }
-        if (typeof itemId !== "undefined") {
+        if (typeof itemLi !== "undefined") {
             editingItems.remove({id:itemId});
         }
     };
@@ -1971,7 +1976,7 @@ $(document).ready(function () {
             success: function (updatedStory) {
                 if (view == "story-task") {
                     if (getParent(storyId).archived != updatedStory.archived) { // we changed archived status
-                        removeItem($("li#" + storyId));
+                        removeItem(storyId);
                     } else {
                         updateStoryLi(updatedStory);
                     }
@@ -2185,9 +2190,11 @@ $(document).ready(function () {
                 }
             }
 
-            var notes = getNotes(storyId);
-            if (notes.length > 0) {
-                updateNoteLi(notes[0]);
+            if(view == "story-task") {
+                var notes = getNotes(storyId);
+                if (notes.length > 0) {
+                    updateNoteLi(notes[0]);
+                }
             }
 
             bindEventsToItem(newItem);
@@ -2469,7 +2476,7 @@ $(document).ready(function () {
             success: function (updatedEpic) {
                 if (view == "epic-story") {
                     if (getParent(epicId).archived != updatedEpic.archived) {
-                        removeItem($("li#" + epicId));
+                        removeItem(epicId);
                     } else {
                         updateEpicLi(updatedEpic);
                         exitEditMode(epicId);
@@ -2652,7 +2659,7 @@ $(document).ready(function () {
             success: function (updatedTheme) {
                 //if theme was moved from or to archive
                 if (getParent(themeId).archived != updatedTheme.archived) {
-                    removeItem($("li#" + themeId));
+                    removeItem(themeId);
                 } else {
                     updateThemeLi(updatedTheme);
                     exitEditMode(themeId);
@@ -2795,7 +2802,7 @@ $(document).ready(function () {
                             contentType: "application/json; charset=utf-8",
                             success: function (data) {
                                 for(var i = 0; i < storiesToMove.length; i++) {
-                                    removeItem($("li#" + storiesToMove[i]));
+                                    removeItem(storiesToMove[i]);
                                 }
                                 unselectAll();
                                 $.unblockUI();
@@ -2886,9 +2893,6 @@ $(document).ready(function () {
                 alert(error);
             }
         });
-        if (event != null) {
-            event.stopPropagation();
-        }
     };
 
     /**
@@ -2993,7 +2997,7 @@ $(document).ready(function () {
                     var childData = archivedItems[i].children;
                     archivedItems[i].children = new Array();
                     if (type == "Story") {
-                        if(archivedItems[i].latestNote != null && getNotes(archivedItems[i].id).length == 0) {
+                        if(view == "story-task" && archivedItems[i].latestNote != null && getNotes(archivedItems[i].id).length == 0) {
                             getNotes(archivedItems[i].id).push(archivedItems[i].latestNote);
                         }
                         updateStoryLi(archivedItems[i]);

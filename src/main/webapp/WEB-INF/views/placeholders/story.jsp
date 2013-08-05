@@ -240,25 +240,27 @@
         </div>
         <br style="clear: both" />
 
-        <div class="notes-container">
-            <c:set var="buttonText" value="Load older notes" />
-            <c:if test="${!story.hasMoreNotes()}">
-                <c:set var="buttonText" value="All notes loaded" />
-            </c:if>
-            <p class="more-notes-loader-p ui-hidden"><a class="more-notes-loader note-link <c:if test='${!story.hasMoreNotes()}'>ui-state-disabled</c:if>">${buttonText}</a></p>
-            <ul>
-                <c:set var="note" value="${story.getLatestNote()}"/>
-                <c:if test="${note != null}">
-                    <%@ include file="/WEB-INF/views/placeholders/note.jsp" %>
+        <c:if test='${view.equals("story-task")}'>
+            <div class="notes-container">
+                <c:set var="buttonText" value="Load older notes" />
+                <c:if test="${!story.hasMoreNotes()}">
+                    <c:set var="buttonText" value="All notes loaded" />
                 </c:if>
-            </ul>
-            <div id="notes-form-${story.id}" class="notes-form ui-hidden">
-                <textarea placeholder="Note - Press enter to post" id="notes-textarea-${story.id}"
-                class="note-textarea"
-                rows="2" maxlength="1000"></textarea>
+                <p class="more-notes-loader-p ui-hidden"><a class="more-notes-loader note-link <c:if test='${!story.hasMoreNotes()}'>ui-state-disabled</c:if>">${buttonText}</a></p>
+                <ul>
+                    <c:set var="note" value="${story.getLatestNote()}"/>
+                    <c:if test="${note != null}">
+                        <%@ include file="/WEB-INF/views/placeholders/note.jsp" %>
+                    </c:if>
+                </ul>
+                <div id="notes-form-${story.id}" class="notes-form ui-hidden">
+                    <textarea placeholder="Note - Press enter to post" id="notes-textarea-${story.id}"
+                    class="note-textarea"
+                    rows="2" maxlength="1000"></textarea>
+                </div>
+                <p class="expand-notes-btn"><a class="more-notes notes-link" title="Expand notes">&middot;&middot;&middot;</a></p>
             </div>
-            <p class="expand-notes-btn"><a class="more-notes notes-link" title="Expand notes">&middot;&middot;&middot;</a></p>
-        </div>
+        </c:if>
     </div>
         <!-- ATTR3 FIELD END -->
         <a id="${story.id}" title="Remove story"

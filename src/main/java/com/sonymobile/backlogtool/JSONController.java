@@ -1627,6 +1627,7 @@ public class JSONController {
             }
 
             Set<Task> tasksInStory = storyToRemove.getChildren();
+            Set<Note> notesInStory = storyToRemove.getNotes();
 
             //Move up all stories under this story
             Query query = session.createQuery("from Story where prio > ? and area.name like ? and archived=false");
@@ -1640,6 +1641,10 @@ public class JSONController {
 
             for (Task taskToRemove : tasksInStory) {
                 session.delete(taskToRemove);
+            }
+
+            for (Note noteToRemove : notesInStory) {
+                session.delete(noteToRemove);
             }
             Epic parentEpic = storyToRemove.getEpic();
             if (parentEpic != null) {
