@@ -1937,11 +1937,11 @@ public class JSONController {
                         story.setEpic(newEpic);
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
-
-                        String noteMsg = String.format("User %s moved the story to area %s", username, newArea.getName());
-                        Note note = Note.createSystemNote(noteMsg, story, session);
-                        pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW));
                     }
+                    String noteMsg = String.format("User %s moved the story to area %s", username, newArea.getName());
+                    Note note = Note.createSystemNote(noteMsg, story, session);
+                    pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW));
+
                     pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
                     pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
                 }

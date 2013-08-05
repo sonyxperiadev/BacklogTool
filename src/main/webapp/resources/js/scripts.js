@@ -2130,6 +2130,8 @@ $(document).ready(function () {
             $("a.deleteItem", noteItem).addClass('disabled');
         }
 
+        $("div.single-note", noteItem).click(showMoreNotes);
+
         noteItem.find("span.user").text(updatedNote.user);
         noteItem.find("span.message").html(addLinksAndLineBreaks(updatedNote.message));
         noteItem.find("span.date").text(getFullDateAndTime(updatedNote.createdDate));
@@ -3169,22 +3171,23 @@ $(document).ready(function () {
         if (loggedIn === true) {
             $(".note-textarea").keyup(function (e) {
                 if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
-                    var taId = $(this).attr("id");
-                    editingItems.remove({id:taId});
-                    var story = $(this).closest('li.story');
+                    var storyId = $(this).closest("li.story").attr("id");
+                    editingItems.remove({id:storyId});
 
                     if ($(this).val().length > 0) { // prevent empty notes
-                        postNote(parseInt(story.attr("id")), $(this).val());
+                        postNote(parseInt(storyId), $(this).val());
                     }
                     e.stopPropagation();
                 }
             });
 
             $(".note-textarea").focus(function(event) {
-                editingItems.push({id:$(this).attr("id"), type:"note"}); 
+                var storyId = $(this).closest("li.story").attr("id");
+                editingItems.push({id:storyId, type:"story"}); 
             });
             $(".note-textarea").blur(function(event) {
-                editingItems.remove({id:$(this).attr("id")}); 
+                var storyId = $(this).closest("li.story").attr("id");
+                editingItems.remove({id:storyId}); 
             });
         } else {
             $("div.notes-form").addClass("ui-hidden");
@@ -3297,21 +3300,22 @@ $(document).ready(function () {
         if (loggedIn === true) {
             $(".note-textarea", elem).keyup(function (e) {
                 if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
-                    var taId = $(this).attr("id");
-                    editingItems.remove({id:taId});
-                    var story = $(this).closest('li.story');
+                    var storyId = $(this).closest("li.story").attr("id");
+                    editingItems.remove({id:storyId});
 
                     if ($(this).val().length > 0) {
-                        postNote(parseInt(story.attr("id")), $(this).val());
+                        postNote(parseInt(storyId), $(this).val());
                     }
                     e.stopPropagation();
                 }
             });
             $(".note-textarea", elem).focus(function(event) {
-                editingItems.push({id:$(this).attr("id"), type:"note"}); 
+                var storyId = $(this).closest("li.story").attr("id");
+                editingItems.push({id:storyId, type:"story"}); 
             });
             $(".note-textarea", elem).blur(function(event) {
-                editingItems.remove({id:$(this).attr("id")}); 
+                var storyId = $(this).closest("li.story").attr("id");
+                editingItems.remove({id:storyId}); 
             });
         } else {
             $("div.notes-form").addClass("ui-hidden");
