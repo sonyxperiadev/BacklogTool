@@ -171,8 +171,9 @@ $(document).ready(function () {
     var KEYCODE_ENTER = 13;
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
-
     var MAX_NOTES = 10;
+
+    $("#header-buttons").removeClass("elem-hidden-children elem-loading");
 
     /**
      * Formats a date as string
@@ -3329,6 +3330,7 @@ $(document).ready(function () {
     };
 
     $(window).resize(function() {
+        $("#header").css("height", "auto");
         setHeightAndMargin($("#header").height());
     });
 
@@ -3652,7 +3654,8 @@ $(document).ready(function () {
         //   isShift = true;
         // }
     });
-
+    
+    $("#header").css("height", "auto");
     setHeightAndMargin($("#header").height());
 
 });

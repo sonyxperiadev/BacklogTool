@@ -92,6 +92,10 @@ form {
     border-bottom: 1px solid #DDD;
 }
 
+#header.initial-fixed-height {
+    height: 87px;
+}
+
 a {
     cursor: pointer;
     cursor: hand;
@@ -184,6 +188,10 @@ select#order-by {
     -moz-transition: .3s;
     -webkit-transition: .3s;
     transition: .1s;
+}
+
+#header-buttons {
+    float: left;
 }
 
 .error-message {
@@ -567,7 +575,7 @@ div.navigation-links a {
 
 #list-container-div {
     width: 90%;
-    margin: 50px auto;
+    margin: 87px auto;
 }
 #left-panel, #right-panel {
     float: left;
@@ -633,6 +641,16 @@ fieldset {
     padding: 0;
     border: 0;
     margin-top: 25px;
+}
+
+.elem-hidden-children * {
+    visibility: hidden;
+}
+
+.elem-loading {
+    background-image: url(../image/non-icons/ajax-loader.gif);
+    background-repeat: no-repeat;
+    background-position: center top;
 }
 
 .ui-dialog .ui-state-error {
