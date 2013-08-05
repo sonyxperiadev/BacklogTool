@@ -372,7 +372,6 @@ div.story-right-content {
 }
 
 div.notes-container {
-/*     float: right; */
     padding: 0 10px;
 }
 
@@ -788,63 +787,63 @@ div.note {
     padding: 5px;
     font-size: 0.9em;
 }
-    div.note:not(.single-note) {
-        border-bottom: 0px;
-    }
-    div.note.single-note {
-        border-radius: 5px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    div.note.single-note a.deleteItem {
-        display: none;
-    }
-    
-    div.note p.user-msg {
-        font-size: 0.95em;
-    }
-    
-    div.note:not(.single-note) p.user-msg {
-        word-wrap: break-word;
-    }
-    
-    div.note.single-note p.user-msg  {
-        text-overflow: ellipsis;
-        max-height: 40px;
-        overflow: hidden;
-        max-width: 100%;
-    }
-    
-    div.note span.user {
-        font-weight: bold;
-    }
-    
-    div.note span.date {
-        font-size: 0.8em;
-        color: #606060;
-    }
-    
-    a.notes-link {
-        font-weight: bold;
-        text-decoration: none;
-        color: #1c94c4;
-        font-size: 1.2em;
-    }
-    
-    p.expand-notes-btn {
-        text-align: center;
-        padding: 0;
-        margin: 0;
-    }
-    
-    p.more-notes-loader-p {
-        margin: 0;
-        padding: 0;
-    }
-    
-    .notes-container ul {
-        max-height: 300px;
-        overflow: auto;
-/*         border-bottom: 1px solid #a9a9a9; */
-    }
+
+div.note:not(.single-note) {
+    border-bottom: 0px;
+}
+div.note.single-note {
+    border-radius: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.note.single-note a.deleteItem {
+    display: none;
+}
+
+div.note p.user-msg {
+    font-size: 0.95em;
+}
+
+div.note:not(.single-note) p.user-msg {
+    word-wrap: break-word;
+}
+
+div.note.single-note p.user-msg  {
+    text-overflow: ellipsis;
+    max-height: 40px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+div.note span.user {
+    font-weight: bold;
+}
+
+div.note span.date {
+    font-size: 0.8em;
+    color: #606060;
+}
+
+a.notes-link {
+    font-weight: bold;
+    text-decoration: none;
+    color: #1c94c4;
+    font-size: 1.2em;
+}
+
+p.expand-notes-btn {
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+p.more-notes-loader-p {
+    margin: 0;
+    padding: 0;
+}
+
+.notes-container ul {
+    max-height: 300px;
+    overflow: auto;
+}

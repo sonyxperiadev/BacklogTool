@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *  Copyright 2013 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -38,11 +38,14 @@ import javax.persistence.Table;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.Session;
 import org.hibernate.annotations.Cache;
 
 /**
  * This class represents a note. A Note belongs to a certain Story and user(name), and consists
  * of a message, date and whether is was created by the system or a user.
+ * 
+ * @author Christoffer Lauri &lt;christoffer.lauri@sonymobile.com&gt;
  */
 @Cache(usage = READ_WRITE)
 @Entity
@@ -225,17 +228,22 @@ public class Note {
     }
 
     /**
-     * Get a Note with created/modified-date set to now, user to SYSTEM_USER,
-     * systemGenerated to true, and message and Story as specified by arguments
+     * Creates and saves a Note with created/modified-date set to now, user to
+     * SYSTEM_USER, systemGenerated to true, and message and Story as specified
+     * by arguments
      * 
      * @param message
      *            The message of the note
      * @param s
      *            The Story of the Note
-     * @return A Note with the specified values
+     * @param session
+     *            The current session
+     * @return The created Note
      */
-    public static Note genSystemNote(String message, Story s) {
-        return new Note(Note.SYSTEM_USER, message, new Date(), true, s);
+    public static Note createSystemNote(String message, Story s, Session session) {
+        Note n = new Note(Note.SYSTEM_USER, message, new Date(), true, s);
+        session.save(n);
+        return n;
     }
 
 }

@@ -246,7 +246,11 @@
                 <c:if test="${!story.hasMoreNotes()}">
                     <c:set var="buttonText" value="All notes loaded" />
                 </c:if>
-                <p class="more-notes-loader-p ui-hidden"><a class="more-notes-loader note-link <c:if test='${!story.hasMoreNotes()}'>ui-state-disabled</c:if>">${buttonText}</a></p>
+                <p class="more-notes-loader-p ui-hidden">
+                    <a class="more-notes-loader note-link 
+                        <c:if test='${!story.hasMoreNotes()}'>ui-state-disabled</c:if>
+                    ">${buttonText}</a>
+                </p>
                 <ul>
                     <c:set var="note" value="${story.getLatestNote()}"/>
                     <c:if test="${note != null}">
@@ -258,7 +262,9 @@
                     class="note-textarea"
                     rows="2" maxlength="1000"></textarea>
                 </div>
-                <p class="expand-notes-btn"><a class="more-notes notes-link" title="Expand notes">&middot;&middot;&middot;</a></p>
+                <p class="expand-notes-btn">
+                    <a class="more-notes notes-link" title="Expand notes">&middot;&middot;&middot;</a>
+                </p>
             </div>
         </c:if>
     </div>

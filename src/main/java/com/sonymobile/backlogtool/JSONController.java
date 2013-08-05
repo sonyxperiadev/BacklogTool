@@ -100,29 +100,6 @@ public class JSONController {
     @Autowired
     ServletContext context;
 
-    //        @RequestMapping(value="/emptyDB", method=RequestMethod.GET)
-    //        @Transactional
-    //        public @ResponseBody void emptyDB() {
-    //            Session session = sessionFactory.getCurrentSession();
-    //
-    //            session.createSQLQuery("DROP TABLE stories CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE tasks CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE users CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE areas CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_editors CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_admins CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_adminldapgroups CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_editorldapgroups CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE themes CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE epics CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE attributes CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE attributeoptions CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE attributes_attributeoptions CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP SEQUENCE hibernate_sequence").executeUpdate();
-    //
-    //            System.out.println("DB was dropped");
-    //        }
-
     @RequestMapping(value="/readstory-task/{areaName}", method=RequestMethod.GET)
     @Transactional
     public @ResponseBody List<Story> printJsonStories(@PathVariable String areaName,
@@ -1016,16 +993,13 @@ public class JSONController {
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
 
-            Note note = null;
             String updatedStoryViews = EPIC_STORY_VIEW;
             if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
-                note = Note.genSystemNote(String.format("User %s archived the story", username), story);
-                session.save("com.sonymobile.backlogtool.Note", note);
+                Note.createSystemNote(String.format("User %s archived the story", username), story, session);
 
                 messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
             } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
-                note = Note.genSystemNote(String.format("User %s unarchived the story", username), story);
-                session.save("com.sonymobile.backlogtool.Note", note);
+                Note.createSystemNote(String.format("User %s unarchived the story", username), story, session);
 
                 messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
             } else {
@@ -1965,9 +1939,8 @@ public class JSONController {
                         story.setTheme(newEpic.getTheme());
 
                         String noteMsg = String.format("User %s moved the story to area %s", username, newArea.getName());
-                        Note note = Note.genSystemNote(noteMsg, story);
-                        session.save("com.sonymobile.backlogtool.Note", note);
-                        pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
+                        Note note = Note.createSystemNote(noteMsg, story, session);
+                        pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW));
                     }
                     pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
                     pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
@@ -2192,6 +2165,13 @@ public class JSONController {
             tx = session.beginTransaction();
 
             //Firstly, unlink elements from each other
+            Query noteQuery = session.createQuery("from Note where story.area.name like ?");
+            noteQuery.setParameter(0, areaName);
+            List<Note> notes = Util.castList(Note.class, noteQuery.list());
+            for (Note note : notes) {
+                note.setStory(null);
+            }
+
             Query taskQuery = session.createQuery("from Task where story.area.name like ?");
             taskQuery.setParameter(0, areaName);
             List<Task> tasks = Util.castList(Task.class, taskQuery.list());
@@ -2226,6 +2206,10 @@ public class JSONController {
             tx = session.beginTransaction();
 
             //Secondly, remove all elements
+            for (Note note : notes) {
+                session.delete(note);
+            }
+
             for (Task task : tasks) {
                 session.delete(task);
             }

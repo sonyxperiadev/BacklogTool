@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *  Copyright 2013 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package com.sonymobile.backlogtool;
 /**
  * Container used when creating new Notes
  *
+ * @author Christoffer Lauri &lt;christoffer.lauri@sonymobile.com&gt;
  */
 public class NewNoteContainer extends Note {
     private int storyId;

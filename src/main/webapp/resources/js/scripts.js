@@ -208,7 +208,7 @@ $(document).ready(function () {
     };
 
     /**
-     * Returns a date on the format YYYY-mm-dd HH:ii, or an empty
+     * Returns a date on the format YYYY-MM-dd HH:mm, or an empty
      * string if the argument was null
      * @param milliseconds The milliseconds to turn into a string-representation
      */
@@ -1584,7 +1584,7 @@ $(document).ready(function () {
             itemType = "theme";
         } else if (item.hasClass("note")) {
             itemType = "note";
-            var splitStr = itemId.split("-");
+            var splitStr = itemId.split("-"); // as note-id:n are on the form "note-#"
             itemId = parseInt(splitStr[splitStr.length - 1]);
         };
 
@@ -1646,7 +1646,6 @@ $(document).ready(function () {
             }
         } else if (itemLi.hasClass("note")) { // a removed note
             var note = removeNote(itemId);
-//            var storyId = itemLi.closest("li.story").attr("id");
             itemLi.remove();
             var moreNotesP = $("li#" + note.storyId + " .more-notes-loader-p");
             var notes = getNotes(note.storyId);
@@ -1781,7 +1780,7 @@ $(document).ready(function () {
      * @param storyLi The story-li-element
      */
     var toggleNotesList = function(storyLi) {
-        var moreNotesP = $("li#" + storyLi.attr("id")).find(".more-notes-loader-p");
+        var moreNotesP = storyLi.find(".more-notes-loader-p");
         var notesFormDiv = $("#notes-form-" + storyLi.attr("id"));
 
         if (moreNotesP.hasClass("ui-hidden")) {
@@ -1798,12 +1797,13 @@ $(document).ready(function () {
         var notes = getNotes(storyLi.attr("id"));
         var ul = storyLi.find("div.notes-container ul");
         var ulChildren = ul.children();
-        if (ulChildren.length > 1) { // list open, close
+        if (ulChildren.length > 1) { // list open; close
             $(ulChildren[ulChildren.length - 1]).find("div.note").addClass("single-note").click(showMoreNotes);
             for (var i = 0; i < ulChildren.length - 1; i++) {
                 $(ulChildren[i]).remove();
             }
-        } else { // list closed, open
+        } else { // list closed; open
+            // expand the description when the notes are expanded
             storyLi.find("a.truncate" + storyLi.attr("id")).trigger('click');
             ul.empty();
 
@@ -2905,7 +2905,7 @@ $(document).ready(function () {
         var story = item.closest('li');
 
         var nbrOfNotes = getNotes(story.attr("id")).length;
-        var part = (nbrOfNotes / MAX_NOTES) + 1;
+        var part = Math.floor(nbrOfNotes / MAX_NOTES) + 1;
         $.ajax({
             url : "../json/read-notes/" + story.attr("id") + "/" + part,
             type : 'GET',
@@ -3174,7 +3174,9 @@ $(document).ready(function () {
                     editingItems.remove({id:taId});
                     var story = $(this).closest('li.story');
 
-                    postNote(parseInt(story.attr("id")), $(this).val());
+                    if($(this).val().length > 0) { // prevent empty notes
+                        postNote(parseInt(story.attr("id")), $(this).val());
+                    }
                     e.stopPropagation();
                 }
             });
@@ -3299,8 +3301,10 @@ $(document).ready(function () {
                     var taId = $(this).attr("id");
                     editingItems.remove({id:taId});
                     var story = $(this).closest('li.story');
-                    
-                    postNote(parseInt(story.attr("id")), $(this).val());
+
+                    if($(this).val().length > 0) {
+                        postNote(parseInt(story.attr("id")), $(this).val());
+                    }
                     e.stopPropagation();
                 }
             });
