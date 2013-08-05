@@ -638,7 +638,7 @@ fieldset {
 }
 
 .elem-loading {
-    background-image: url(../image/ajax-loader.gif);
+    background-image: url(../image/non-icons/ajax-loader.gif);
     background-repeat: no-repeat;
     background-position: center top;
 }
