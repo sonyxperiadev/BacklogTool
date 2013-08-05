@@ -462,7 +462,7 @@ $(document).ready(function () {
             }
 
             if(jsonObj.type == "Story") {
-                if(data.latestNote != null && getNotes(data.id).length == 0) {
+                if (data.latestNote != null && getNotes(data.id).length == 0) {
                     getNotes(data.id).push(data.latestNote);
                 }
                 updateStoryLi(data);
@@ -485,7 +485,7 @@ $(document).ready(function () {
                 removeItem(data);
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
-            } else if(jsonObj.type == "Note") {
+            } else if (jsonObj.type == "Note") {
                 updateNoteLi(data);
             } else if(jsonObj.type == "AreaDelete") {
                 var areaErrorDialog = $(document.createElement('div'));
@@ -812,11 +812,11 @@ $(document).ready(function () {
      * @param id The id of the Story whose Notes to get
      */
     var getNotes = function(id) {
-        if(typeof notesMap === "undefined") {
+        if (typeof notesMap === "undefined") {
             notesMap = {};
         }
         var notes = notesMap[id];
-        if(notes == null) {
+        if (notes == null) {
             notesMap[id] = new Array();
             notes = notesMap[id];
         }
@@ -829,11 +829,11 @@ $(document).ready(function () {
      * @returns The removed note
      */
     var removeNote = function(noteId) {
-        for(var storyId in notesMap) {
-            if(notesMap.hasOwnProperty(storyId)) {
+        for (var storyId in notesMap) {
+            if (notesMap.hasOwnProperty(storyId)) {
                 var notes = notesMap[storyId];
-                for(var i = 0; i < notes.length; i++) {
-                    if(notes[i].id == noteId) {
+                for (var i = 0; i < notes.length; i++) {
+                    if (notes[i].id == noteId) {
                         var retElem = notes[i];
                         notes.remove({id:noteId});
                         return retElem;
@@ -1584,7 +1584,7 @@ $(document).ready(function () {
             itemType = "theme";
         } else if (item.hasClass("note")) {
             itemType = "note";
-            var splitStr = itemId.split("-"); // as note-id:n are on the form "note-#"
+            var splitStr = itemId.split("-"); // as note-id:s are on the form "note-#"
             itemId = parseInt(splitStr[splitStr.length - 1]);
         };
 
@@ -1633,7 +1633,7 @@ $(document).ready(function () {
      */
     var removeItem = function(itemId) {
         var itemLi = $("li#" + itemId);
-        if(itemLi.length == 0) { // no match - try note
+        if (itemLi.length == 0) { // no match - try note
             itemLi = $("#note-" + itemId);
         }
 
@@ -1649,7 +1649,7 @@ $(document).ready(function () {
             itemLi.remove();
             var moreNotesP = $("li#" + note.storyId + " .more-notes-loader-p");
             var notes = getNotes(note.storyId);
-            if(moreNotesP.hasClass("ui-hidden") && notes.length > 0) {
+            if (moreNotesP.hasClass("ui-hidden") && notes.length > 0) {
                 updateNoteLi(notes[0]); // A note was removed with the list collapsed
             }
         } else if (itemLi.length > 0) { // A child was removed
@@ -1785,7 +1785,7 @@ $(document).ready(function () {
 
         if (moreNotesP.hasClass("ui-hidden")) {
             moreNotesP.removeClass("ui-hidden");
-            if(loggedIn === true) {
+            if (loggedIn === true) {
                 notesFormDiv.removeClass("ui-hidden");
                 notesFormDiv.find("textarea").autosize('');
             }
@@ -2076,8 +2076,8 @@ $(document).ready(function () {
         var notesArray = getNotes(updatedNote.storyId);
         var notePos = -1;
 
-        for(var i = 0; i < notesArray.length; i++) {
-            if(notesArray[i].id == noteId) {
+        for (var i = 0; i < notesArray.length; i++) {
+            if (notesArray[i].id == noteId) {
                 notePos = i;
                 break;
             }
@@ -2105,7 +2105,7 @@ $(document).ready(function () {
             if ($("li#" + updatedNote.storyId + " .more-notes-loader-p").hasClass("ui-hidden")) {
                 // Only showing one note
                 ulList.empty();
-            } else if(ulList.outerHeight() < (ulList.prop("scrollHeight") - ulList.scrollTop() - 40)) {
+            } else if (ulList.outerHeight() < (ulList.prop("scrollHeight") - ulList.scrollTop() - 40)) {
                 // Several notes in list, but not scrolled to bottom - save current list-position
                 lastElem = ulList.children().last();
                 offset = lastElem.offset();
@@ -2190,7 +2190,7 @@ $(document).ready(function () {
                 }
             }
 
-            if(view == "story-task") {
+            if (view == "story-task") {
                 var notes = getNotes(storyId);
                 if (notes.length > 0) {
                     updateNoteLi(notes[0]);
@@ -2997,7 +2997,7 @@ $(document).ready(function () {
                     var childData = archivedItems[i].children;
                     archivedItems[i].children = new Array();
                     if (type == "Story") {
-                        if(view == "story-task" && archivedItems[i].latestNote != null && getNotes(archivedItems[i].id).length == 0) {
+                        if (view == "story-task" && archivedItems[i].latestNote != null && getNotes(archivedItems[i].id).length == 0) {
                             getNotes(archivedItems[i].id).push(archivedItems[i].latestNote);
                         }
                         updateStoryLi(archivedItems[i]);
@@ -3016,7 +3016,6 @@ $(document).ready(function () {
                         }
                     }
                     //TODO: Make sure that sort is not called several times
-
                 }
             }
         });
@@ -3167,14 +3166,14 @@ $(document).ready(function () {
             //$(".save-button."+id).button( "option", "disabled", false );
         });
 
-        if(loggedIn === true) {
+        if (loggedIn === true) {
             $(".note-textarea").keyup(function (e) {
                 if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
                     var taId = $(this).attr("id");
                     editingItems.remove({id:taId});
                     var story = $(this).closest('li.story');
 
-                    if($(this).val().length > 0) { // prevent empty notes
+                    if ($(this).val().length > 0) { // prevent empty notes
                         postNote(parseInt(story.attr("id")), $(this).val());
                     }
                     e.stopPropagation();
@@ -3295,14 +3294,14 @@ $(document).ready(function () {
             $(this).autocomplete('enable');
         });
 
-        if(loggedIn === true) {
+        if (loggedIn === true) {
             $(".note-textarea", elem).keyup(function (e) {
                 if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
                     var taId = $(this).attr("id");
                     editingItems.remove({id:taId});
                     var story = $(this).closest('li.story');
 
-                    if($(this).val().length > 0) {
+                    if ($(this).val().length > 0) {
                         postNote(parseInt(story.attr("id")), $(this).val());
                     }
                     e.stopPropagation();

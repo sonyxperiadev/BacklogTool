@@ -191,10 +191,10 @@ public class Story {
     @JsonIgnore
     public List<Note> getTenNewestNotes() {
         List<Note> list = new ArrayList<Note>();
-        if(notes != null) {
+        if (notes != null) {
             Iterator<Note> itr = notes.iterator();
             int count = 0;
-            while(itr.hasNext() && count < MAX_START_NOTES) {
+            while (itr.hasNext() && count < MAX_START_NOTES) {
                 list.add(itr.next());
                 count++;
             }
@@ -214,9 +214,9 @@ public class Story {
      * @return The latest Note, or null if no Notes exist
      */
     public Note getLatestNote() {
-        if(notes != null) {
+        if (notes != null) {
             Iterator<Note> itr = notes.iterator();
-            if(itr.hasNext()) {
+            if (itr.hasNext()) {
                 return itr.next();
             }
         }

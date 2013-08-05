@@ -254,7 +254,7 @@ public class JSONController {
 
             long nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
             int totalNbrOfParts = (int) Math.ceil((double) nbrOfItems / JSONController.NOTES_PER_PART);
-            if(part >= totalNbrOfParts) {
+            if (part >= totalNbrOfParts) {
                 moreNotesAvailable = false;
             }
             
@@ -481,7 +481,7 @@ public class JSONController {
     @RequestMapping(value="/createnote/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Note createNote(@PathVariable String areaName, @RequestBody NewNoteContainer newNote) throws Exception {
-        if(!isLoggedIn()) {
+        if (!isLoggedIn()) {
             throw new Error("Trying to create note without being authenticated");
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
