@@ -520,6 +520,10 @@ $(document).ready(function () {
                 }
                 offset = null;
             }
+
+            $("div.notes-container ul").each(function(index) {
+                $(this).scrollTop($(this).prop("scrollHeight"));
+            });
         } else {
             window.console && console.log("No json-data in push-message");
         }
@@ -2175,6 +2179,11 @@ $(document).ready(function () {
 
             if(view == "story-task") {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
+
+                var notes = getNotes(storyId);
+                if (notes.length > 0) {
+                    updateNoteLi(notes[0]);
+                }
             } else if(view == "epic-story") {
                 newItem.attr('parentid', updatedStory.epicId);
                 var parent = getParent(updatedStory.epicId);
@@ -2189,13 +2198,6 @@ $(document).ready(function () {
                         $('li#' + parent.id).after(newItem);
                     }
                     toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
-                }
-            }
-
-            if (view == "story-task") {
-                var notes = getNotes(storyId);
-                if (notes.length > 0) {
-                    updateNoteLi(notes[0]);
                 }
             }
 
@@ -3052,6 +3054,7 @@ $(document).ready(function () {
             var currentId = $(this).attr("id");
             if (visible[currentId] != true) {
                 $(this).addClass("ui-hidden");
+                $(this).css("display", "none");
             }
         });
 
@@ -3595,6 +3598,7 @@ $(document).ready(function () {
                 var visibleChildren = true;
                 if(isFiltered(parent.id) || !isFilterActive()) {
                     pLi.removeClass("ui-hidden");
+                    pLi.css("display", "list-item");
                     if(pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
                         cLi.css("display", "list-item");
                         cLi.removeClass("ui-hidden");
@@ -3602,6 +3606,7 @@ $(document).ready(function () {
                 } else {
                     visibleChildren = false;
                     pLi.addClass("ui-hidden");
+                    pLi.css("display", "none");
                     if(typeof parent.children !== "undefined") {
                         cLi.css("display", "none");
                         cLi.addClass("ui-hidden");
