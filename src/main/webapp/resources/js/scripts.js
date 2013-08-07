@@ -443,14 +443,14 @@ $(document).ready(function () {
             } else if(jsonObj.type == "Task") {
                 updateTaskLi(data);
             } else if(jsonObj.type == "Epic") {
-                updateEpicLi(data);
+                updateEpicLi(data, !allExpanded);
                 for(var i = 0; i < childData.length; i++) {
-                    updateStoryLi(childData[i]);
+                    updateStoryLi(childData[i], !allExpanded);
                 }
             } else if(jsonObj.type == "Theme") {
-                updateThemeLi(data);
+                updateThemeLi(data, !allExpanded);
                 for(var i = 0; i < childData.length; i++) {
-                    updateEpicLi(childData[i]);
+                    updateEpicLi(childData[i], !allExpanded);
                 }
             } else if(jsonObj.type == "Delete") {
                 removeItem($('li#' + data));
@@ -776,8 +776,8 @@ $(document).ready(function () {
     };
     
     /**
-     * Add the child to the parent, and update the specified attribute
-     * accordingly (e.g. the prioInTheme)
+     * Add the child to the parent if it does not already exist,
+     * and update the specified attribute accordingly (e.g. the prioInTheme)
      * @param parentObj The parent to add the child to
      * @param childObj The child to add
      * @param The name of the child's attribute to update (e.g. prioInTheme)
@@ -788,13 +788,21 @@ $(document).ready(function () {
             children = new Array();
             parentObj.children = children; 
         }
-        if(typeof childObj[attr] === "undefined") {
-            childObj[attr] = children.length + 1; // Put it as the last element
+        var alreadyExists = false;
+        for (var i=0; i<children.length; i++) {
+            if (children[i].id == childObj.id) {
+                alreadyExists = true;
+            }
         }
-        /* Insert the child-object (Task/Story/Epic) */ 
-        children.splice(childObj[attr] - 1, 0, childObj);
-        for(var i = 0; i < children.length; i++) { // Update the prio for all children
-            children[i][attr] = i + 1;
+        if (!alreadyExists) {
+            if (typeof childObj[attr] === "undefined") {
+                childObj[attr] = children.length + 1; // Put it as the last element
+            }
+            /* Insert the child-object (Task/Story/Epic) */ 
+            children.splice(childObj[attr] - 1, 0, childObj);
+            for (var i = 0; i < children.length; i++) { // Update the prio for all children
+                children[i][attr] = i + 1;
+            }
         }
     };
 
@@ -1273,6 +1281,7 @@ $(document).ready(function () {
                     editTask(newTask.id);
                     scrollTo(newTask.id);
                     focusAndSelectText("taskTitle"+newTask.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(request, status, error) {
@@ -1375,6 +1384,7 @@ $(document).ready(function () {
                     $.unblockUI();
                     scrollTo(newEpic.id);
                     focusAndSelectText("epicTitle" + newEpic.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(error) {
@@ -1413,6 +1423,7 @@ $(document).ready(function () {
                     editTheme(newTheme.id);
                     scrollTo(newTheme.id);
                     focusAndSelectText("themeTitle" + newTheme.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(error) {
@@ -1940,6 +1951,8 @@ $(document).ready(function () {
     
     /**
      * Finds and updates a story li-element with new values.
+     * @param updatedStory JSON data for the updated story
+     * @param oneline set to true if it should be rendered in oneline mode
      */
     var updateStoryLi = function(updatedStory, oneline) {
         var storyId = updatedStory.id;
@@ -1971,13 +1984,13 @@ $(document).ready(function () {
                 var attr = 'prioInEpic';
 
                 if(typeof parent !== "undefined") {
-                    addChildToParent(parent, updatedStory, attr);
-                    
+
                     if(updatedStory[attr] > 1) {
                         $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
                     }
+                    addChildToParent(parent, updatedStory, attr);
                     toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
                 }
             }
@@ -2100,10 +2113,9 @@ $(document).ready(function () {
     var toggleExpandBtn = function(parentLi, childLi, childrenArr) {
         var iconDiv = parentLi.find('div.icon');
         $('.expand-icon', parentLi).unbind('click', expandClick);
-        iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
         var visibleChild;
-        if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
+        if (iconDiv.hasClass("ui-icon-triangle-1-s")) {
             visibleChild = true;
             childLi.css('display', 'list-item');
             childLi.removeClass("ui-hidden");
@@ -2116,6 +2128,8 @@ $(document).ready(function () {
         childLi.each(function() {
             visible[$(this).attr("id")] = visibleChild;
         });
+
+        iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
         if(childrenArr.length > 0) {
             if(visibleChild) {
@@ -2135,7 +2149,7 @@ $(document).ready(function () {
     var expandParentForChild = function(childId) {
         findChild(childId, function(childObj, parentObj, posInParent) {
             var iconDiv = $("li#" + parentObj.id).find("div.icon");
-            if(iconDiv.hasClass("ui-icon-triangle-1-e")) {
+            if (iconDiv.hasClass("ui-icon-triangle-1-e")) {
                 toggleChildren(iconDiv);
             }
         });
@@ -2158,15 +2172,15 @@ $(document).ready(function () {
             newItem.attr('parentid', updatedTask.parentId);
 
             var parent = getParent(updatedTask.parentId);
-            addChildToParent(parent, updatedTask, 'prioInStory');
             var children = parent.children;
-            toggleExpandBtn(parentLi, newItem, children);
 
             if(updatedTask.prioInStory > 1) {
                 $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
             } else {
                 $('li#' + updatedTask.parentId + '.story').after(newItem);
             }
+            addChildToParent(parent, updatedTask, 'prioInStory');
+            toggleExpandBtn(parentLi, newItem, children);
 
             bindEventsToItem(newItem);
         } else {
@@ -2289,9 +2303,11 @@ $(document).ready(function () {
     };
 
     /**
-     * Finds and updates a epic li-element with new values.
+     * Finds and updates an epic li-element with new values.
+     * @param updatedStory JSON data for the updated epic
+     * @param oneline set to true if it should be rendered in oneline mode
      */
-    var updateEpicLi = function(updatedEpic) {
+    var updateEpicLi = function(updatedEpic, oneline) {
         var epicId = updatedEpic.id;
 
         var ulObj = null;
@@ -2302,7 +2318,12 @@ $(document).ready(function () {
         }
 
         if($('li#' + epicId + '.epic').length == 0) {
-            var divItem = $('div#epic-placeholder').clone();
+            var divItem = null;
+            if (oneline) {
+                divItem = $('div#epic-oneline-placeholder').clone();
+            } else {
+                divItem = $('div#epic-placeholder').clone();
+            }
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, epicId); // Replace all occurences of -1
             
@@ -2318,14 +2339,14 @@ $(document).ready(function () {
                 var parent = getParent(updatedEpic.themeId);
                 var attr = 'prioInTheme';
                 if(typeof parent !== "undefined") {
-                    addChildToParent(parent, updatedEpic, attr);
                     
                     if(updatedEpic[attr] > 1) {
                         $('li#' + (parent.children[updatedEpic[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
                     }
-                    
+
+                    addChildToParent(parent, updatedEpic, attr);
                     toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
                 }
             }
@@ -2363,6 +2384,10 @@ $(document).ready(function () {
             $('p#date-archived' + epicId).text("");
             $('#archiveEpic' + epicId).attr('checked', false);
         }
+
+        var oneline = $("li#" + epicId + ".oneline-li");
+        oneline.find(".title-span").html(updatedEpic.title);
+        oneline.find('.date-archived').html(getDate(updatedEpic.dateArchived));
     };
 
     var editEpic = function(event) {
@@ -2373,6 +2398,11 @@ $(document).ready(function () {
         else {
             epicId = parseInt($(this).closest('li').attr('id'));
         }
+
+        if ($("li#" + epicId).hasClass("oneline-li")) {
+            expandOneline(epicId);
+        }
+
         if (view == "epic-story") {
             var epic = getParent(epicId);
         } else {
@@ -2469,8 +2499,10 @@ $(document).ready(function () {
 
     /**
      * Finds and updates a theme li-element with new values.
+     * @param updatedStory JSON data for the updated theme
+     * @param oneline set to true if it should be rendered in oneline mode
      */
-    var updateThemeLi = function(updatedTheme) {
+    var updateThemeLi = function(updatedTheme, oneline) {
         var themeId = updatedTheme.id;
 
         var ulObj = null;
@@ -2481,7 +2513,12 @@ $(document).ready(function () {
         }
 
         if($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
-            var divItem = $('div#theme-placeholder').clone();
+            var divItem = null;
+            if (oneline) {
+                divItem = $('div#theme-oneline-placeholder').clone();
+            } else {
+                divItem = $('div#theme-placeholder').clone();
+            }
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, themeId); // Replace all occurences of -1
 
@@ -2521,6 +2558,10 @@ $(document).ready(function () {
             $('#archiveTheme' + themeId).attr('checked', false);
         }
 
+        var oneline = $("li#" + themeId + ".oneline-li");
+        oneline.find(".title-span").html(updatedTheme.title);
+        oneline.find('.date-archived').html(getDate(updatedTheme.dateArchived));
+
     };
 
     var editTheme = function(event) {
@@ -2530,6 +2571,11 @@ $(document).ready(function () {
         } else {
             themeId = parseInt($(this).closest('li').attr('id'));
         }
+
+        if ($("li#" + themeId).hasClass("oneline-li")) {
+            expandOneline(themeId);
+        }
+
         if (view == "theme-epic") {
             var theme = getParent(themeId);
         } else {
@@ -2690,14 +2736,14 @@ $(document).ready(function () {
                             updateTaskLi(childData[k]);
                         }
                     } else if (type == "Epic") {
-                        updateEpicLi(archivedItems[i]);
+                        updateEpicLi(archivedItems[i], true);
                         for (var k = 0; k < childData.length; k++) {
-                            updateStoryLi(childData[k]);
+                            updateStoryLi(childData[k], true);
                         }
                     } else if (type == "Theme") {
-                        updateThemeLi(archivedItems[i]);
+                        updateThemeLi(archivedItems[i], true);
                         for (var k = 0; k < childData.length; k++) {
-                            updateEpicLi(childData[k]);
+                            updateEpicLi(childData[k], true);
                         }
                     }
                     //TODO: Make sure that sort is not called several times
@@ -2890,7 +2936,7 @@ $(document).ready(function () {
                 maxWidth = width;
             }
         });
-        $(".typeMark, #id-header").width(maxWidth);
+        $(".typeMark, .header-id").width(maxWidth);
     };
 
     /**
@@ -2909,14 +2955,23 @@ $(document).ready(function () {
         }
 
         var lastId = li.prev("li").attr("id");
+
         var jsonData = getParent(id);
-        if (lastId != null) {
+        if (jsonData == null) {
+            jsonData = getChild(id);
+        } else {
             var lastItem = new Object();
             lastItem.id = lastId;
             jsonData.lastItem = lastItem;
         }
         li.remove();
-        updateStoryLi(jsonData);
+        if (li.hasClass("story")) {
+            updateStoryLi(jsonData);
+        } else if (li.hasClass("epic")) {
+            updateEpicLi(jsonData);
+        } else if (li.hasClass("theme")) {
+            updateThemeLi(jsonData);
+        }
 
         li = $("li#" + id);
         if (lastId == null) {
@@ -2934,11 +2989,16 @@ $(document).ready(function () {
                 li.css("height", "auto");
             });
             unselectAll();
-            selectItem({id:id, type:"parent"});
+            if (li.hasClass("parentLi")) {
+                selectItem({id:id, type:"parent"});
+            } else if (li.hasClass("childLi")) {
+                selectItem({id:id, type:"child"});
+            }
             updateCookie();
             addZebraStripesToParents();
         }
-        if (jsonData.children.length > 0) {
+
+        if (jsonData.children != null && jsonData.children.length > 0) {
             var iconDiv = li.find('div.icon');
             if (visible[jsonData.children[0].id]) {
                 iconDiv.addClass('ui-icon-triangle-1-s');
@@ -2957,8 +3017,11 @@ $(document).ready(function () {
         var li = $(this).closest("li");
         var id = li.attr("id");
         var lastId = li.prev("li").attr("id");
+
         var jsonData = getParent(id);
-        if (lastId != null) {
+        if (jsonData == null) {
+            jsonData = getChild(id);
+        } else {
             var lastItem = new Object();
             lastItem.id = lastId;
             jsonData.lastItem = lastItem;
@@ -2966,7 +3029,13 @@ $(document).ready(function () {
 
         li.animate({height: 20}, 200, function(){
             li.remove();
-            updateStoryLi(jsonData, true);
+            if (li.hasClass("story")) {
+                updateStoryLi(jsonData, true);
+            } else if (li.hasClass("epic")) {
+                updateEpicLi(jsonData, true);
+            } else if (li.hasClass("theme")) {
+                updateThemeLi(jsonData, true);
+            }
             li = $("li#" + id);
 
             if (lastId == null) {
@@ -2988,7 +3057,11 @@ $(document).ready(function () {
             }
 
             unselectAll();
-            selectItem({id:id, type:"parent"});
+            if (li.hasClass("parentLi")) {
+                selectItem({id:id, type:"parent"});
+            } else if (li.hasClass("childLi")) {
+                selectItem({id:id, type:"child"});
+            }
             updateCookie();
             addZebraStripesToParents();
         });

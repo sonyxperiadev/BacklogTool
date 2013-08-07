@@ -81,7 +81,9 @@ THE SOFTWARE.
                     <p class="oneline header-item small-item">${area.storyAttr2.name}</p>
                     <p class="oneline header-item small-item">${area.storyAttr3.name}</p>
                     <p class="oneline header-item small-item">Deadline</p>
-                    <p class="oneline header-item small-item">Archived</p>
+                    <c:if test="${archivedView}">
+                        <p class="oneline header-item small-item">Archived</p>
+                    </c:if>
                 </div>
 
                 <ul class="parent-child-list" id="list-container">
