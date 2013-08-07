@@ -425,7 +425,6 @@ div.titles-theme-epic {
 
 .titleText {
     font-size: 1.3em;
-/*     font-weight: bold; */
     color: black;
     vertical-align: middle;
 }
@@ -854,7 +853,7 @@ span.oneline.title-span {
 
 #table-header {
     margin-left: 44px;
-    width: 100%
+    width: 100%;
 }
 
 .header-item {

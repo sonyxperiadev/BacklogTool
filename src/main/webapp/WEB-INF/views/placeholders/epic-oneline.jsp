@@ -40,28 +40,29 @@
 
         <c:if test='${view.equals("epic-story")}'>
         <div title="Show stories"
-                class="oneline icon <c:if test="${epic.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
+                class="oneline icon <c:if test="${!epic.children.isEmpty()}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
         </div>
-        <div>
     </c:if>
-    <c:if test='${view.equals("theme-epic")}'>
-        <div class="padding-left">
-    </c:if>
-
-    <p class="typeMark oneline">Epic ${epic.id}</p>
-
-    <p class="title-text oneline">
-        <span class="title-span oneline">
-            ${epic.title}
-        </span>
-    </p>
-
-    <p class="oneline date-text date-archived" 
-        <c:if test='${epic.dateArchived != null}'>
-            title="Date archived"
+    <div 
+        <c:if test='${view.equals("theme-epic")}'>
+            class="padding-left"
         </c:if>
     >
 
-        <fmt:formatDate value="${epic.dateArchived}" pattern="yyyy-MM-dd" />
-    </p>
+        <p class="typeMark oneline">Epic ${epic.id}</p>
+
+        <p class="title-text oneline">
+            <span class="title-span oneline">
+                ${epic.title}
+            </span>
+        </p>
+
+        <p class="oneline date-text date-archived" 
+            <c:if test='${epic.dateArchived != null}'>
+                title="Date archived"
+            </c:if>
+        >
+            <fmt:formatDate value="${epic.dateArchived}" pattern="yyyy-MM-dd" />
+        </p>
+    </div>
 </li>

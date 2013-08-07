@@ -28,8 +28,8 @@
     "
     id="${theme.id}">
 
-    <div title="Show stories"
-            class="oneline icon <c:if test="${theme.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
+    <div title="Show epics"
+            class="oneline icon <c:if test="${!theme.children.isEmpty()}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
     </div>
 
     <p class="typeMark oneline">Theme ${theme.id}</p>

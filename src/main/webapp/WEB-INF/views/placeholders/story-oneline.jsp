@@ -40,13 +40,14 @@
 
     <c:if test='${view.equals("story-task")}'>
         <div title="Show tasks"
-                class="oneline icon <c:if test="${story.children.size() > 0}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
+                class="oneline icon <c:if test="${!story.children.isEmpty()}">expand-icon ui-icon ui-icon-triangle-1-e</c:if>">
         </div>
-        <div>
     </c:if>
-    <c:if test='${view.equals("epic-story")}'>
-        <div class="padding-left">
-    </c:if>
+    <div 
+        <c:if test='${view.equals("epic-story")}'>
+            class="padding-left"
+        </c:if>
+    >
 
         <p class="typeMark oneline">Story ${story.id}</p>
 
