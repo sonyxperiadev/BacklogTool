@@ -63,16 +63,33 @@ THE SOFTWARE.
                 <c:set var="story" value="${placeholderStory}"/>
                 <%@ include file="/WEB-INF/views/placeholders/story.jsp"%>
             </div>
+            <div id="story-oneline-placeholder" class="placeholder" >
+                <c:set var="story" value="${placeholderStory}"/>
+                <%@ include file="/WEB-INF/views/placeholders/story-oneline.jsp"%>
+            </div>
             <div id="task-placeholder" class="placeholder" >
                 <c:set var="task" value="${placeholderTask}"/>
                 <%@ include file="/WEB-INF/views/placeholders/task.jsp"%>
             </div>
 
             <div id="list-container-div">
+
+                <div id="table-header">
+                    <p class="oneline header-item header-id">ID</p>
+                    <p class="oneline header-item header-title">Title</p>
+                    <p class="oneline header-item small-item">${area.storyAttr1.name}</p>
+                    <p class="oneline header-item small-item">${area.storyAttr2.name}</p>
+                    <p class="oneline header-item small-item">${area.storyAttr3.name}</p>
+                    <p class="oneline header-item small-item">Deadline</p>
+                    <c:if test="${archivedView}">
+                        <p class="oneline header-item small-item">Archived</p>
+                    </c:if>
+                </div>
+
                 <ul class="parent-child-list" id="list-container">
                     <c:forEach var="story" items="${nonArchivedStories}">
                         <c:set var="hidden" value="${filterIds != null && !filterIds.contains(story.id)}"/>
-                        <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                        <%@ include file="/WEB-INF/views/placeholders/story-oneline.jsp" %>
                         <c:forEach var="task" items="${story.children}">
                             <%@ include file="/WEB-INF/views/placeholders/task.jsp" %>
                         </c:forEach>

@@ -63,7 +63,7 @@ h1 {
     margin: 10px 0 0 0;
 }
 
-.story p {
+.story p, .epic p, .theme p {
     min-height: 15px;
     margin: 1px 0 1px 0;
 }
@@ -218,6 +218,10 @@ textarea:focus {
     padding-left: 5%;
 }
 
+.padding-left.titles-epic-story, .padding-left.titles-theme-epic {
+    padding-left: calc(5% - 30px);
+}
+
 .inline {
     display: inline-block;
 }
@@ -254,11 +258,15 @@ div#icons {
 }
 
 .childLi {
-    color: #494949;
+    color: black;
     padding: 4px;
     font-weight: lighter;
     padding-top: 2px;
     padding-bottom: 3px;
+}
+
+.childLi.task {
+    color: #494949;
 }
 
 .parentLi {
@@ -277,6 +285,7 @@ p.description {
     font-size: 0.85em;
     font-weight: bold;
     color: #494949;
+    margin-top: 5px;
 }
 
 .title {
@@ -291,6 +300,10 @@ p.theme,p.epic,p.typeMark {
     font-size: 0.75em;
     padding: 0.3em;
     text-align: center;
+}
+
+p.typeMark {
+	vertical-align: middle;
 }
 
 .well > *:not(#save-div) {
@@ -412,8 +425,14 @@ div.titles-theme-epic {
 
 .titleText {
     font-size: 1.3em;
-    font-weight: bold;
     color: black;
+    vertical-align: middle;
+}
+
+p.titleText {
+	cursor: pointer;
+	cursor: hand;
+	display: inline;
 }
 
 .taskHeading {
@@ -772,4 +791,88 @@ p.addOptionSeries, p.addOption {
 #releases a {
     text-decoration: none;
     color: #1c94c4;
+}
+
+.oneline {
+   display: inline-block;
+}
+
+.oneline.title-text {
+    width: 34%;
+    margin-left: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+span.oneline.title-span {
+    cursor: pointer;
+    cursor: hand;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.oneline.attr-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 10%;
+    white-space: nowrap;
+    height: 100%;
+}
+
+.attr-div {
+    width: 14%;
+    white-space: nowrap;
+    height: 100%;
+}
+
+.oneline-li {
+    padding-top: 2px;
+    padding-bottom: 4px;
+}
+
+.oneline.date-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 10%;
+    white-space:nowrap;
+    height: 100%;
+}
+
+.oneline.icon {
+    width: 20px;
+    margin: 5px;
+}
+
+.attr-icon {
+    vertical-align: sub;
+}
+
+#table-header {
+    margin-left: 44px;
+    width: 100%;
+}
+
+.header-item {
+    margin-left: 0;
+    margin-right: 0;
+    padding-top: 0.3em;
+    font-size: 0.75em;
+    font-weight: bold;
+}
+
+#table-header > .small-item {
+    width: 10%;
+}
+
+#table-header > .header-id {
+    width: 55px;
+}
+
+#table-header > .header-title {
+    margin-left: 4px;
+    width: 34%;
 }
