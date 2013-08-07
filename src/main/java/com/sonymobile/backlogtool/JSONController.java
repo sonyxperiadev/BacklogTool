@@ -339,6 +339,7 @@ public class JSONController {
            @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
 
         List<Object> archivedItems = new ArrayList<Object>();
+        Map<Integer, Set<Note>> notesForStories = new HashMap<Integer, Set<Note>>();
         int nbrOfPages = 0;
         Area area = null;
 
@@ -349,18 +350,24 @@ public class JSONController {
 
             area = (Area) session.get(Area.class, areaName);
             if (area != null && type.matches("Story|Epic|Theme")) {
+                String notesJoin = "";
+                if(type.equals("Story")) {
+                    notesJoin = "left join fetch i.notes ";
+                }
                 Query archivedQuery = null;
                 if (filterIds == null || filterIds.isEmpty()) {
-                    archivedQuery = session.createQuery("from " + type + " " +
-                            "where area = ? " +
-                            "and archived=true " +
-                            "order by dateArchived desc");
+                    archivedQuery = session.createQuery("from " + type + " i " +
+                            notesJoin +
+                            "where i.area = ? " +
+                            "and i.archived=true " +
+                            "order by i.dateArchived desc");
                 } else {
-                    archivedQuery = session.createQuery("from " + type + " " +
-                            "where area = ? " +
-                            "and archived=true " +
-                            "and id in (:filterIds) " +
-                            "order by dateArchived desc");
+                    archivedQuery = session.createQuery("from " + type + " i " +
+                            notesJoin +
+                            "where i.area = ? " +
+                            "and i.archived=true " +
+                            "and i.id in (:filterIds) " +
+                            "order by i.dateArchived desc");
                     archivedQuery.setParameterList("filterIds", filterIds);
                 }
 
@@ -387,8 +394,9 @@ public class JSONController {
 
                 for (Object item : archivedItems) {
                     if (type.equals("Story")) {
-                        Hibernate.initialize(((Story) item).getChildren());
-                        Hibernate.initialize(((Story) item).getNotes());
+                        Story s = (Story) item;
+                        Hibernate.initialize(s.getChildren());
+                        notesForStories.put(s.getId(), s.getNotes());
                     } else if (type.equals("Epic")) {
                         Hibernate.initialize(((Epic) item).getChildren());
                     } else if (type.equals("Theme")) {
@@ -413,6 +421,7 @@ public class JSONController {
         Map<String,Object> archivedInfo = new HashMap<String, Object>();
         archivedInfo.put("nbrOfPages", nbrOfPages);
         archivedInfo.put("archivedItems", archivedItems);
+        archivedInfo.put("notesMap", notesForStories);
         return mapper.writeValueAsString(archivedInfo);
     }
 

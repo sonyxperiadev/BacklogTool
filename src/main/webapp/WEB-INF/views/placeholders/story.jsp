@@ -242,17 +242,22 @@
 
         <c:if test='${view.equals("story-task")}'>
             <div class="notes-container">
+                <c:set var="note" value="${story.getLatestNonSystemNote()}"/>
                 <c:set var="buttonText" value="Load older notes" />
-                <c:if test="${!story.hasMoreNotes()}">
+                <c:if test="${note != null && !story.getHasMoreNotes()}">
                     <c:set var="buttonText" value="All notes loaded" />
                 </c:if>
                 <p class="more-notes-loader-p ui-hidden">
                     <a class="more-notes-loader note-link 
-                        <c:if test='${!story.hasMoreNotes()}'>ui-state-disabled</c:if>
+                        <c:if test='${!story.getHasMoreNotes()}'>ui-state-disabled</c:if>
                     ">${buttonText}</a>
+
+                    <label class="sys-msgs-label">
+                        <span>Show system messages</span>
+                        <input type="checkbox" class="show-sys-msgs" />
+                    </label>
                 </p>
                 <ul>
-                    <c:set var="note" value="${story.getLatestNote()}"/>
                     <c:if test="${note != null}">
                         <%@ include file="/WEB-INF/views/placeholders/note.jsp" %>
                     </c:if>

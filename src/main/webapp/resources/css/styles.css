@@ -823,6 +823,9 @@ div.note span.user {
 div.note span.date {
     font-size: 0.8em;
     color: #606060;
+    float: right;
+    margin-right: 5px;
+    line-height: 16px;
 }
 
 a.notes-link {
@@ -846,4 +849,18 @@ p.more-notes-loader-p {
 .notes-container ul {
     max-height: 300px;
     overflow: auto;
+    clear: both;
+}
+
+input.show-sys-msgs {
+    display: inline;
+    vertical-align: middle;
+}
+
+label.sys-msgs-label {
+    float: right;
+}
+
+label.sys-msgs-label span {
+    vertical-align: middle;
 }

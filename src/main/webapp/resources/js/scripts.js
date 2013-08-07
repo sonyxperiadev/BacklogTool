@@ -456,14 +456,17 @@ $(document).ready(function () {
              * these after the push-message has been processed */ 
             var offset = null, offsetObj = null, inputFocus = null;
             if(editingItems.length > 0) {
+                offsetObj = editingItems[editingItems.length - 1]; // fetch the latest item
                 inputFocus = $(document.activeElement);
-                offsetObj = editingItems[0];
-                offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+                offset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+                if(offset == null) { // no matched elements => probably a note
+                    offset = $("#" + offsetObj.id).offset();
+                }
             }
 
             if(jsonObj.type == "Story") {
-                if (data.latestNote != null && getNotes(data.id).length == 0) {
-                    getNotes(data.id).push(data.latestNote);
+                if (data.latestNonSystemNote != null && getNotes(data.id).length == 0) {
+                    getNotes(data.id).push(data.latestNonSystemNote);
                 }
                 updateStoryLi(data);
                 for(var i = 0; i < childData.length; i++) {
@@ -510,6 +513,9 @@ $(document).ready(function () {
             if(offset !== null) {
                 // Restore offset
                 var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+                if(newOffset == null) {
+                    newOffset = $("#" + offsetObj.id).offset();
+                }
                 if(typeof newOffset !== "undefined") {
                     if(newOffset.top != offset.top) {
                         // Restore scroll
@@ -1036,9 +1042,12 @@ $(document).ready(function () {
         //Save offset
         var offset = null, offsetObj = null, inputFocus = null;
         if (editingItems.length > 0) {
+            offsetObj = editingItems[editingItems.length - 1]; // fetch the latest item
             inputFocus = $(document.activeElement);
-            offsetObj = editingItems[0];
-            offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+            offset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+            if(offset == null) { // no matched elements => probably a note
+                offset = $("#" + offsetObj.id).offset();
+            }
         }
 
         var orderBy = $("#order-by").val();
@@ -1048,6 +1057,9 @@ $(document).ready(function () {
         if (offset !== null) {
             // Restore offset
             var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+            if(newOffset == null) {
+                newOffset = $("#" + offsetObj.id).offset();
+            }
             if (newOffset.top != offset.top) {
                 // Restore focus
                 var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
@@ -1718,7 +1730,6 @@ $(document).ready(function () {
      */
     var bulkCancel = function() {
         for (var i = 0; i < editingItems.length; i++) {
-            $("." + editingItems[i].id).toggleClass('hidden-edit');
             var bindEvent = null;
             if(editingItems[i].type == "story") {
                 bindEvent = editStory;
@@ -1729,7 +1740,11 @@ $(document).ready(function () {
             } else if(editingItems[i].type == "theme") {
                 bindEvent = editTheme;
             }
-            $('li#'+editingItems[i].id).dblclick(bindEvent);
+
+            if(bindEvent != null) {
+                $("." + editingItems[i].id).toggleClass('hidden-edit');
+                $('li#'+editingItems[i].id).dblclick(bindEvent);
+            }
         }
         editingItems = new Array();
         updateWhenItemsClosed();
@@ -1786,6 +1801,7 @@ $(document).ready(function () {
     var toggleNotesList = function(storyLi) {
         var moreNotesP = storyLi.find(".more-notes-loader-p");
         var notesFormDiv = $("#notes-form-" + storyLi.attr("id"));
+        var expanded = false;
 
         if (moreNotesP.hasClass("ui-hidden")) {
             moreNotesP.removeClass("ui-hidden");
@@ -1796,31 +1812,67 @@ $(document).ready(function () {
         } else {
             moreNotesP.addClass("ui-hidden");
             notesFormDiv.addClass("ui-hidden");
+            expanded = true;
         }
         
-        var notes = getNotes(storyLi.attr("id"));
-        var ul = storyLi.find("div.notes-container ul");
-        var ulChildren = ul.children();
-        if (ulChildren.length > 1) { // list open; close
-            $(ulChildren[ulChildren.length - 1]).find("div.note").addClass("single-note").click(showMoreNotes);
-            for (var i = 0; i < ulChildren.length - 1; i++) {
-                $(ulChildren[i]).remove();
-            }
+        if (expanded) { // list open; close
+            collapseNotesList(storyLi);
         } else { // list closed; open
-            // expand the description when the notes are expanded
-            storyLi.find("a.truncate" + storyLi.attr("id")).trigger('click');
-            ul.empty();
-
-            for (var i = notes.length - 1; i >= 0; i--) {
-                var note = notes[i];
-                updateNoteLi(note);
-            }
-            // scroll to bottom where the newest note is
-            ul.animate({ 
-                scrollTop: ul.prop("scrollHeight")},
-                500);
+            var showSysMsgs = storyLi.find(".show-sys-msgs").prop('checked');
+            expandNotesList(storyLi, showSysMsgs);
         }
 
+    };
+
+    /**
+     * Collapse the notes-list belonging to the
+     * specified story-li-element
+     * @param storyLi The li-element for the Story
+     */
+    var collapseNotesList = function(storyLi) {
+        var notes = getNotes(storyLi.attr("id"));
+        var ul = storyLi.find("div.notes-container ul");
+        ul.empty();
+        var singleNote = null;
+        for (var i = 0; i < notes.length; i++) {
+            if (notes[i].systemGenerated === false) {
+                singleNote = notes[i];
+                break;
+            }
+        }
+        if (singleNote != null) {
+            var noteLi = updateNoteLi(singleNote);
+            noteLi.find("div.note").addClass("single-note").click(showMoreNotes);
+        }
+    };
+
+    /**
+     * Expand the notes-list belonging to the specified
+     * story-li-element
+     * 
+     * @param storyLi
+     *            The li-element for the story
+     * @param inclSysMsgs
+     *            True to display system-generated messages as
+     *            well, or false to hide them
+     */
+    var expandNotesList = function(storyLi, inclSysMsgs) {
+        var notes = getNotes(storyLi.attr("id"));
+        var ul = storyLi.find("div.notes-container ul");
+        ul.empty();
+        // expand the description when the notes are expanded
+        storyLi.find("a.truncate" + storyLi.attr("id")).trigger('click');
+
+        for (var i = notes.length - 1; i >= 0; i--) {
+            var note = notes[i];
+            if (inclSysMsgs || inclSysMsgs === false && note.systemGenerated === false) {
+                updateNoteLi(note);
+            }
+        }
+        // scroll to bottom where the newest note is
+        ul.animate({ 
+            scrollTop: ul.prop("scrollHeight")},
+            500);
     };
 
     var editStory = function(event) {
@@ -1935,7 +1987,7 @@ $(document).ready(function () {
             $("textarea#theme"+storyId).val(escapeHtml(story.themeTitle));
             
             //auto resize the textareas to fit the text
-            $('textarea'+"."+storyId).autosize('');
+            $("textarea."+storyId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
@@ -2074,6 +2126,9 @@ $(document).ready(function () {
     
     /**
      * Finds and updates (or creates) a Note-li with new values
+     * @param updatedNote The new Note-object
+     * @param appendFirst True to prepend, rather than the default append
+     * @returns The updated or created li-object
      */
     var updateNoteLi = function(updatedNote, appendFirst) {
         var noteId = updatedNote.id;
@@ -2155,6 +2210,8 @@ $(document).ready(function () {
         if (scrollToBottom) {
             ulList.scrollTop(ulList.prop("scrollHeight"));
         }
+
+        return noteItem;
     };
 
     /**
@@ -2181,8 +2238,20 @@ $(document).ready(function () {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
 
                 var notes = getNotes(storyId);
-                if (notes.length > 0) {
-                    updateNoteLi(notes[0]);
+                var singleNote = null;
+                for(var i = 0; i < notes.length; i++) {
+                    if(notes[i].systemGenerated === false) {
+                        singleNote = notes[i];
+                        break;
+                    }
+                }
+                if(singleNote != null) {
+                    var noteLi = updateNoteLi(singleNote);
+                    noteLi.find("div.note").addClass("single-note").click(showMoreNotes);
+                }
+                
+                if(updatedStory.hasMoreNotes === true) {
+                    setLoadNotesBtnState(newItem.find("a.more-notes-loader"), 'more-to-load');
                 }
             } else if(view == "epic-story") {
                 newItem.attr('parentid', updatedStory.epicId);
@@ -2191,7 +2260,7 @@ $(document).ready(function () {
 
                 if(typeof parent !== "undefined") {
                     addChildToParent(parent, updatedStory, attr);
-                    
+
                     if(updatedStory[attr] > 1) {
                         $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
                     } else {
@@ -2433,7 +2502,7 @@ $(document).ready(function () {
             }
 
             //auto resize the textareas to fit the text
-            $('textarea'+"."+taskId).autosize('');
+            $("textarea."+taskId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:taskId});
             $("."+taskId).toggleClass('hidden-edit');
@@ -2628,7 +2697,7 @@ $(document).ready(function () {
             $('#archiveEpic' + epicId).prop('checked', epic.archived);
             
             //auto resize the textareas to fit the text
-            $('textarea'+"."+epicId).autosize('');
+            $('textarea.'+epicId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:epicId});
             $("."+epicId).toggleClass('hidden-edit');
@@ -2766,7 +2835,7 @@ $(document).ready(function () {
             $('#archiveTheme' + themeId).prop('checked', theme.archived);
 
             //auto resize the textareas to fit the text
-            $('textarea'+"."+themeId).autosize('');
+            $('textarea.'+themeId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:themeId});
             $("."+themeId).toggleClass('hidden-edit');
@@ -2943,6 +3012,16 @@ $(document).ready(function () {
     };
 
     /**
+     * Show or hide system-notes depending
+     * on the checkbox-status
+     */
+    var toggleSystemNotes = function(event) {
+        var checkbox = $(event.target);
+        var story = checkbox.closest('li.parentLi');
+        expandNotesList(story, checkbox.prop('checked'));
+    };
+
+    /**
      * Updates save all button when the last editing item is going out of edit mode.
      */
     var updateWhenItemsClosed = function() {
@@ -2996,14 +3075,14 @@ $(document).ready(function () {
                         return false; //Makes sure that no hashtag is appended to URL
                     }
                 });
+                if(view == "story-task") {
+                    notesMap = data.notesMap;
+                }
                 var archivedItems = data.archivedItems;
                 for (var i=0; i<archivedItems.length; i++) {
                     var childData = archivedItems[i].children;
                     archivedItems[i].children = new Array();
                     if (type == "Story") {
-                        if (view == "story-task" && archivedItems[i].latestNote != null && getNotes(archivedItems[i].id).length == 0) {
-                            getNotes(archivedItems[i].id).push(archivedItems[i].latestNote);
-                        }
                         updateStoryLi(archivedItems[i]);
                         for (var k = 0; k < childData.length; k++) {
                             updateTaskLi(childData[k]);
@@ -3171,11 +3250,10 @@ $(document).ready(function () {
             //$(".save-button."+id).button( "option", "disabled", false );
         });
 
-        if (loggedIn === true) {
+        if (typeof loggedIn !== "undefined" && loggedIn === true) {
             $(".note-textarea").keyup(function (e) {
                 if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
                     var storyId = $(this).closest("li.story").attr("id");
-                    editingItems.remove({id:storyId});
 
                     if ($(this).val().length > 0) { // prevent empty notes
                         postNote(parseInt(storyId), $(this).val());
@@ -3185,12 +3263,10 @@ $(document).ready(function () {
             });
 
             $(".note-textarea").focus(function(event) {
-                var storyId = $(this).closest("li.story").attr("id");
-                editingItems.push({id:storyId, type:"story"}); 
+                editingItems.push({id:$(this).attr("id"), type:"note"}); 
             });
             $(".note-textarea").blur(function(event) {
-                var storyId = $(this).closest("li.story").attr("id");
-                editingItems.remove({id:storyId}); 
+                editingItems.remove({id:$(this).attr("id"), type:"note"}); 
             });
         } else {
             $("div.notes-form").addClass("ui-hidden");
@@ -3198,6 +3274,7 @@ $(document).ready(function () {
         $(".more-notes-loader").click(fetchMoreNotesFromServer);
         $("a.more-notes").click(showMoreNotes);
         $("div.single-note").click(showMoreNotes);
+        $(".show-sys-msgs").click(toggleSystemNotes);
 
         if (disableEditsBoolean) {
             disableEdits();
@@ -3300,11 +3377,10 @@ $(document).ready(function () {
             $(this).autocomplete('enable');
         });
 
-        if (loggedIn === true) {
+        if (typeof loggedIn !== "undefined"  && loggedIn === true) {
             $(".note-textarea", elem).keyup(function (e) {
                 if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
                     var storyId = $(this).closest("li.story").attr("id");
-                    editingItems.remove({id:storyId});
 
                     if ($(this).val().length > 0) {
                         postNote(parseInt(storyId), $(this).val());
@@ -3313,12 +3389,10 @@ $(document).ready(function () {
                 }
             });
             $(".note-textarea", elem).focus(function(event) {
-                var storyId = $(this).closest("li.story").attr("id");
-                editingItems.push({id:storyId, type:"story"}); 
+                editingItems.push({id:$(this).attr("id"), type:"note"});
             });
             $(".note-textarea", elem).blur(function(event) {
-                var storyId = $(this).closest("li.story").attr("id");
-                editingItems.remove({id:storyId}); 
+                editingItems.remove({id:$(this).attr("id"), type:"note"});
             });
         } else {
             $("div.notes-form").addClass("ui-hidden");
@@ -3326,6 +3400,7 @@ $(document).ready(function () {
         $(".more-notes-loader", elem).click(fetchMoreNotesFromServer);
         $("a.more-notes", elem).click(showMoreNotes);
         $("div.single-note", elem).click(showMoreNotes);
+        $(".show-sys-msgs").click(toggleSystemNotes);
 
         //Stops textarea from making a new line when trying to save changes.
         $("textarea", elem).keydown(function(e){

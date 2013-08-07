@@ -210,17 +210,22 @@ public class Story {
     }
 
     /**
-     * Get the last created Note for this Story
-     * @return The latest Note, or null if no Notes exist
+     * Get the last created non-system-generated Note for this Story
+     * @return A Note, or null if none are found
      */
-    public Note getLatestNote() {
+    public Note getLatestNonSystemNote() {
+        Note latestNote = null;
         if (notes != null) {
             Iterator<Note> itr = notes.iterator();
-            if (itr.hasNext()) {
-                return itr.next();
+            Note tmpNote = null;
+            while(itr.hasNext() && latestNote == null) {
+                tmpNote = itr.next();
+                if(!tmpNote.isSystemGenerated()) {
+                    latestNote = tmpNote;
+                }
             }
         }
-        return null;
+        return latestNote;
     }
     
     /**
@@ -480,7 +485,7 @@ public class Story {
      * Returns true if this Story has more than one note in total
      * @return True if more than one note, otherwise false
      */
-    public boolean hasMoreNotes() {
+    public boolean getHasMoreNotes() {
         return notes != null && notes.size() > 1;
     }
 
