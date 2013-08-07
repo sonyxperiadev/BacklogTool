@@ -3045,7 +3045,7 @@ $(document).ready(function () {
                 li.after(children);
             }
 
-            if (jsonData.children.length > 0) {
+            if (jsonData.children != null && jsonData.children.length > 0) {
                 var iconDiv = li.find('div.icon');
                 if (visible[jsonData.children[0].id]) {
                     iconDiv.addClass('ui-icon-triangle-1-s');
