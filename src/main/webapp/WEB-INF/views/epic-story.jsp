@@ -72,16 +72,33 @@ THE SOFTWARE.
                 <c:set var="story" value="${placeholderStory}"/>
                 <%@ include file="/WEB-INF/views/placeholders/story.jsp"%>
             </div>
+            <div id="story-oneline-placeholder" class="placeholder">
+                <c:set var="story" value="${placeholderStory}" />
+                <%@ include file="/WEB-INF/views/placeholders/story-oneline.jsp"%>
+            </div>
+            <div id="epic-oneline-placeholder" class="placeholder">
+                <c:set var="epic" value="${placeholderEpic}" />
+                <%@ include file="/WEB-INF/views/placeholders/epic-oneline.jsp"%>
+            </div>
 
             <div id="list-container-div">
+
+                <div id="table-header">
+                    <p class="oneline header-item header-id">ID</p>
+                    <p class="oneline header-item header-title">Title</p>
+                    <c:if test="${archivedView}">
+                        <p class="oneline header-item small-item">Archived</p>
+                    </c:if>
+                </div>
+
                 <ul class="parent-child-list" id="list-container">
 
                     <c:forEach var="epic" items="${nonArchivedEpics}">
                         <c:set var="hidden" value="${filterIds != null && !filterIds.contains(epic.id)}"/>
-                        <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
+                        <%@ include file="/WEB-INF/views/placeholders/epic-oneline.jsp" %>
                         <c:set var="hidden" value="${true}"/>
                         <c:forEach var="story" items="${epic.children}">
-                            <%@ include file="/WEB-INF/views/placeholders/story.jsp" %>
+                            <%@ include file="/WEB-INF/views/placeholders/story-oneline.jsp" %>
                         </c:forEach>
                     </c:forEach>
                 </ul>

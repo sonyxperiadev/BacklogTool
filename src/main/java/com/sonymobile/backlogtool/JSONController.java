@@ -83,7 +83,7 @@ import com.sonymobile.backlogtool.permission.User;
 @RequestMapping(value="/json")
 public class JSONController {
 
-    public static final int ELEMENTS_PER_ARCHIVED_PAGE = 10;
+    public static final int ELEMENTS_PER_ARCHIVED_PAGE = 20;
     public static final int NOTES_PER_PART = 10;
     public static final String STORY_TASK_VIEW = "story-task";
     public static final String EPIC_STORY_VIEW = "epic-story";

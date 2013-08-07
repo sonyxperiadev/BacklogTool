@@ -173,6 +173,8 @@ $(document).ready(function () {
     var KEYCODE_CTRL = 17;
     var MAX_NOTES = 10;
 
+    var allExpanded = false;
+
     $("#header-buttons").removeClass("elem-hidden-children elem-loading");
 
     /**
@@ -247,7 +249,7 @@ $(document).ready(function () {
         if (storyAttr == null || storyAttr.iconEnabled == false) {
             return '';
         }
-        return '<img src="../resources/image/'+storyAttr.icon+'" title="' + getNameIfExists(storyAttr) + '"/> ';
+        return '<img src="../resources/image/'+storyAttr.icon+'"/> ';
     };
 
     //fix for trim
@@ -468,21 +470,22 @@ $(document).ready(function () {
                 if (data.latestNonSystemNote != null && getNotes(data.id).length == 0) {
                     getNotes(data.id).push(data.latestNonSystemNote);
                 }
-                updateStoryLi(data);
+                updateStoryLi(data, !allExpanded);
                 for(var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
                 }
+                updateTypeMarkWidth();
             } else if(jsonObj.type == "Task") {
                 updateTaskLi(data);
             } else if(jsonObj.type == "Epic") {
-                updateEpicLi(data);
+                updateEpicLi(data, !allExpanded);
                 for(var i = 0; i < childData.length; i++) {
-                    updateStoryLi(childData[i]);
+                    updateStoryLi(childData[i], !allExpanded);
                 }
             } else if(jsonObj.type == "Theme") {
-                updateThemeLi(data);
+                updateThemeLi(data, !allExpanded);
                 for(var i = 0; i < childData.length; i++) {
-                    updateEpicLi(childData[i]);
+                    updateEpicLi(childData[i], !allExpanded);
                 }
             } else if(jsonObj.type == "Delete") {
                 removeItem(data);
@@ -854,8 +857,8 @@ $(document).ready(function () {
     };
 
     /**
-     * Add the child to the parent, and update the specified attribute
-     * accordingly (e.g. the prioInTheme)
+     * Add the child to the parent if it does not already exist,
+     * and update the specified attribute accordingly (e.g. the prioInTheme)
      * @param parentObj The parent to add the child to
      * @param childObj The child to add
      * @param The name of the child's attribute to update (e.g. prioInTheme)
@@ -866,13 +869,21 @@ $(document).ready(function () {
             children = new Array();
             parentObj.children = children; 
         }
-        if(typeof childObj[attr] === "undefined") {
-            childObj[attr] = children.length + 1; // Put it as the last element
+        var alreadyExists = false;
+        for (var i=0; i<children.length; i++) {
+            if (children[i].id == childObj.id) {
+                alreadyExists = true;
+            }
         }
-        /* Insert the child-object (Task/Story/Epic) */ 
-        children.splice(childObj[attr] - 1, 0, childObj);
-        for(var i = 0; i < children.length; i++) { // Update the prio for all children
-            children[i][attr] = i + 1;
+        if (!alreadyExists) {
+            if (typeof childObj[attr] === "undefined") {
+                childObj[attr] = children.length + 1; // Put it as the last element
+            }
+            /* Insert the child-object (Task/Story/Epic) */ 
+            children.splice(childObj[attr] - 1, 0, childObj);
+            for (var i = 0; i < children.length; i++) { // Update the prio for all children
+                children[i][attr] = i + 1;
+            }
         }
     };
 
@@ -910,7 +921,6 @@ $(document).ready(function () {
                 }
             }
         });
-        $( "#list-container" ).sortable("refresh");
     };
 
     var isNumeric = function(val) {
@@ -1358,6 +1368,7 @@ $(document).ready(function () {
                     editTask(newTask.id);
                     scrollTo(newTask.id);
                     focusAndSelectText("taskTitle"+newTask.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(request, status, error) {
@@ -1408,6 +1419,7 @@ $(document).ready(function () {
                     editStory(newStory.id);
                     scrollTo(newStory.id);
                     focusAndSelectText("title"+newStory.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(error) {
@@ -1459,6 +1471,7 @@ $(document).ready(function () {
                     $.unblockUI();
                     scrollTo(newEpic.id);
                     focusAndSelectText("epicTitle" + newEpic.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(error) {
@@ -1497,6 +1510,7 @@ $(document).ready(function () {
                     editTheme(newTheme.id);
                     scrollTo(newTheme.id);
                     focusAndSelectText("themeTitle" + newTheme.id);
+                    updateTypeMarkWidth();
                 }
             },
             error : function(error) {
@@ -1880,8 +1894,13 @@ $(document).ready(function () {
         if (typeof event == "number") {
             storyId = event;
         } else {
-            storyId = $(this).attr('id');
+            storyId = parseInt($(this).attr('id'));
         }
+
+        if ($("li#" + storyId).hasClass("oneline-li")) {
+            expandOneline(storyId);
+        }
+
         if (view == "story-task") {
             var story = getParent(storyId);
         } else {
@@ -2062,9 +2081,9 @@ $(document).ready(function () {
     var handleNewParentItem = function(lastItemObj, newItemLi, newItemObj, ulObj) {
         incrPrioForParents(newItemObj.prio);
         putParent(newItemObj.id, newItemObj);
-        
+
         putInCorrPrioPos(ulObj, lastItemObj, newItemLi);
-        
+
         if($('#order-by').val() != "prio") {
             sortList(ulObj);
         } 
@@ -2079,21 +2098,25 @@ $(document).ready(function () {
      * @param liObj The li-element to put in the list
      */
     var putInCorrPrioPos = function(ulObj, lastItemObj, liObj) {
-        var items = $('li#' + liObj.attr("id") + ', [parentId="'+ liObj.attr("id") +'"]');
-        if(items.length == 0) {
-            items = liObj;
+        var parent = $('li.parentLi#' + liObj.attr("id"));
+        var children = $('li.childLi[parentId="'+ liObj.attr("id") +'"]');
+        if (parent.length == 0) {
+            parent = liObj;
         }
-        if(items != null) {
-            if(typeof lastItemObj !== "undefined" && lastItemObj != null) {
+        if (parent != null) {
+            if (typeof lastItemObj !== "undefined" && lastItemObj != null) {
                 var putAfter = getParentOrLastChildElement(lastItemObj.id);
 
-                if(putAfter != null) {
-                    putAfter.after(items);
+                if (putAfter != null) {
+                    putAfter.after(children);
+                    putAfter.after(parent);
                 } else {
-                    ulObj.append(items);
+                    ulObj.append(parent);
+                    ulObj.append(children);
                 }
-            } else if($("li#" + liObj.attr("id"), ulObj).length == 0) {
-                ulObj.append(items);
+            } else if ($('li.parentLi#' + liObj.attr("id")).length == 0) {
+                ulObj.append(parent);
+                ulObj.append(children);
             }
         }
     };
@@ -2216,8 +2239,10 @@ $(document).ready(function () {
 
     /**
      * Finds and updates a story li-element with new values.
+     * @param updatedStory JSON data for the updated story
+     * @param oneline set to true if it should be rendered in oneline mode
      */
-    var updateStoryLi = function(updatedStory) {
+    var updateStoryLi = function(updatedStory, oneline) {
         var storyId = updatedStory.id;
 
         var ulObj = null;
@@ -2228,7 +2253,12 @@ $(document).ready(function () {
         }
 
         if($('li#' + storyId + '.story').length == 0) { //Was a new story
-            var divItem = $('div#story-placeholder').clone();
+            var divItem = null;
+            if (oneline) {
+                divItem = $('div#story-oneline-placeholder').clone();
+            } else {
+                divItem = $('div#story-placeholder').clone();
+            }
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
 
@@ -2259,13 +2289,13 @@ $(document).ready(function () {
                 var attr = 'prioInEpic';
 
                 if(typeof parent !== "undefined") {
-                    addChildToParent(parent, updatedStory, attr);
 
                     if(updatedStory[attr] > 1) {
                         $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
                     }
+                    addChildToParent(parent, updatedStory, attr);
                     toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
                 }
             }
@@ -2291,12 +2321,13 @@ $(document).ready(function () {
 
     var updateStoryLiContent = function(story) {
         var storyId = story.id;
-        $('.titles, .titles-epic-story').find('p.titleText.'+storyId).html(story.title);
-        $('.titles, .titles-epic-story').find('p.theme.'+storyId).html((story.themeTitle != undefined) ? story.themeTitle : "");
-        $('.titles, .titles-epic-story').find('p.epic.'+storyId).html((story.epicTitle != undefined) ? story.epicTitle : "");
+        var storyLi = $("li#" + storyId);
+        storyLi.find('.titleText').html(story.title);
+        storyLi.find('.theme').html((story.themeTitle != undefined) ? story.themeTitle : "");
+        storyLi.find('.epic').html((story.epicTitle != undefined) ? story.epicTitle : "");
 
         //Re-add truncate on the description paragraph
-        var descriptionParagraph = $('.titles, .titles-epic-story, .titles-theme-epic').find('p.description.'+storyId);
+        var descriptionParagraph = storyLi.find('.story-description');
         descriptionParagraph = untruncate(descriptionParagraph, story.description);
         descriptionParagraph.truncate(
                 $.extend({}, truncateOptions, {className: 'truncate'+storyId})
@@ -2305,32 +2336,74 @@ $(document).ready(function () {
             $('a.truncate'+storyId, descriptionParagraph.parent()).click();
         }
 
-        $('.stakeholders').find('p.customerSite.'+storyId).empty().append(getSiteImage(story.customerSite));
-        $('.stakeholders').find('p.customer.'+storyId).html(story.customer);
+        storyLi.find('p.customerSite').html(getSiteImage(story.customerSite));
+        storyLi.find('p.customer').html(story.customer);
 
-        $('.stakeholders').find('p.contributorSite.'+storyId).empty().append(getSiteImage(story.contributorSite));
-        $('.stakeholders').find('p.contributor.'+storyId).html(story.contributor);
+        storyLi.find('p.contributorSite').html(getSiteImage(story.contributorSite));
+        storyLi.find('p.contributor').html(story.contributor);
 
-        $('.times').find('p.added.' + storyId).html(getDate(story.added));
-        $('.times').find('p.deadline.' + storyId).html(getDate(story.deadline));
+        storyLi.find('p.added').html(getDate(story.added));
+        storyLi.find('p.deadline').html(getDate(story.deadline));
 
-        $('.story-attr1-2').find('p.story-attr1.' + storyId).empty().append(getAttrImage(story.storyAttr1)).append(getNameIfExists(story.storyAttr1));
-        $('.story-attr1-2').find('p.story-attr2.' + storyId).empty().append(getAttrImage(story.storyAttr2)).append(getNameIfExists(story.storyAttr2));
-        $('.story-attr3').find('p.story-attr3.' + storyId).empty().append(getAttrImage(story.storyAttr3)).append(getNameIfExists(story.storyAttr3));
+        storyLi.find('p.story-attr1').html(getAttrImage(story.storyAttr1)+getNameIfExists(story.storyAttr1));
+        storyLi.find('p.story-attr2').html(getAttrImage(story.storyAttr2)+getNameIfExists(story.storyAttr2));
+        storyLi.find('p.story-attr3').html(getAttrImage(story.storyAttr3)+getNameIfExists(story.storyAttr3));
 
         if (story.archived == true) {
-            $('p#archived-text' + storyId).text("Archived");
-            $('p#date-archived' + storyId).html(getDate(story.dateArchived));
+            $('#archived-text' + storyId).text("Archived");
+            $('#date-archived' + storyId).html(getDate(story.dateArchived));
             $('#archiveStory' + storyId).attr('checked', true);
         } else {
-            $('p#archived-text' + storyId).text("");
-            $('p#date-archived' + storyId).text("");
+            $('#archived-text' + storyId).text("");
+            $('#date-archived' + storyId).text("");
             $('#archiveStory' + storyId).attr('checked', false);
         }
 
         if (story.hasMoreNotes === false) {
             setLoadNotesBtnState($("#" + storyId + " a.more-notes-loader"), 'all-loaded');
         }
+        var oneline = $("li#" + storyId + ".oneline-li");
+        oneline.find(".title-span").html(story.title);
+        var storyAttr1 = oneline.find('.story-attr1');
+        var storyAttr2 = oneline.find('.story-attr2');
+        var storyAttr3 = oneline.find('.story-attr3');
+        var deadLine = oneline.find('.deadline');
+        var dateArchived = oneline.find('.date-archived');
+
+        storyAttr1.html(getAttrImage(story.storyAttr1)+getNameIfExists(story.storyAttr1));
+        storyAttr2.html(getAttrImage(story.storyAttr2)+getNameIfExists(story.storyAttr2));
+        storyAttr3.html(getAttrImage(story.storyAttr3)+getNameIfExists(story.storyAttr3));
+        deadLine.html(getDate(story.deadline));
+        dateArchived.html(getDate(story.dateArchived));
+
+        //Add hover titles to the p tag since the header only displays
+        //explanations for the parents
+        if (story.storyAttr1 == null) {
+            storyAttr1.attr("title", "");
+        } else {
+            storyAttr1.attr("title", area.storyAttr1.name);
+        }
+        if (story.storyAttr2 == null) {
+            storyAttr2.attr("title", "");
+        } else {
+            storyAttr2.attr("title", area.storyAttr2.name);
+        }
+        if (story.storyAttr3 == null) {
+            storyAttr3.attr("title", "");
+        } else {
+            storyAttr3.attr("title", area.storyAttr3.name);
+        }
+        if (story.deadline == null) {
+            deadLine.attr("title", "");
+        } else {
+            deadLine.attr("title", "Deadline");
+        }
+        if (story.dateArchived == null) {
+            dateArchived.attr("title", "");
+        } else {
+            dateArchived.attr("title", "Date archived");
+        }
+
     };
 
     /**
@@ -2383,10 +2456,9 @@ $(document).ready(function () {
     var toggleExpandBtn = function(parentLi, childLi, childrenArr) {
         var iconDiv = parentLi.find('div.icon');
         $('.expand-icon', parentLi).unbind('click', expandClick);
-        iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
         var visibleChild;
-        if(childrenArr.length > 0 && $('li#' + childrenArr[0].id).css('display') == 'list-item') {
+        if (iconDiv.hasClass("ui-icon-triangle-1-s")) {
             visibleChild = true;
             childLi.css('display', 'list-item');
             childLi.removeClass("ui-hidden");
@@ -2399,6 +2471,8 @@ $(document).ready(function () {
         childLi.each(function() {
             visible[$(this).attr("id")] = visibleChild;
         });
+
+        iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
         if(childrenArr.length > 0) {
             if(visibleChild) {
@@ -2418,7 +2492,7 @@ $(document).ready(function () {
     var expandParentForChild = function(childId) {
         findChild(childId, function(childObj, parentObj, posInParent) {
             var iconDiv = $("li#" + parentObj.id).find("div.icon");
-            if(iconDiv.hasClass("ui-icon-triangle-1-e")) {
+            if (iconDiv.hasClass("ui-icon-triangle-1-e")) {
                 toggleChildren(iconDiv);
             }
         });
@@ -2441,15 +2515,15 @@ $(document).ready(function () {
             newItem.attr('parentid', updatedTask.parentId);
 
             var parent = getParent(updatedTask.parentId);
-            addChildToParent(parent, updatedTask, 'prioInStory');
             var children = parent.children;
-            toggleExpandBtn(parentLi, newItem, children);
 
             if(updatedTask.prioInStory > 1) {
                 $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
             } else {
                 $('li#' + updatedTask.parentId + '.story').after(newItem);
             }
+            addChildToParent(parent, updatedTask, 'prioInStory');
+            toggleExpandBtn(parentLi, newItem, children);
 
             bindEventsToItem(newItem);
         } else {
@@ -2477,7 +2551,7 @@ $(document).ready(function () {
             taskId = event;
         }
         else {
-            taskId = $(this).closest('li').attr('id');
+            taskId = parseInt($(this).closest('li').attr('id'));
         }
         var task = getChild(taskId);
         if (isGoingIntoEdit(taskId)) {
@@ -2572,9 +2646,11 @@ $(document).ready(function () {
     };
 
     /**
-     * Finds and updates a epic li-element with new values.
+     * Finds and updates an epic li-element with new values.
+     * @param updatedStory JSON data for the updated epic
+     * @param oneline set to true if it should be rendered in oneline mode
      */
-    var updateEpicLi = function(updatedEpic) {
+    var updateEpicLi = function(updatedEpic, oneline) {
         var epicId = updatedEpic.id;
 
         var ulObj = null;
@@ -2585,7 +2661,12 @@ $(document).ready(function () {
         }
 
         if($('li#' + epicId + '.epic').length == 0) {
-            var divItem = $('div#epic-placeholder').clone();
+            var divItem = null;
+            if (oneline) {
+                divItem = $('div#epic-oneline-placeholder').clone();
+            } else {
+                divItem = $('div#epic-placeholder').clone();
+            }
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, epicId); // Replace all occurences of -1
             
@@ -2601,14 +2682,14 @@ $(document).ready(function () {
                 var parent = getParent(updatedEpic.themeId);
                 var attr = 'prioInTheme';
                 if(typeof parent !== "undefined") {
-                    addChildToParent(parent, updatedEpic, attr);
                     
                     if(updatedEpic[attr] > 1) {
                         $('li#' + (parent.children[updatedEpic[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
                     }
-                    
+
+                    addChildToParent(parent, updatedEpic, attr);
                     toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
                 }
             }
@@ -2646,6 +2727,17 @@ $(document).ready(function () {
             $('p#date-archived' + epicId).text("");
             $('#archiveEpic' + epicId).attr('checked', false);
         }
+
+        var oneline = $("li#" + epicId + ".oneline-li");
+        oneline.find(".title-span").html(updatedEpic.title);
+        var dateArchived = oneline.find('.date-archived');
+        dateArchived.html(getDate(updatedEpic.dateArchived));
+
+        if (updatedEpic.dateArchived == null) {
+            dateArchived.attr("title", "");
+        } else {
+            dateArchived.attr("title", "Date archived");
+        }
     };
 
     var editEpic = function(event) {
@@ -2654,8 +2746,13 @@ $(document).ready(function () {
             epicId = event;
         }
         else {
-            epicId = $(this).closest('li').attr('id');
+            epicId = parseInt($(this).closest('li').attr('id'));
         }
+
+        if ($("li#" + epicId).hasClass("oneline-li")) {
+            expandOneline(epicId);
+        }
+
         if (view == "epic-story") {
             var epic = getParent(epicId);
         } else {
@@ -2752,8 +2849,10 @@ $(document).ready(function () {
 
     /**
      * Finds and updates a theme li-element with new values.
+     * @param updatedStory JSON data for the updated theme
+     * @param oneline set to true if it should be rendered in oneline mode
      */
-    var updateThemeLi = function(updatedTheme) {
+    var updateThemeLi = function(updatedTheme, oneline) {
         var themeId = updatedTheme.id;
 
         var ulObj = null;
@@ -2764,7 +2863,12 @@ $(document).ready(function () {
         }
 
         if($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
-            var divItem = $('div#theme-placeholder').clone();
+            var divItem = null;
+            if (oneline) {
+                divItem = $('div#theme-oneline-placeholder').clone();
+            } else {
+                divItem = $('div#theme-placeholder').clone();
+            }
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, themeId); // Replace all occurences of -1
 
@@ -2804,6 +2908,17 @@ $(document).ready(function () {
             $('#archiveTheme' + themeId).attr('checked', false);
         }
 
+        var oneline = $("li#" + themeId + ".oneline-li");
+        oneline.find(".title-span").html(updatedTheme.title);
+        var dateArchived = oneline.find('.date-archived');
+        dateArchived.html(getDate(updatedTheme.dateArchived));
+
+        if (updatedTheme.dateArchived == null) {
+            dateArchived.attr("title", "");
+        } else {
+            dateArchived.attr("title", "Date archived");
+        }
+
     };
 
     var editTheme = function(event) {
@@ -2811,8 +2926,13 @@ $(document).ready(function () {
         if (typeof event == "number") {
             themeId = event;
         } else {
-            themeId = $(this).closest('li').attr('id');
+            themeId = parseInt($(this).closest('li').attr('id'));
         }
+
+        if ($("li#" + themeId).hasClass("oneline-li")) {
+            expandOneline(themeId);
+        }
+
         if (view == "theme-epic") {
             var theme = getParent(themeId);
         } else {
@@ -3083,23 +3203,25 @@ $(document).ready(function () {
                     var childData = archivedItems[i].children;
                     archivedItems[i].children = new Array();
                     if (type == "Story") {
-                        updateStoryLi(archivedItems[i]);
+                        updateStoryLi(archivedItems[i],true);
                         for (var k = 0; k < childData.length; k++) {
                             updateTaskLi(childData[k]);
                         }
                     } else if (type == "Epic") {
-                        updateEpicLi(archivedItems[i]);
+                        updateEpicLi(archivedItems[i], true);
                         for (var k = 0; k < childData.length; k++) {
-                            updateStoryLi(childData[k]);
+                            updateStoryLi(childData[k], true);
                         }
                     } else if (type == "Theme") {
-                        updateThemeLi(archivedItems[i]);
+                        updateThemeLi(archivedItems[i], true);
                         for (var k = 0; k < childData.length; k++) {
-                            updateEpicLi(childData[k]);
+                            updateEpicLi(childData[k], true);
                         }
                     }
                     //TODO: Make sure that sort is not called several times
                 }
+
+                updateTypeMarkWidth();
             }
         });
     };
@@ -3280,6 +3402,10 @@ $(document).ready(function () {
             disableEdits();
         }
 
+        $(".oneline.title-span").click(expandOneline);
+
+        updateTypeMarkWidth();
+
         if (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio") {
             $("#list-container").sortable("option", "disabled", true);
         }
@@ -3287,9 +3413,165 @@ $(document).ready(function () {
         addZebraStripesToParents();
     };
 
+    /**
+     * Sets the same width for all typemarks (for example "Story 42")
+     */
+    var updateTypeMarkWidth = function() {
+        $(".typeMark").css("width", "auto");
+        var maxWidth = 0;
+        $(".typeMark").each(function (index) {
+            var width = $(this).width();
+            if (width == 0) {
+                //The item is probably in a hidden container;
+                //clone it and get the width.
+                var clone = $(this).clone();
+                clone.attr("style", "position: absolute !important; top: -100px !important;");
+                clone.appendTo("body");
+                width = clone.width();
+                clone.remove();
+            }
+            if (width > maxWidth) {
+                maxWidth = width;
+            }
+        });
+        $(".typeMark, .header-id").width(maxWidth);
+    };
+
+    /**
+     * Expands a backlogitem from oneline mode.
+     */
+    var expandOneline = function(event, ignoreEffects) {
+        var li = null;
+        var id = null;
+
+        if (typeof event == "number") {
+            id = event;
+            li = $("li#" + id);
+        } else {
+            li = $(this).closest("li");
+            id = li.attr("id");
+        }
+
+        var lastId = li.prev("li").attr("id");
+
+        var jsonData = getParent(id);
+        if (jsonData == null) {
+            jsonData = getChild(id);
+        } else {
+            var lastItem = new Object();
+            lastItem.id = lastId;
+            jsonData.lastItem = lastItem;
+        }
+        li.remove();
+        if (li.hasClass("story")) {
+            updateStoryLi(jsonData);
+        } else if (li.hasClass("epic")) {
+            updateEpicLi(jsonData);
+        } else if (li.hasClass("theme")) {
+            updateThemeLi(jsonData);
+        }
+
+        li = $("li#" + id);
+        if (lastId == null) {
+            //Move the item to top.
+            li.prependTo(li.parent());
+            var children = $('li.childLi[parentId="'+ id +'"]');
+            li.after(children);
+        }
+
+        if (!ignoreEffects) {
+            var height = li.height();
+            li.height("20px");
+
+            li.animate({height: height}, 200, function(){
+                li.css("height", "auto");
+            });
+            unselectAll();
+            if (li.hasClass("parentLi")) {
+                selectItem({id:id, type:"parent"});
+            } else if (li.hasClass("childLi")) {
+                selectItem({id:id, type:"child"});
+            }
+            updateCookie();
+            addZebraStripesToParents();
+        }
+
+        if (jsonData.children != null && jsonData.children.length > 0) {
+            var iconDiv = li.find('div.icon');
+            if (visible[jsonData.children[0].id]) {
+                iconDiv.addClass('ui-icon-triangle-1-s');
+            } else {
+                iconDiv.addClass('ui-icon-triangle-1-e');
+            }
+            iconDiv.addClass('expand-icon ui-icon');
+            $('.expand-icon', li).bind('click', expandClick);
+        }
+    };
+
+    /**
+     * Collapses a backlog item to oneline mode.
+     */
+    var collapseOneline = function() {
+        var li = $(this).closest("li");
+        var id = li.attr("id");
+        var lastId = li.prev("li").attr("id");
+
+        var jsonData = getParent(id);
+        if (jsonData == null) {
+            jsonData = getChild(id);
+        } else {
+            var lastItem = new Object();
+            lastItem.id = lastId;
+            jsonData.lastItem = lastItem;
+        }
+
+        li.animate({height: 20}, 200, function(){
+            li.remove();
+            if (li.hasClass("story")) {
+                updateStoryLi(jsonData, true);
+            } else if (li.hasClass("epic")) {
+                updateEpicLi(jsonData, true);
+            } else if (li.hasClass("theme")) {
+                updateThemeLi(jsonData, true);
+            }
+            li = $("li#" + id);
+
+            if (lastId == null) {
+                //Move the item to top.
+                li.prependTo(li.parent());
+                var children = $('li.childLi[parentId="'+ id +'"]');
+                li.after(children);
+            }
+
+            if (jsonData.children != null && jsonData.children.length > 0) {
+                var iconDiv = li.find('div.icon');
+                if (visible[jsonData.children[0].id]) {
+                    iconDiv.addClass('ui-icon-triangle-1-s');
+                } else {
+                    iconDiv.addClass('ui-icon-triangle-1-e');
+                }
+                iconDiv.addClass('expand-icon ui-icon');
+                $('.expand-icon', li).bind('click', expandClick);
+            }
+
+            unselectAll();
+            if (li.hasClass("parentLi")) {
+                selectItem({id:id, type:"parent"});
+            } else if (li.hasClass("childLi")) {
+                selectItem({id:id, type:"child"});
+            }
+            updateCookie();
+            addZebraStripesToParents();
+        });
+    };
+
     bindEventsToItem = function (elem) {
         var elemId = elem.attr("id");
-        $( "#list-container" ).sortable("refresh");
+
+        //Call refresh when excessive calls for bindEventsToItem has stopped
+        delay(function() {
+            $("#list-container").sortable("refresh");
+        }, 250 );
 
         elem.click(liClick);
         elem.mousedown(function () {
@@ -3299,11 +3581,11 @@ $(document).ready(function () {
             $(".parent-child-list").children("li").removeClass("over");
         });
 
-        $(".bindChange").change( function(event){
+        $(".bindChange", elem).change( function(event){
             $('#save-all').button( "option", "disabled", false );
         });
 
-        $(".bindChange").bind('input propertychange', function(event) {
+        $(".bindChange", elem).bind('input propertychange', function(event) {
             $("#save-all").button( "option", "disabled", false );
         });
 
@@ -3318,15 +3600,17 @@ $(document).ready(function () {
             cloneItem($(this), true);
         });
 
-        $("#" + elemId + ".editTheme").unbind("dblclick");
-        $("#" + elemId + ".editEpic").unbind("dblclick");
-        $("#" + elemId + ".editStory").unbind("dblclick");
-        $("#" + elemId + ".editTask").unbind("dblclick");
+        elem.unbind("dblclick");
 
-        $("#" + elemId + ".editTheme").dblclick(editTheme);
-        $("#" + elemId + ".editEpic").dblclick(editEpic);
-        $("#" + elemId + ".editStory").dblclick(editStory);
-        $("#" + elemId + ".editTask").dblclick(editTask);
+        if (elem.hasClass("editStory")) {
+            elem.dblclick(editStory);
+        } else if (elem.hasClass("editTask")) {
+            elem.dblclick(editTask);
+        } else if (elem.hasClass("editEpic")) {
+            elem.dblclick(editEpic);
+        } else if (elem.hasClass("editTheme")) {
+            elem.dblclick(editTheme);
+        }
         //This avoids exiting edit mode if an element inside a theme, epic, story or task is double clicked.
         $(".bindChange", elem).dblclick(function(event) {
             event.stopPropagation();
@@ -3412,8 +3696,11 @@ $(document).ready(function () {
         if (disableEditsBoolean) {
             disableEdits();
         }
+
+        $("p.titleText", elem).click(collapseOneline);
+        $(".oneline.title-span", elem).click(expandOneline);
     };
-    
+
     var setHeightAndMargin = function (value) {
         $("#list-container-div").css("margin", value+"px auto");
     };
@@ -3609,28 +3896,36 @@ $(document).ready(function () {
         }
     }).click(bulkSave);
     $("#expand-all").click(function() {
-        iterAllParents(function(parent) {
-            for (var j = 0; j < parent.children.length; ++j) {
-              var currentChildId = parent.children[j].id;
-              visible[currentChildId] = true;
-          }
-          var expBtn = $("li#" + parent.id).find("div.icon");
-          if(expBtn.hasClass("ui-icon-triangle-1-e")) {
-              toggleChildren(expBtn);
-          }
-        });
+        allExpanded = true;
+        displayUpdateMsg();
+        setTimeout(function() {
+            //setTimeout is used in order to let the browser show the updating message
+            //before running heavy operations.
+            $("li.oneline-li").each(function() {
+                var id = parseInt($(this).attr("id"));
+                if (id != -1) {
+                    expandOneline(id, true);
+                }
+            });
+
+            iterAllParents(function(parent) {
+                var expBtn = $("li#" + parent.id).find("div.icon");
+                if(expBtn.hasClass("ui-icon-triangle-1-e")) {
+                    toggleChildren(expBtn);
+                }
+            });
+
+            for (var i = 0; i < selectedItems.length; ++i) {
+                $('li[id|=' + selectedItems[i].id + ']').addClass("ui-selected");
+            }
+            $( "#list-container" ).sortable("refresh");
+
+            addZebraStripesToParents();
+            $.unblockUI();
+        },50);
     });
     $("#collapse-all").click(function() {
-        iterAllParents(function(parent) {
-            for (var j=0; j < parent.children.length; ++j) {
-                var currentChildId = parent.children[j].id;
-                visible[currentChildId] = false;
-            }
-            var expBtn = $("li#" + parent.id).find("div.icon");
-            if(expBtn.hasClass("ui-icon-triangle-1-s")) {
-                toggleChildren(expBtn);
-            }
-        });
+        location.reload();
     });
 
     $(".showArchive").buttonset();
@@ -3729,7 +4024,7 @@ $(document).ready(function () {
             bulkSave();
         }
         if (e.keyCode == KEYCODE_ESC) {
-            bulkCancel();
+            location.reload();
         }
         if (e.which == KEYCODE_CTRL) {
             isCtrl = false;
