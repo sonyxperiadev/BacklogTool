@@ -56,35 +56,49 @@
             </span>
         </p>
 
-        <p class="oneline attr-text story-attr1">
+        <p class="oneline attr-text story-attr1" 
+            <c:if test='${story.storyAttr1 != null}'>
+                title="${area.storyAttr1.name}"
+            </c:if>
+        >
             <c:if test='${story.storyAttr1 != null && story.storyAttr1.iconEnabled}'>
-                <img class="attr-icon" src="../resources/image/${story.storyAttr1.icon}"
-                    title="${story.storyAttr1.name}" /></c:if> 
-                    ${story.storyAttr1.name}
+                <img class="attr-icon" src="../resources/image/${story.storyAttr1.icon}" /></c:if> 
+                ${story.storyAttr1.name}
         </p>
 
-        <p class="oneline attr-text story-attr2">
+        <p class="oneline attr-text story-attr2" 
+            <c:if test='${story.storyAttr2 != null}'>
+                title="${area.storyAttr2.name}"
+            </c:if>
+        >
             <c:if test='${story.storyAttr2 != null && story.storyAttr2.iconEnabled}'>
-                <img class="attr-icon" src="../resources/image/${story.storyAttr2.icon}"
-                    title="${story.storyAttr2.name}" /></c:if> 
+                <img class="attr-icon" src="../resources/image/${story.storyAttr2.icon}" /></c:if> 
                 ${story.storyAttr2.name}
         </p>
 
-        <p class="oneline attr-text story-attr3">
+        <p class="oneline attr-text story-attr3" 
+            <c:if test='${story.storyAttr3 != null}'>
+                title="${area.storyAttr3.name}"
+            </c:if>
+        >
             <c:if test='${story.storyAttr3 != null && story.storyAttr3.iconEnabled}'>
-                <img class="attr-icon" src="../resources/image/${story.storyAttr3.icon}"
-                    title="${story.storyAttr3.name}" /></c:if> 
+                <img class="attr-icon" src="../resources/image/${story.storyAttr3.icon}" /></c:if> 
                 ${story.storyAttr3.name}
         </p>
 
-        <p class="oneline date-text deadline">
+        <p class="oneline date-text deadline"
+            <c:if test='${story.deadline != null}'>
+                title="Deadline"
+            </c:if>
+        >
             <fmt:formatDate value="${story.deadline}" pattern="yyyy-MM-dd" />
         </p>
 
-        <c:if test='${story.archived}'>
-            <p class="title oneline">Archived:</p>
-        </c:if>
-        <p class="oneline date-text date-archived">
+        <p class="oneline date-text date-archived" 
+            <c:if test='${story.dateArchived != null}'>
+                title="Date archived"
+            </c:if>
+        >
             <fmt:formatDate value="${story.dateArchived}" pattern="yyyy-MM-dd" />
         </p>
     </div>

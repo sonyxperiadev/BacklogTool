@@ -220,7 +220,7 @@ $(document).ready(function () {
         if (storyAttr == null || storyAttr.iconEnabled == false) {
             return '';
         }
-        return '<img src="../resources/image/'+storyAttr.icon+'" title="' + getNameIfExists(storyAttr) + '"/> ';
+        return '<img src="../resources/image/'+storyAttr.icon+'"/> ';
     };
 
     //fix for trim
@@ -2056,11 +2056,46 @@ $(document).ready(function () {
 
         var oneline = $("li#" + storyId + ".oneline-li");
         oneline.find(".title-span").html(story.title);
-        oneline.find('.story-attr1').html(getAttrImage(story.storyAttr1)+getNameIfExists(story.storyAttr1));
-        oneline.find('.story-attr2').html(getAttrImage(story.storyAttr2)+getNameIfExists(story.storyAttr2));
-        oneline.find('.story-attr3').html(getAttrImage(story.storyAttr3)+getNameIfExists(story.storyAttr3));
-        oneline.find('.deadline').html(getDate(story.deadline));
-        oneline.find('.date-archived').html(getDate(story.dateArchived));
+        var storyAttr1 = oneline.find('.story-attr1');
+        var storyAttr2 = oneline.find('.story-attr2');
+        var storyAttr3 = oneline.find('.story-attr3');
+        var deadLine = oneline.find('.deadline');
+        var dateArchived = oneline.find('.date-archived');
+
+        storyAttr1.html(getAttrImage(story.storyAttr1)+getNameIfExists(story.storyAttr1));
+        storyAttr2.html(getAttrImage(story.storyAttr2)+getNameIfExists(story.storyAttr2));
+        storyAttr3.html(getAttrImage(story.storyAttr3)+getNameIfExists(story.storyAttr3));
+        deadLine.html(getDate(story.deadline));
+        dateArchived.html(getDate(story.dateArchived));
+
+        //Add hover titles to the p tag since the header only displays
+        //explanations for the parents
+        if (story.storyAttr1 == null) {
+            storyAttr1.attr("title", "");
+        } else {
+            storyAttr1.attr("title", area.storyAttr1.name);
+        }
+        if (story.storyAttr2 == null) {
+            storyAttr2.attr("title", "");
+        } else {
+            storyAttr2.attr("title", area.storyAttr2.name);
+        }
+        if (story.storyAttr3 == null) {
+            storyAttr3.attr("title", "");
+        } else {
+            storyAttr3.attr("title", area.storyAttr3.name);
+        }
+        if (story.deadline == null) {
+            deadLine.attr("title", "");
+        } else {
+            deadLine.attr("title", "Deadline");
+        }
+        if (story.dateArchived == null) {
+            dateArchived.attr("title", "");
+        } else {
+            dateArchived.attr("title", "Date archived");
+        }
+
     };
 
     /**
@@ -2387,7 +2422,14 @@ $(document).ready(function () {
 
         var oneline = $("li#" + epicId + ".oneline-li");
         oneline.find(".title-span").html(updatedEpic.title);
-        oneline.find('.date-archived').html(getDate(updatedEpic.dateArchived));
+        var dateArchived = oneline.find('.date-archived');
+        dateArchived.html(getDate(updatedEpic.dateArchived));
+
+        if (updatedEpic.dateArchived == null) {
+            dateArchived.attr("title", "");
+        } else {
+            dateArchived.attr("title", "Date archived");
+        }
     };
 
     var editEpic = function(event) {
@@ -2560,7 +2602,14 @@ $(document).ready(function () {
 
         var oneline = $("li#" + themeId + ".oneline-li");
         oneline.find(".title-span").html(updatedTheme.title);
-        oneline.find('.date-archived').html(getDate(updatedTheme.dateArchived));
+        var dateArchived = oneline.find('.date-archived');
+        dateArchived.html(getDate(updatedTheme.dateArchived));
+
+        if (updatedTheme.dateArchived == null) {
+            dateArchived.attr("title", "");
+        } else {
+            dateArchived.attr("title", "Date archived");
+        }
 
     };
 

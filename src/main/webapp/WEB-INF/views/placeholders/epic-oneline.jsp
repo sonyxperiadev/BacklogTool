@@ -56,10 +56,12 @@
         </span>
     </p>
 
-    <c:if test='${epic.archived}'>
-        <p class="title oneline">Archived:</p>
-    </c:if>
-    <p class="oneline date-text date-archived">
+    <p class="oneline date-text date-archived" 
+        <c:if test='${epic.dateArchived != null}'>
+            title="Date archived"
+        </c:if>
+    >
+
         <fmt:formatDate value="${epic.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
 </li>

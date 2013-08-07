@@ -40,10 +40,11 @@
         </span>
     </p>
 
-    <c:if test='${theme.archived}'>
-        <p class="title oneline">Archived:</p>
-    </c:if>
-    <p class="oneline date-text date-archived">
+    <p class="oneline date-text date-archived" 
+        <c:if test='${theme.dateArchived != null}'>
+            title="Date archived"
+        </c:if>
+    >
         <fmt:formatDate value="${theme.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
 </li>
