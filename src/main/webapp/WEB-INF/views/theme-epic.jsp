@@ -67,19 +67,36 @@ THE SOFTWARE.
                 <c:set var="theme" value="${placeholderTheme}" />
                 <%@ include file="/WEB-INF/views/placeholders/theme.jsp"%>
             </div>
+            <div id="theme-oneline-placeholder" class="placeholder">
+                <c:set var="theme" value="${placeholderTheme}" />
+                <%@ include file="/WEB-INF/views/placeholders/theme-oneline.jsp"%>
+            </div>
             <div id="epic-placeholder" class="placeholder">
                 <c:set var="epic" value="${placeholderEpic}" />
                 <%@ include file="/WEB-INF/views/placeholders/epic.jsp"%>
             </div>
+            <div id="epic-oneline-placeholder" class="placeholder">
+                <c:set var="epic" value="${placeholderEpic}" />
+                <%@ include file="/WEB-INF/views/placeholders/epic-oneline.jsp"%>
+            </div>
 
             <div id="list-container-div">
+
+                <div id="table-header">
+                    <p class="oneline header-item header-id">ID</p>
+                    <p class="oneline header-item header-title">Title</p>
+                    <c:if test="${archivedView}">
+                        <p class="oneline header-item small-item">Archived</p>
+                    </c:if>
+                </div>
+
                 <ul class="parent-child-list" id="list-container">
                     <c:forEach var="theme" items="${nonArchivedThemes}">
                         <c:set var="hidden" value="${filterIds != null && !filterIds.contains(theme.id)}"/>
-                        <%@ include file="/WEB-INF/views/placeholders/theme.jsp" %>
+                        <%@ include file="/WEB-INF/views/placeholders/theme-oneline.jsp" %>
                         <c:set var="hidden" value="${true}"/>
                         <c:forEach var="epic" items="${theme.children}">
-                            <%@ include file="/WEB-INF/views/placeholders/epic.jsp" %>
+                            <%@ include file="/WEB-INF/views/placeholders/epic-oneline.jsp" %>
                         </c:forEach>
                     </c:forEach>
                 </ul>
