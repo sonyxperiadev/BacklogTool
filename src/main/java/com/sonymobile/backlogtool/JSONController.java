@@ -918,7 +918,7 @@ public class JSONController {
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
             StringBuilder updatedStoryViews = new StringBuilder();
-            if(newEpic != null) {
+            if (newEpic != null) {
                 updatedStoryViews.append(EPIC_STORY_VIEW).append("|");
             }
             if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
