@@ -21,17 +21,12 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
  --%>
-<li id="note-${note.id}" class="note 
-        <c:if test='${note.isSystemGenerated()}'>
-            sysgenerated
-        </c:if>
-    ">
+<li id="note--1" class="note">
     <div class="note single-note">
-        <a id="note-delete-${note.id}" title="Remove note"
+        <a id="note-delete--1" title="Remove note"
             class="icon deleteItem delete-icon" style="float: right;"></a>
-        <span class="date"><fmt:formatDate value="${note.createdDate}" pattern="yyyy-MM-dd HH:mm" /></span>
-        <p class="user-msg"><span class="user">${note.user}</span>: <span class="message">${note.getMessageWithLinksAndLineBreaks()}</span>
+        <span class="date"></span>
+        <p class="user-msg"><span class="user"></span>: <span class="message"></span>
         </p>
-        
     </div>
 </li>

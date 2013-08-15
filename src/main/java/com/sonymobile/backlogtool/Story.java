@@ -48,7 +48,9 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.codehaus.jackson.annotate.JsonGetter;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Cache;
 
 /**
@@ -220,7 +222,7 @@ public class Story {
             Note tmpNote = null;
             while(itr.hasNext() && latestNote == null) {
                 tmpNote = itr.next();
-                if(!tmpNote.isSystemGenerated()) {
+                if (!tmpNote.isSystemGenerated()) {
                     latestNote = tmpNote;
                 }
             }
@@ -482,11 +484,12 @@ public class Story {
     }
 
     /**
-     * Returns true if this Story has more than one note in total
-     * @return True if more than one note, otherwise false
+     * Returns true if this Story has more than ten notes in total
+     * @return True if more than ten notes, otherwise false
      */
-    public boolean getHasMoreNotes() {
-        return notes != null && notes.size() > 1;
+    @JsonSerialize
+    public boolean hasMoreNotes() {
+        return notes != null && notes.size() > 10;
     }
 
 }

@@ -351,7 +351,7 @@ public class JSONController {
             area = (Area) session.get(Area.class, areaName);
             if (area != null && type.matches("Story|Epic|Theme")) {
                 String notesJoin = "";
-                if(type.equals("Story")) {
+                if (type.equals("Story")) {
                     notesJoin = "left join fetch i.notes ";
                 }
                 Query archivedQuery = null;
@@ -962,6 +962,29 @@ public class JSONController {
                 attr3 = (AttributeOption) session.get(AttributeOption.class, Integer.parseInt(updatedStory.getStoryAttr3Id()));
             } catch(NumberFormatException e) {}
 
+            List<String> messages = new ArrayList<String>();
+            String message = "User %s set %s to %s";
+            String updatedAttr = getUpdatedAttrValue(story.getStoryAttr1(), attr1);
+            if (updatedAttr != null) {
+                String storyAttr1Name = story.getArea().getStoryAttr1().getName();
+                Note n = Note.createSystemNote(String.format(message, username, storyAttr1Name, updatedAttr), story, session);
+                messages.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+            }
+
+            updatedAttr = getUpdatedAttrValue(story.getStoryAttr2(), attr2);
+            if (updatedAttr != null) {
+                String storyAttr1Name = story.getArea().getStoryAttr2().getName();
+                Note n = Note.createSystemNote(String.format(message, username, storyAttr1Name, updatedAttr), story, session);
+                messages.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+            }
+
+            updatedAttr = getUpdatedAttrValue(story.getStoryAttr3(), attr3);
+            if (updatedAttr != null) {
+                String storyAttr1Name = story.getArea().getStoryAttr3().getName();
+                Note n = Note.createSystemNote(String.format(message, username, storyAttr1Name, updatedAttr), story, session);
+                messages.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+            }
+
             story.setStoryAttr1(attr1);
             story.setStoryAttr2(attr2);
             story.setStoryAttr3(attr3);
@@ -991,7 +1014,6 @@ public class JSONController {
                 }
             }
 
-            List<String> messages = new ArrayList<String>();
             if (theme != null) {
                 messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
             }
@@ -1968,6 +1990,11 @@ public class JSONController {
                     if (epic != null && updatedEpics.add(epic)) {
                         pushMsgsNewArea.add(getJsonStringExclChildren(Epic.class, epic, EPIC_STORY_VIEW));
                     }
+                    List<Note> notes = story.getTenNewestNotes();
+                    Collections.reverse(notes);
+                    for(Note n : notes) {
+                        pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+                    }
                 }
             }
             AtmosphereHandler.pushJsonMessages(areaName, pushMsgsOldArea);
@@ -2581,6 +2608,33 @@ public class JSONController {
         typeMapper.put("data", data);
         typeMapper.put("views", viewParam);
         return mapper.writeValueAsString(typeMapper);
+    }
+
+    /**
+     * Returns the new attribute-value if this is different from the current
+     * one, otherwise null
+     * 
+     * @param currentAttr
+     *            The current attribute option
+     * @param newAttr
+     *            The new attribute option
+     * @return The value of the new attribute option, or null if is doesn't
+     *         differ from the current
+     */
+    private String getUpdatedAttrValue(AttributeOption currentAttr,
+            AttributeOption newAttr) {
+        String newAttrValue = "nothing", currAttrValue = "nothing";
+        if (currentAttr != null) {
+            currAttrValue = currentAttr.getName();
+        }
+        if (newAttr != null) {
+            newAttrValue = newAttr.getName();
+        }
+
+        if (currAttrValue.equals(newAttrValue)) {
+            return null;
+        }
+        return newAttrValue;
     }
 
     /**

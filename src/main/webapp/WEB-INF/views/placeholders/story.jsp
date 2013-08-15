@@ -242,34 +242,20 @@
 
         <c:if test='${view.equals("story-task")}'>
             <div class="notes-container">
-                <c:set var="note" value="${story.getLatestNonSystemNote()}"/>
-                <c:set var="buttonText" value="Load older notes" />
-                <c:if test="${note != null && !story.getHasMoreNotes()}">
-                    <c:set var="buttonText" value="All notes loaded" />
-                </c:if>
                 <p class="more-notes-loader-p ui-hidden">
-                    <a class="more-notes-loader note-link 
-                        <c:if test='${!story.getHasMoreNotes()}'>ui-state-disabled</c:if>
-                    ">${buttonText}</a>
-
+                    <a class="more-notes-loader note-link ui-state-disabled">Load older notes</a>
                     <label class="sys-msgs-label">
                         <span>Show system messages</span>
                         <input type="checkbox" class="show-sys-msgs" />
                     </label>
                 </p>
-                <ul>
-                    <c:if test="${note != null}">
-                        <%@ include file="/WEB-INF/views/placeholders/note.jsp" %>
-                    </c:if>
-                </ul>
+                <ul></ul>
                 <div id="notes-form-${story.id}" class="notes-form ui-hidden">
                     <textarea placeholder="Note - Press enter to post" id="notes-textarea-${story.id}"
                     class="note-textarea"
                     rows="2" maxlength="1000"></textarea>
+                    <br style="clear: both;" />
                 </div>
-                <p class="expand-notes-btn">
-                    <a class="more-notes notes-link" title="Expand notes">&middot;&middot;&middot;</a>
-                </p>
             </div>
         </c:if>
     </div>
@@ -277,4 +263,5 @@
         <a id="${story.id}" title="Remove story"
             class="icon deleteItem delete-icon" style="float: right;"></a> 
     <br style="clear: both" />
+    <p class="expand-item-p"><a class="expand-item-btn">. . .</a></p>
 </li>

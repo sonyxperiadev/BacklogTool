@@ -53,7 +53,7 @@ THE SOFTWARE.
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.dropdown.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.atmosphere-min.js" />"></script>
     <script type="text/javascript" src="<c:url value="/resources/js/jquery.simplePagination.js" />"></script>
-    
+    <script type="text/javascript" src="<c:url value="/resources/js/jquery.dotdotdot.min.js" />"></script>
 </head>
 <body>
     <div id="wrap">

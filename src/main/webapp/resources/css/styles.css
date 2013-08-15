@@ -382,10 +382,17 @@ div.stakeholders {
 div.story-right-content {
     float: left;
     width: 50%;
+    margin-left: 10px;
 }
 
 div.notes-container {
-    padding: 0 10px;
+    padding: 5px 20px 10px 20px;
+    border-left: 1px solid #cccccc;
+    margin-top: 5px;
+}
+
+div.notes-container.in-edit {
+    border: 1px solid #cccccc;
 }
 
 select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
@@ -886,7 +893,8 @@ span.oneline.title-span {
 }
 
 div.note {
-    border: 1px solid #a9a9a9;
+    border-top: 1px solid #a9a9a9;
+    border-bottom: 1px solid #a9a9a9;
     padding: 5px;
     font-size: 0.9em;
 }
@@ -896,8 +904,7 @@ div.note:not(.single-note) {
 }
 div.note.single-note {
     border-radius: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    border: 1px solid #a9a9a9;
 }
 
 div.note.single-note a.deleteItem {
@@ -913,9 +920,7 @@ div.note:not(.single-note) p.user-msg {
 }
 
 div.note.single-note p.user-msg  {
-    text-overflow: ellipsis;
-    max-height: 40px;
-    overflow: hidden;
+    max-height: 25px;
     max-width: 100%;
 }
 
@@ -966,4 +971,33 @@ label.sys-msgs-label {
 
 label.sys-msgs-label span {
     vertical-align: middle;
+}
+
+p.trunc-description {
+    max-height: 80px;
+    overflow: visible;
+}
+
+p.untrunc-description {
+    max-height: 380px;
+    overflow: auto;
+}
+
+p.expand-item-p {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 1.1em;
+    line-height: 1.1em;
+    font-weight: bold;
+}
+
+div.titles textarea.description, div.titles-theme-epic textarea.description {
+    max-height: 400px;
+    overflow: auto;
+    margin: 10px 0px;
+}
+
+div.titles textarea.description {
+    min-height: 100px;
 }

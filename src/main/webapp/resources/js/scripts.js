@@ -172,6 +172,10 @@ $(document).ready(function () {
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
     var MAX_NOTES = 10;
+    var TIMER_FILTER = 0;
+    var TIMER_BIND_EVENTS = 1;
+    var TIMER_SCROLL_SORTABLE = 2;
+    var TIMER_RETRUNCATE = 3;
 
     var allExpanded = false;
 
@@ -308,6 +312,9 @@ $(document).ready(function () {
      * Escapes html from param text
      */
     var escapeHtml = function(text) {
+        if(text == null) {
+            return "";
+        }
         return $("<div/>").html(text).text();
     };
 
@@ -491,26 +498,14 @@ $(document).ready(function () {
                 removeItem(data);
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
+
+                $("div.notes-container ul").each(function(index) {
+                    $(this).scrollTop($(this).prop("scrollHeight"));
+                });
             } else if (jsonObj.type == "Note") {
                 updateNoteLi(data);
             } else if(jsonObj.type == "AreaDelete") {
-                var areaErrorDialog = $(document.createElement('div'));
-                $(areaErrorDialog).attr('title', 'Area removed');
-                $(areaErrorDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
-                areaErrorDialog.dialog({
-                    modal: true,
-                    width: 325,
-                    resizable: false,
-                    minHeight: 0,
-                    buttons: {
-                        Ok: function() {
-                            $( this ).dialog( "close" );
-                        }
-                    },
-                    close: function(event, ui) {
-                        window.location.replace("../");
-                    }
-                });
+                displayAreaRemovedDialog();
             }
 
             if(offset !== null) {
@@ -529,10 +524,6 @@ $(document).ready(function () {
                 }
                 offset = null;
             }
-
-            $("div.notes-container ul").each(function(index) {
-                $(this).scrollTop($(this).prop("scrollHeight"));
-            });
         } else {
             window.console && console.log("No json-data in push-message");
         }
@@ -615,12 +606,72 @@ $(document).ready(function () {
         sortList(ulObj);
     };
 
+    var displayAreaRemovedDialog = function() {
+        var areaErrorDialog = $(document.createElement('div'));
+        $(areaErrorDialog).attr('title', 'Area removed');
+        $(areaErrorDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
+        areaErrorDialog.dialog({
+            modal: true,
+            width: 325,
+            resizable: false,
+            minHeight: 0,
+            buttons: {
+                Ok: function() {
+                    $( this ).dialog( "close" );
+                }
+            },
+            close: function(event, ui) {
+                window.location.replace("../");
+            }
+        });
+    };
+
     var displayUpdateMsg = function () {
         $.blockUI({
             message: '<h1>Updating...</h1>',
             fadeIn:  0,
             overlayCSS: { backgroundColor: '#808080', cursor: null},
             fadeOut:  350});
+    };
+
+    /**
+     * Exclude the scrollbar for the specified element.
+     * What it does is to disable 'sortable' when the
+     * cursor is positioned in the x-interval
+     * [element.width - 20px, element.width]
+     * @param element The jQuery-element
+     */
+    var exclScrollBarFromSortable = function(element) {
+        element.mousemove(function(e) {
+            var elemWith = $(this).width();
+            var dragAreaWidth = elemWith - 20;
+            var offsetX = e.offsetX;
+            if(offsetX == null) {
+                // Fix for Firefox
+                offsetX = e.clientX - $(e.target).offset().left + window.pageXOffset; 
+            }
+
+            if(offsetX <= elemWith && offsetX >= dragAreaWidth) {
+                $("#list-container").sortable("option", "disabled", true);
+                delay(function() { // to not make sortable off 'permanent'
+                    if(!preventSortable()) {
+                        $("#list-container").sortable("option", "disabled", false);
+                    }
+                }, 2000, TIMER_SCROLL_SORTABLE );
+            } else {
+                if(!preventSortable()) {
+                    $("#list-container").sortable("option", "disabled", false);
+                }
+            }
+        });
+    };
+
+    /**
+     * Checks whether sortable should be disabled
+     * @returns True if sortable should be disabled, otherwise false
+     */
+    var preventSortable = function() {
+        return (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio");
     };
 
     //Apply filter from URL if it exists
@@ -828,12 +879,26 @@ $(document).ready(function () {
         if (typeof notesMap === "undefined") {
             notesMap = {};
         }
+        id = id.toString();
         var notes = notesMap[id];
         if (notes == null) {
             notesMap[id] = new Array();
             notes = notesMap[id];
         }
         return notes;
+    };
+
+    /**
+     * Set the list of notes for the specified id
+     * @param id The id of the story
+     * @param notesList The (sorted) list of notes
+     */
+    var setNotesList = function(id, notesList) {
+        if (typeof notesMap === "undefined") {
+            notesMap = {};
+        }
+        id = id.toString();
+        notesMap[id] = notesList;
     };
 
     /**
@@ -1010,14 +1075,14 @@ $(document).ready(function () {
      * Function to trigger when a long description is expanded.
      */
     var expandText = function (item) {
-        extendedDescriptions.push(item.attr("class"));
+        expandedItems.push(item.attr("class"));
     };
 
     /**
      * Function to trigger when a long description is collapsed.
      */
     var collapseText = function (item) {
-        extendedDescriptions.remove(item.attr("class"));
+        expandedItems.remove(item.attr("class"));
     };
 
     var truncateOptions = {
@@ -1039,6 +1104,24 @@ $(document).ready(function () {
         paragraph.css({display: "block"});
         paragraph.html(addLinksAndLineBreaks(newText));
         return paragraph;
+    };
+
+    /**
+     * Truncate the specified paragraph
+     */
+    var trunc = function(paragraph, afterElement) {
+        paragraph.dotdotdot({
+            ellipsis: '...',
+            wrap: 'letter',
+            watch: 'window'
+        });
+    };
+
+    var isElementTruncated = function(element) {
+        if (element != null && element.length > 0) {
+            return element.triggerHandler("isTruncated.dot");
+        }
+        return false;
     };
 
     var focusAndSelectText = function(id) {
@@ -1124,7 +1207,7 @@ $(document).ready(function () {
         $(children).slideToggle();
     };
 
-    var extendedDescriptions = new Array();
+    var expandedItems = new Array();
 
     //Read cookie with selected items..
     var selectedItems = new Array();
@@ -1677,10 +1760,13 @@ $(document).ready(function () {
         } else if (itemLi.hasClass("note")) { // a removed note
             var note = removeNote(itemId);
             itemLi.remove();
-            var moreNotesP = $("li#" + note.storyId + " .more-notes-loader-p");
-            var notes = getNotes(note.storyId);
-            if (moreNotesP.hasClass("ui-hidden") && notes.length > 0) {
-                updateNoteLi(notes[0]); // A note was removed with the list collapsed
+            var storyId = parseInt(note.storyId);
+            var showSingleNote = (expandedItems.indexOf(storyId) == -1);
+            if (showSingleNote) {
+                var singleNote = getSingleNote(getNotes(storyId));
+                if(singleNote != null) {
+                    updateNoteLi(singleNote); // A note was removed with the list collapsed
+                }
             }
         } else if (itemLi.length > 0) { // A child was removed
             var parentLi = $("li#" + itemLi.attr("parentid"));
@@ -1801,23 +1887,16 @@ $(document).ready(function () {
     };
 
     /**
-     * Click-listener for toggling the Notes-list
-     */
-    var showMoreNotes = function(event) {
-        var item = $(event.target);
-        toggleNotesList(item.closest('li.story'));
-    };
-
-    /**
      * Toggles the Notes-list for the specified story-element
      * @param storyLi The story-li-element
+     * @param open True to open/expand, false to close/collapse
      */
-    var toggleNotesList = function(storyLi) {
+    var toggleNotesList = function(storyLi, open) {
         var moreNotesP = storyLi.find(".more-notes-loader-p");
         var notesFormDiv = $("#notes-form-" + storyLi.attr("id"));
         var expanded = false;
 
-        if (moreNotesP.hasClass("ui-hidden")) {
+        if (open) {
             moreNotesP.removeClass("ui-hidden");
             if (loggedIn === true) {
                 notesFormDiv.removeClass("ui-hidden");
@@ -1847,6 +1926,22 @@ $(document).ready(function () {
         var notes = getNotes(storyLi.attr("id"));
         var ul = storyLi.find("div.notes-container ul");
         ul.empty();
+        var singleNote = getSingleNote(notes);
+        if (singleNote != null) {
+            var noteLi = updateNoteLi(singleNote);
+            noteLi.find("div.note").addClass("single-note");
+        } else {
+            storyLi.find("div.notes-container").addClass("ui-hidden");
+        }
+    };
+
+    /**
+     * Get the 'single-note' (i.e. the newest non-system-generated note)
+     * from the specified notes
+     * @param notes The notes
+     * @returns A note, or null if no single-note found
+     */
+    var getSingleNote = function(notes) {
         var singleNote = null;
         for (var i = 0; i < notes.length; i++) {
             if (notes[i].systemGenerated === false) {
@@ -1854,10 +1949,7 @@ $(document).ready(function () {
                 break;
             }
         }
-        if (singleNote != null) {
-            var noteLi = updateNoteLi(singleNote);
-            noteLi.find("div.note").addClass("single-note").click(showMoreNotes);
-        }
+        return singleNote;
     };
 
     /**
@@ -1874,12 +1966,10 @@ $(document).ready(function () {
         var notes = getNotes(storyLi.attr("id"));
         var ul = storyLi.find("div.notes-container ul");
         ul.empty();
-        // expand the description when the notes are expanded
-        storyLi.find("a.truncate" + storyLi.attr("id")).trigger('click');
 
         for (var i = notes.length - 1; i >= 0; i--) {
             var note = notes[i];
-            if (inclSysMsgs || inclSysMsgs === false && note.systemGenerated === false) {
+            if (inclSysMsgs || note.systemGenerated === false) {
                 updateNoteLi(note);
             }
         }
@@ -1907,6 +1997,12 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
+            if (expandedItems.indexOf(storyId) == -1) {
+                // Expand the story
+                var eventObj = jQuery.Event('click');
+                eventObj.target = $("li#" + storyId);
+                toggleExpandableItem(eventObj);
+            }
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
             $('button.'+storyId).button();
@@ -2177,18 +2273,27 @@ $(document).ready(function () {
 
         var ulList = $("li#" + updatedNote.storyId).find(".notes-container ul");
         var noteItem = $("#note-" + noteId);
+        var singleMode = false;
         if (noteItem.length == 0) { // No html-element exists for the Note
             var divItem = $('div#note-placeholder').clone();
             var htmlStr = divItem.html();
             htmlStr = htmlStr.replace(/-1/g, noteId); // Replace all occurences of -1
             noteItem = $(htmlStr);
             noteItem.addClass("ui-hidden");
-            
-            if ($("li#" + updatedNote.storyId + " .more-notes-loader-p").hasClass("ui-hidden")) {
+
+            var showSysMsgs = $("li#" + updatedNote.storyId).find(".show-sys-msgs").prop('checked');
+            var sysGen = updatedNote.systemGenerated;
+            var insertItem = (!sysGen || sysGen && showSysMsgs);
+            if (expandedItems.indexOf(updatedNote.storyId) == -1) {
                 // Only showing one note
-                ulList.empty();
+                singleMode = true;
+                insertItem = !sysGen; // only non-system-msgs are shown in single-mode
+                if (insertItem) {
+                    ulList.empty();
+                }
             } else if (ulList.outerHeight() < (ulList.prop("scrollHeight") - ulList.scrollTop() - 40)) {
                 // Several notes in list, but not scrolled to bottom - save current list-position
+                // (40 px marginal)
                 lastElem = ulList.children().last();
                 offset = lastElem.offset();
                 noteItem.find("div.note").removeClass("single-note");
@@ -2198,10 +2303,12 @@ $(document).ready(function () {
                 noteItem.find("div.note").removeClass("single-note");
             }
 
-            if (appendFirst === true) {
-                ulList.prepend(noteItem);
-            } else {
-                ulList.append(noteItem);
+            if (insertItem) {
+                if (appendFirst === true) {
+                    ulList.prepend(noteItem);
+                } else {
+                    ulList.append(noteItem);
+                }
             }
         }
 
@@ -2212,12 +2319,17 @@ $(document).ready(function () {
             $("a.deleteItem", noteItem).addClass('disabled');
         }
 
-        $("div.single-note", noteItem).click(showMoreNotes);
+        $("div.single-note", noteItem).unbind();
+        $("div.single-note", noteItem).click(toggleExpandableItem);
 
         noteItem.find("span.user").text(updatedNote.user);
         noteItem.find("span.message").html(addLinksAndLineBreaks(updatedNote.message));
         noteItem.find("span.date").text(getFullDateAndTime(updatedNote.createdDate));
         noteItem.fadeIn("slow");
+        if (singleMode) {
+            var noteDiv = noteItem.find("div.note.single-note");
+            trunc(noteDiv.find("p.user-msg"), null);
+        }
 
         if (lastElem !== null && offset !== null) {
             var newOffset = lastElem.offset();
@@ -2268,16 +2380,12 @@ $(document).ready(function () {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
 
                 var notes = getNotes(storyId);
-                var singleNote = null;
-                for(var i = 0; i < notes.length; i++) {
-                    if(notes[i].systemGenerated === false) {
-                        singleNote = notes[i];
-                        break;
-                    }
-                }
+                var singleNote = getSingleNote(notes);
                 if(singleNote != null) {
                     var noteLi = updateNoteLi(singleNote);
-                    noteLi.find("div.note").addClass("single-note").click(showMoreNotes);
+                    noteLi.find("div.note").addClass("single-note");
+                } else {
+                    newItem.find("div.notes-container").addClass("ui-hidden");
                 }
                 
                 if(updatedStory.hasMoreNotes === true) {
@@ -2288,9 +2396,9 @@ $(document).ready(function () {
                 var parent = getParent(updatedStory.epicId);
                 var attr = 'prioInEpic';
 
-                if(typeof parent !== "undefined") {
+                if (parent != null) {
 
-                    if(updatedStory[attr] > 1) {
+                    if (updatedStory[attr] > 1) {
                         $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
@@ -2328,12 +2436,23 @@ $(document).ready(function () {
 
         //Re-add truncate on the description paragraph
         var descriptionParagraph = storyLi.find('.story-description');
-        descriptionParagraph = untruncate(descriptionParagraph, story.description);
-        descriptionParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+storyId})
-        );
-        if (extendedDescriptions.indexOf('truncate'+storyId) != -1) {
-            $('a.truncate'+storyId, descriptionParagraph.parent()).click();
+        if (descriptionParagraph.length > 0) {
+            descriptionParagraph.html(addLinksAndLineBreaks(story.description));
+
+            descriptionParagraph.removeClass("untrunc-description trunc-description");
+            if (expandedItems.indexOf(storyId) > -1) {
+                descriptionParagraph.addClass("untrunc-description");
+            } else {
+                descriptionParagraph.addClass("trunc-description");
+                trunc(descriptionParagraph, null);
+            }
+
+            if (!isElementTruncated(descriptionParagraph) 
+                    && view != "story-task" && expandedItems.indexOf(storyId) == -1) {
+                storyLi.find("p.expand-item-p").addClass("ui-hidden");
+            } else {
+                storyLi.find("p.expand-item-p").removeClass("ui-hidden");
+            }
         }
 
         storyLi.find('p.customerSite').html(getSiteImage(story.customerSite));
@@ -2362,6 +2481,7 @@ $(document).ready(function () {
         if (story.hasMoreNotes === false) {
             setLoadNotesBtnState($("#" + storyId + " a.more-notes-loader"), 'all-loaded');
         }
+
         var oneline = $("li#" + storyId + ".oneline-li");
         oneline.find(".title-span").html(story.title);
         var storyAttr1 = oneline.find('.story-attr1');
@@ -2540,7 +2660,7 @@ $(document).ready(function () {
         titleParagraph.truncate(
                 $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
         );
-        if (extendedDescriptions.indexOf('truncate'+taskId) != -1) {
+        if (expandedItems.indexOf('truncate'+taskId) != -1) {
             $('a.truncate'+taskId, titleParagraph.parent()).click();
         }
     };
@@ -2681,7 +2801,7 @@ $(document).ready(function () {
             } else {
                 var parent = getParent(updatedEpic.themeId);
                 var attr = 'prioInTheme';
-                if(typeof parent !== "undefined") {
+                if(parent != null) {
                     
                     if(updatedEpic[attr] > 1) {
                         $('li#' + (parent.children[updatedEpic[attr] - 2].id)).after(newItem);
@@ -2708,14 +2828,23 @@ $(document).ready(function () {
         $('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
         $('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
 
-        //Re-add truncate on the description paragraph
         var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
-        descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
-        descriptionParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
-        );
-        if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
-            $('a.truncate'+epicId, descriptionParagraph.parent()).click();
+        if (descriptionParagraph.length > 0) {
+            descriptionParagraph.html(addLinksAndLineBreaks(updatedEpic.description));
+
+            descriptionParagraph.removeClass("untrunc-description trunc-description");
+            if (expandedItems.indexOf(epicId) > -1) {
+                descriptionParagraph.addClass("untrunc-description");
+            } else {
+                descriptionParagraph.addClass("trunc-description");
+                trunc(descriptionParagraph, null);
+            }
+
+            if (!isElementTruncated(descriptionParagraph) && expandedItems.indexOf(epicId) == -1) {
+                $("li#" + epicId).find("p.expand-item-p").addClass("ui-hidden");
+            } else {
+                $("li#" + epicId).find("p.expand-item-p").removeClass("ui-hidden");
+            }
         }
 
         if (updatedEpic.archived == true) {
@@ -2888,16 +3017,25 @@ $(document).ready(function () {
 
         $('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
 
-        //Re-add truncate on the description paragraph
         var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
-        descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
-        descriptionParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
-        );
-        if (extendedDescriptions.indexOf('truncate'+themeId) != -1) {
-            $('a.truncate'+themeId, descriptionParagraph.parent()).click();
-        }
+        if (descriptionParagraph.length > 0) {
+            descriptionParagraph.html(addLinksAndLineBreaks(updatedTheme.description));
 
+            descriptionParagraph.removeClass("untrunc-description trunc-description");
+            if (expandedItems.indexOf(themeId) > -1) {
+                descriptionParagraph.addClass("untrunc-description");
+            } else {
+                descriptionParagraph.addClass("trunc-description");
+                trunc(descriptionParagraph, null);
+            }
+
+            if (!isElementTruncated(descriptionParagraph) && expandedItems.indexOf(themeId) == -1) {
+                $("li#" + themeId).find("p.expand-item-p").addClass("ui-hidden");
+            } else {
+                $("li#" + themeId).find("p.expand-item-p").removeClass("ui-hidden");
+            }
+        }
+        
         if (updatedTheme.archived == true) {
             $('p#archived-text' + themeId).text("Archived");
             $('p#date-archived' + themeId).html(getDate(updatedTheme.dateArchived));
@@ -3096,11 +3234,12 @@ $(document).ready(function () {
         var item = $(event.target);
         setLoadNotesBtnState(item, 'loading');
         var story = item.closest('li');
+        var storyId = story.attr("id");
 
-        var nbrOfNotes = getNotes(story.attr("id")).length;
+        var nbrOfNotes = getNotes(storyId).length;
         var part = Math.floor(nbrOfNotes / MAX_NOTES) + 1;
         $.ajax({
-            url : "../json/read-notes/" + story.attr("id") + "/" + part,
+            url : "../json/read-notes/" + storyId + "/" + part,
             type : 'GET',
             dataType : 'json',
             contentType : "application/json; charset=utf-8",
@@ -3108,10 +3247,14 @@ $(document).ready(function () {
                 if (jsonResp != null) {
                     var moreNotesAvail = jsonResp.moreNotesAvailable;
                     var notesList = jsonResp.notesList;
-                    getNotes(story.attr("id")).concat(notesList);
-                    $("#notes-textarea-" + story.attr("id")).val("");
+                    var newList = getNotes(storyId).concat(notesList);
+                    setNotesList(storyId, newList);
+                    $("#notes-textarea-" + storyId).val("");
+                    var showSysMsgs = story.find(".show-sys-msgs").prop('checked');
                     for (var i = 0; i < notesList.length; i++) {
-                        updateNoteLi(notesList[i], true);
+                        if (showSysMsgs || notesList[i].systemGenerated === false) {
+                            updateNoteLi(notesList[i], true);
+                        }
                     }
 
                     if (moreNotesAvail == true) {
@@ -3262,19 +3405,9 @@ $(document).ready(function () {
         //Truncating long description texts
         $("li").each(function() {
             var currentId = $(this).attr("id");
-            $('p.story-description', this).truncate(
-                    $.extend(truncateOptions, {className: 'truncate'+currentId})
-            );
-            $('p.epic-description, p.theme-description', this).truncate(
-                    $.extend(truncateOptions, {className: 'truncate'+currentId, max_length: 200})
-            );
             $('p.taskInfo', this).truncate(
                     $.extend(truncateOptions, {className: 'truncate'+currentId, max_length: 90})
             );
-
-            if (extendedDescriptions.indexOf('truncate'+currentId) != -1) {
-                $('a.truncate'+currentId, this).click();
-            }
         });
 
         $('.expand-icon').click(expandClick);
@@ -3394,9 +3527,9 @@ $(document).ready(function () {
             $("div.notes-form").addClass("ui-hidden");
         }
         $(".more-notes-loader").click(fetchMoreNotesFromServer);
-        $("a.more-notes").click(showMoreNotes);
-        $("div.single-note").click(showMoreNotes);
         $(".show-sys-msgs").click(toggleSystemNotes);
+
+        $(".expand-item-btn").click(toggleExpandableItem);
 
         if (disableEditsBoolean) {
             disableEdits();
@@ -3524,6 +3657,7 @@ $(document).ready(function () {
             lastItem.id = lastId;
             jsonData.lastItem = lastItem;
         }
+        expandedItems.remove(id);
 
         li.animate({height: 20}, 200, function(){
             li.remove();
@@ -3571,7 +3705,7 @@ $(document).ready(function () {
         //Call refresh when excessive calls for bindEventsToItem has stopped
         delay(function() {
             $("#list-container").sortable("refresh");
-        }, 250 );
+        }, 250, TIMER_BIND_EVENTS );
 
         elem.click(liClick);
         elem.mousedown(function () {
@@ -3679,12 +3813,12 @@ $(document).ready(function () {
                 editingItems.remove({id:$(this).attr("id"), type:"note"});
             });
         } else {
-            $("div.notes-form").addClass("ui-hidden");
+            $("div.notes-form", elem).addClass("ui-hidden");
         }
         $(".more-notes-loader", elem).click(fetchMoreNotesFromServer);
-        $("a.more-notes", elem).click(showMoreNotes);
-        $("div.single-note", elem).click(showMoreNotes);
-        $(".show-sys-msgs").click(toggleSystemNotes);
+        $(".show-sys-msgs", elem).click(toggleSystemNotes);
+
+        $(".expand-item-btn", elem).click(toggleExpandableItem);
 
         //Stops textarea from making a new line when trying to save changes.
         $("textarea", elem).keydown(function(e){
@@ -3701,13 +3835,78 @@ $(document).ready(function () {
         $(".oneline.title-span", elem).click(expandOneline);
     };
 
+    /**
+     * Expands or collapses the clicked Story/Theme/Epic-element
+     */
+    var toggleExpandableItem = function(event) {
+        var li = $(event.target).closest("li.story, li.epic, li.theme");
+        var id = parseInt(li.attr("id"));
+        var descr = li.find("p.story-description, p.epic-description, p.theme-description");
+        var isParentStory = (li.hasClass("parentLi") && li.hasClass("story"));
+
+        if (expandedItems.indexOf(id) == -1) { // collapsed; open
+            descr.trigger("destroy.dot");
+            descr.removeClass("trunc-description").addClass("untrunc-description");
+            expandedItems.push(id);
+
+            exclScrollBarFromSortable($("p.story-description, p.epic-description, p.theme-description"));
+            exclScrollBarFromSortable($("div.notes-container ul"));
+            exclScrollBarFromSortable($("div.titles textarea.description, div.titles-theme-epic textarea.description"));
+
+            if (isParentStory) {
+                li.find("div.notes-container").removeClass("ui-hidden").addClass("in-edit");
+                toggleNotesList(li, true);
+                li.find("div.notes-form textarea").focus();
+            }
+        } else { // already open; collapse
+            descr.removeClass("untrunc-description").addClass("trunc-description");
+            trunc(descr, null);
+            expandedItems.remove(id);
+
+            if (!isGoingIntoEdit(id)) { // currently editing
+                var event = jQuery.Event('click');
+                event.data = {id:id};
+                $(".cancelButton", li).trigger(event); // cancel editing
+            }
+
+            if (isParentStory) {
+                li.find("div.notes-container").removeClass("in-edit");
+                toggleNotesList(li, false);
+            }
+        }
+    };
+
     var setHeightAndMargin = function (value) {
         $("#list-container-div").css("margin", value+"px auto");
+    };
+
+    /**
+     * Iterates all non-oneline-li:s and checks if the elements'
+     * description-paragrah is truncated or not, and based on this
+     * hides or shows the expand-button
+     */
+    var updateAllExpandBtns = function() {
+        var elements = $("#list-container li:not(.oneline-li)");
+        if (archivedView === true) {
+            elements = $("#archived-list-container li:not(.oneline-li)");
+        }
+
+        elements.each(function(index) {
+            var paragraph = $(this).find("p.story-description, p.epic-description, p.theme-description");
+            var expandBtn = $(this).find("p.expand-item-p");
+            if (!isElementTruncated(paragraph) && view != "story-task" || expandedItems.indexOf($(this).attr("id")) > -1) {
+                expandBtn.addClass("ui-hidden");
+            } else {
+                expandBtn.removeClass("ui-hidden");
+            }
+        });
     };
 
     $(window).resize(function() {
         $("#header").css("height", "auto");
         setHeightAndMargin($("#header").height());
+        // Delay to let dotdotdot truncate before we check
+        delay(updateAllExpandBtns, 10, TIMER_RETRUNCATE);
     });
 
     /*
@@ -3931,26 +4130,28 @@ $(document).ready(function () {
     $(".showArchive").buttonset();
 
     /**
-     * Sets timeout for a function, to be reset after each call on delay.
+     * Sets timeout for a function, to be reset after each call on delay
+     * for the same timer-group ( TIMER_FILTER / TIMER_BIND_EVENT /
+     *  TIMER_SCROLL_SORTABLE ).
      * Can for example be used to trigger a function after
      * typing has stopped in a textbox.
      * Usage:
      * delay(function() {
             //To be called after timeout
-        }, *delayInMs* ); 
+        }, *delayInMs*, TIMER_* ); 
      */
     var delay = (function() {
-        var timer = 0;
-        return function(callback, ms) {
-            clearTimeout (timer);
-            timer = setTimeout(callback, ms);
+        var timer = [0, 0, 0, 0];
+        return function(callback, ms, index) {
+            clearTimeout (timer[index]);
+            timer[index] = setTimeout(callback, ms);
         };
     })();
 
     $('#filter').keyup(function() {
         delay(function() {
             updateFilter();
-        }, 500 );
+        }, 500, TIMER_FILTER );
     });
 
     /*
@@ -3983,8 +4184,10 @@ $(document).ready(function () {
                     }
                 }
 
-                for(var i = 0; i < parent.children.length; i++) {
-                    visible[parent.children[i]] = visibleChildren;
+                if (typeof parent.children !== "undefined") {
+                    for(var i = 0; i < parent.children.length; i++) {
+                        visible[parent.children[i]] = visibleChildren;
+                    }
                 }
             });
         }
