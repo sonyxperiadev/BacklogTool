@@ -82,7 +82,7 @@ public class HibernateConfiguration {
         AnnotationSessionFactoryBean bean = new AnnotationSessionFactoryBean();
         bean.setAnnotatedClasses(new Class[]{Story.class, Task.class, User.class,
                 Area.class, Theme.class, Epic.class, Attribute.class,
-                AttributeOption.class, LoginTableCreator.class, SchemaVersion.class});
+                AttributeOption.class, LoginTableCreator.class, SchemaVersion.class, Note.class});
         bean.setHibernateProperties(props);
         bean.setDataSource(this.dataSource);
         bean.setSchemaUpdate(true);

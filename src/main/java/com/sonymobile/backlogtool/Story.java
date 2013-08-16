@@ -30,8 +30,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,7 +48,9 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.codehaus.jackson.annotate.JsonGetter;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Cache;
 
 /**
@@ -63,7 +67,8 @@ import org.hibernate.annotations.Cache;
 public class Story {
     
     public static final int DESCRIPTION_LENGTH = 100000;
-
+    public static final int MAX_START_NOTES = 10;
+    
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)
     private int id;
@@ -83,7 +88,11 @@ public class Story {
     @OneToMany(fetch = FetchType.LAZY, mappedBy="story")
     @OrderBy("prioInStory")
     private Set<Task> children = new HashSet<Task>();
-
+    
+    @OneToMany(fetch = FetchType.LAZY, mappedBy="story")
+    @OrderBy("created DESC")
+    private Set<Note> notes = new HashSet<Note>();
+    
     @JoinColumn(name="themeId")
     @ManyToOne
     private Theme theme;
@@ -169,6 +178,58 @@ public class Story {
         this.children = children;
     }
 
+    /**
+     * @return The Notes for this Story
+     */
+    @JsonIgnore
+    public Set<Note> getNotes() {
+        return notes;
+    }
+
+    /**
+     * Get the ten newest/latest notes for this Story
+     * @return A List with the 10 newest notes
+     */
+    @JsonIgnore
+    public List<Note> getTenNewestNotes() {
+        List<Note> list = new ArrayList<Note>();
+        if (notes != null) {
+            Iterator<Note> itr = notes.iterator();
+            int count = 0;
+            while (itr.hasNext() && count < MAX_START_NOTES) {
+                list.add(itr.next());
+                count++;
+            }
+        }
+        return list;
+    }
+
+    /**
+     * @param notes The Notes to set for this Story
+     */
+    public void setNotes(Set<Note> notes) {
+        this.notes = notes;
+    }
+
+    /**
+     * Get the last created non-system-generated Note for this Story
+     * @return A Note, or null if none are found
+     */
+    public Note getLatestNonSystemNote() {
+        Note latestNote = null;
+        if (notes != null) {
+            Iterator<Note> itr = notes.iterator();
+            Note tmpNote = null;
+            while (itr.hasNext() && latestNote == null) {
+                tmpNote = itr.next();
+                if (!tmpNote.isSystemGenerated()) {
+                    latestNote = tmpNote;
+                }
+            }
+        }
+        return latestNote;
+    }
+    
     /**
      * @return the description
      */
@@ -420,6 +481,15 @@ public class Story {
 
     public void setDateArchived(Date dateArchived) {
         this.dateArchived = dateArchived;
+    }
+
+    /**
+     * Returns true if this Story has more than ten notes in total
+     * @return True if more than ten notes, otherwise false
+     */
+    @JsonSerialize
+    public boolean hasMoreNotes() {
+        return notes != null && notes.size() > MAX_START_NOTES;
     }
 
 }

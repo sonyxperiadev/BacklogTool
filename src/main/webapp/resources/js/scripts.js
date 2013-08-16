@@ -171,6 +171,11 @@ $(document).ready(function () {
     var KEYCODE_ENTER = 13;
     var KEYCODE_ESC = 27;
     var KEYCODE_CTRL = 17;
+    var MAX_NOTES = 10;
+    var TIMER_FILTER = 0;
+    var TIMER_BIND_EVENTS = 1;
+    var TIMER_SCROLL_SORTABLE = 2;
+    var TIMER_RETRUNCATE = 3;
 
     var allExpanded = false;
 
@@ -206,6 +211,34 @@ $(document).ready(function () {
         } else {
             return new Date(dateString).yyyymmdd();
         }
+    };
+
+    /**
+     * Returns a date on the format YYYY-MM-dd HH:mm, or an empty
+     * string if the argument was null
+     * @param milliseconds The milliseconds to turn into a string-representation
+     */
+    var getFullDateAndTime = function(milliseconds) {
+        if (milliseconds == null) {
+            return "";
+        } else {
+            var date = new Date(milliseconds);
+            var h = date.getHours();
+            var mm = date.getMinutes();
+            return date.yyyymmdd() + " " + prependZero(h) + ":" + prependZero(mm);
+        }
+    };
+
+    /**
+     * Prepends a zero to the argument if it is less than 10
+     * @param num The number to prepend a zero to if necessary
+     * @returns The argument with a prepended zero if arg < 10
+     */
+    var prependZero = function(num) {
+        if (num < 10) {
+            num = '0' + num;
+        }
+        return num;
     };
 
     var getSiteImage = function(site) {
@@ -279,6 +312,9 @@ $(document).ready(function () {
      * Escapes html from param text
      */
     var escapeHtml = function(text) {
+        if (text == null) {
+            return "";
+        }
         return $("<div/>").html(text).text();
     };
 
@@ -364,7 +400,7 @@ $(document).ready(function () {
 //      request.logLevel = 'debug';
 
         request.onMessage = function(response) {
-            if(archivedView == false) {
+            if (archivedView == false) {
                 var data = response.responseBody;
 
                 //Data is on format {msg1},{msg2},
@@ -379,7 +415,7 @@ $(document).ready(function () {
                 }
 
                 for (var i=0; i<jsonObj.length; i++) {
-                    if(jsonObj[i].views.indexOf(view) > -1 || jsonObj[i].views == "*") {
+                    if (jsonObj[i].views.indexOf(view) > -1 || jsonObj[i].views == "*") {
                         processPushData(jsonObj[i]);
                     }
                 }
@@ -387,7 +423,7 @@ $(document).ready(function () {
             }
         };
 
-        if(request.logLevel == "debug") {
+        if (request.logLevel == "debug") {
             request.onError = function(response) {
                 window.console && console.log("No json-data in push-message");
             };
@@ -420,67 +456,62 @@ $(document).ready(function () {
     var processPushData = function processPushData(jsonObj) {
         var data = jsonObj.data;
         var childData = new Array();
-        if(typeof data.children !== "undefined" && data.children != null) {
+        if (typeof data.children !== "undefined" && data.children != null) {
             childData = data.children;
             data.children = new Array();
         }
-        if(data) {
+        if (data) {
             /* Store current offset and focus in order to be able to restore
              * these after the push-message has been processed */ 
             var offset = null, offsetObj = null, inputFocus = null;
-            if(editingItems.length > 0) {
+            if (editingItems.length > 0) {
+                offsetObj = editingItems[editingItems.length - 1]; // fetch the latest item
                 inputFocus = $(document.activeElement);
-                offsetObj = editingItems[0];
-                offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+                offset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+                if (offset == null) { // no matched elements => probably a note
+                    offset = $("#" + offsetObj.id).offset();
+                }
             }
 
-            if(jsonObj.type == "Story") {
+            if (jsonObj.type == "Story") {
+                if (data.latestNonSystemNote != null && getNotes(data.id).length == 0) {
+                    getNotes(data.id).push(data.latestNonSystemNote);
+                }
                 updateStoryLi(data, !allExpanded);
-                for(var i = 0; i < childData.length; i++) {
+                for (var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
                 }
                 updateTypeMarkWidth();
-            } else if(jsonObj.type == "Task") {
+            } else if (jsonObj.type == "Task") {
                 updateTaskLi(data);
-            } else if(jsonObj.type == "Epic") {
+            } else if (jsonObj.type == "Epic") {
                 updateEpicLi(data, !allExpanded);
-                for(var i = 0; i < childData.length; i++) {
+                for (var i = 0; i < childData.length; i++) {
                     updateStoryLi(childData[i], !allExpanded);
                 }
-            } else if(jsonObj.type == "Theme") {
+            } else if (jsonObj.type == "Theme") {
                 updateThemeLi(data, !allExpanded);
-                for(var i = 0; i < childData.length; i++) {
+                for (var i = 0; i < childData.length; i++) {
                     updateEpicLi(childData[i], !allExpanded);
                 }
-            } else if(jsonObj.type == "Delete") {
-                removeItem($('li#' + data));
-            } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
+            } else if (jsonObj.type == "Delete") {
+                removeItem(data);
+            } else if (jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
-            } else if(jsonObj.type == "AreaDelete") {
-                var areaErrorDialog = $(document.createElement('div'));
-                $(areaErrorDialog).attr('title', 'Area removed');
-                $(areaErrorDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
-                areaErrorDialog.dialog({
-                    modal: true,
-                    width: 325,
-                    resizable: false,
-                    minHeight: 0,
-                    buttons: {
-                        Ok: function() {
-                            $( this ).dialog( "close" );
-                        }
-                    },
-                    close: function(event, ui) {
-                        window.location.replace("../");
-                    }
-                });
+            } else if (jsonObj.type == "Note") {
+                updateNoteLi(data);
+            } else if (jsonObj.type == "AreaDelete") {
+                displayAreaRemovedDialog();
             }
 
-            if(offset !== null) {
+            if (offset !== null) {
                 // Restore offset
                 var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-                if(typeof newOffset !== "undefined") {
-                    if(newOffset.top != offset.top) {
+                if (newOffset == null) {
+                    newOffset = $("#" + offsetObj.id).offset();
+                }
+                if (typeof newOffset !== "undefined") {
+                    if (newOffset.top != offset.top) {
                         // Restore scroll
                         var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
                         $(window).scrollTop(newPos);
@@ -500,20 +531,20 @@ $(document).ready(function () {
     var handleMovePush = function(moveType, dataObj) {
         var objList = dataObj.objects;
         var childAttr = "prioInStory";
-        if(view == "epic-story") {
+        if (view == "epic-story") {
             childAttr = "prioInEpic";
-        } else if(view == "theme-epic") {
+        } else if (view == "theme-epic") {
             childAttr = "prioInTheme";
         }
         var ulObj = $('ul#list-container');
 
-        if(moveType == "parentMove") {
-            for(var id in objList) {
+        if (moveType == "parentMove") {
+            for (var id in objList) {
                 var p = getParent(id);
                 p.prio = objList[id];
             }
         } else { // child-move
-            for(var i = 0; i < objList.length; i++) {
+            for (var i = 0; i < objList.length; i++) {
                 var p = objList[i];
                 var children = p.children;
                 // The children should be sorted in correct prio-order in the parent
@@ -527,26 +558,26 @@ $(document).ready(function () {
                     }
                 });
                 var parentObj = getParent(p.id);
-                if(parentObj == null) {
+                if (parentObj == null) {
                     // Only happens when an Epic or Story is "created" via a Story
                     parentObj = p;
                     parentObj.children = new Array();
-                    if(view == "epic-story") {
+                    if (view == "epic-story") {
                         updateEpicLi(parentObj);
-                    } else if(view == "theme-epic") {
+                    } else if (view == "theme-epic") {
                         updateThemeLi(parentObj);
                     }
                 }
 
                 var childIdArr = new Array();
                 var parentLi = $("li#" + p.id + ".parentLi");
-                for(var j = 0; j < children.length; j++) {
+                for (var j = 0; j < children.length; j++) {
                     var childId = children[j].id;
                     var childLi = $("li#" + childId + ".childLi");
-                    if(childLi.length == 0) {
-                        if(view == "epic-story") {
+                    if (childLi.length == 0) {
+                        if (view == "epic-story") {
                             updateStoryLi(children[j]);
-                        } else if(view == "theme-epic") {
+                        } else if (view == "theme-epic") {
                             updateEpicLi(children[j]);
                         }
                     } else if (view == "epic-story") {
@@ -555,7 +586,7 @@ $(document).ready(function () {
                     childLi.attr('parentid', p.id);
 
                     // If the prioIn* is 1, it should be placed immediately after it's parent
-                    if(children[j][childAttr] == 1) {
+                    if (children[j][childAttr] == 1) {
                         parentLi.after(childLi);
                     } else {
                         $("li#" + children[j-1].id + ".childLi").after(childLi);
@@ -571,12 +602,72 @@ $(document).ready(function () {
         sortList(ulObj);
     };
 
+    var displayAreaRemovedDialog = function() {
+        var areaErrorDialog = $(document.createElement('div'));
+        $(areaErrorDialog).attr('title', 'Area removed');
+        $(areaErrorDialog).html('<p>The current area has been removed by another user. You will be redirected to the start page.</p>');
+        areaErrorDialog.dialog({
+            modal: true,
+            width: 325,
+            resizable: false,
+            minHeight: 0,
+            buttons: {
+                Ok: function() {
+                    $( this ).dialog( "close" );
+                }
+            },
+            close: function(event, ui) {
+                window.location.replace("../");
+            }
+        });
+    };
+
     var displayUpdateMsg = function () {
         $.blockUI({
             message: '<h1>Updating...</h1>',
             fadeIn:  0,
             overlayCSS: { backgroundColor: '#808080', cursor: null},
             fadeOut:  350});
+    };
+
+    /**
+     * Exclude the scrollbar for the specified element.
+     * What it does is to disable 'sortable' when the
+     * cursor is positioned in the x-interval
+     * [element.width - 20px, element.width]
+     * @param element The jQuery-element
+     */
+    var exclScrollBarFromSortable = function(element) {
+        element.mousemove(function(e) {
+            var elemWith = $(this).width();
+            var dragAreaWidth = elemWith - 20;
+            var offsetX = e.offsetX;
+            if (offsetX == null) {
+                // Fix for Firefox
+                offsetX = e.clientX - $(e.target).offset().left + window.pageXOffset; 
+            }
+
+            if (offsetX <= elemWith && offsetX >= dragAreaWidth) {
+                $("#list-container").sortable("option", "disabled", true);
+                delay(function() { // to not make sortable off 'permanent'
+                    if (!preventSortable()) {
+                        $("#list-container").sortable("option", "disabled", false);
+                    }
+                }, 2000, TIMER_SCROLL_SORTABLE );
+            } else {
+                if (!preventSortable()) {
+                    $("#list-container").sortable("option", "disabled", false);
+                }
+            }
+        });
+    };
+
+    /**
+     * Checks whether sortable should be disabled
+     * @returns True if sortable should be disabled, otherwise false
+     */
+    var preventSortable = function() {
+        return (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio" || archivedView === true);
     };
 
     //Apply filter from URL if it exists
@@ -603,8 +694,8 @@ $(document).ready(function () {
      */
     var getParent = function(id) {
         var p = parentsMap[id];
-        if(typeof p !== "undefined" && p != null) {
-            if(typeof p.children === "undefined") {
+        if (typeof p !== "undefined" && p != null) {
+            if (typeof p.children === "undefined") {
                 p.children = new Array();
             }
         } else {
@@ -648,7 +739,7 @@ $(document).ready(function () {
      */
     var replaceParent = function(id, newParent) {
         var p = getParent(id);
-        if(typeof p !== "undefined") {
+        if (typeof p !== "undefined") {
             var children = p.children;
             newParent.children = children;
             putParent(id, newParent);
@@ -663,7 +754,7 @@ $(document).ready(function () {
      */
     var replaceParentOrChild = function(id, newObject) {
         var p = parentsMap[id];
-        if(typeof p !== "undefined") {
+        if (typeof p !== "undefined") {
             var children = p.children;
             newObject.children = children;
             putParent(id, newObject);
@@ -695,11 +786,11 @@ $(document).ready(function () {
      * @param resFunc The callback when a match is found 
      */
     var findChild = function(id, resFunc) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
-                for(var i = 0; i < parentsMap[key].children.length; i++) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
+                for (var i = 0; i < parentsMap[key].children.length; i++) {
                     var child = parentsMap[key].children[i];
-                    if(child.id == id) {
+                    if (child.id == id) {
                         resFunc(child, parentsMap[key], i);
                         return;
                     }
@@ -736,10 +827,10 @@ $(document).ready(function () {
      * @param fromPrio The lowest prio the parent must have to get it's prio increased
      */
     var incrPrioForParents = function(fromPrio) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key)) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
                 var p = parentsMap[key];
-                if(p.prio >= fromPrio) {
+                if (p.prio >= fromPrio) {
                     p.prio++;
                 }
             }
@@ -752,10 +843,10 @@ $(document).ready(function () {
      * @param fromPrio The lowest prio the parent must have to get it's prio decreased
      */
     var decrPrioForParents = function(fromPrio) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key)) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
                 var p = parentsMap[key];
-                if(p.prio >= fromPrio) {
+                if (p.prio >= fromPrio) {
                     p.prio--;
                 }
             }
@@ -768,13 +859,66 @@ $(document).ready(function () {
      * @param cbForEachParent Function called with (p) for each parent
      */
     var iterAllParents = function(cbForEachParent) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key)) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
                 cbForEachParent(parentsMap[key]);
             }
         }
     };
-    
+
+    /**
+     * Get the Note-array corresponding to the
+     * specified id
+     * @param id The id of the Story whose Notes to get
+     */
+    var getNotes = function(id) {
+        if (typeof notesMap === "undefined") {
+            notesMap = {};
+        }
+        id = id.toString();
+        var notes = notesMap[id];
+        if (notes == null) {
+            notesMap[id] = new Array();
+            notes = notesMap[id];
+        }
+        return notes;
+    };
+
+    /**
+     * Set the list of notes for the specified id
+     * @param id The id of the story
+     * @param notesList The (sorted) list of notes
+     */
+    var setNotesList = function(id, notesList) {
+        if (typeof notesMap === "undefined") {
+            notesMap = {};
+        }
+        id = id.toString();
+        notesMap[id] = notesList;
+    };
+
+    /**
+     * Remove the note with the specified id
+     * @param noteId The id of the note to remove
+     * @returns The removed note
+     */
+    var removeNote = function(noteId) {
+        if(typeof notesMap !== "undefined") {
+            for (var storyId in notesMap) {
+                if (notesMap.hasOwnProperty(storyId)) {
+                    var notes = notesMap[storyId];
+                    for (var i = 0; i < notes.length; i++) {
+                        if (notes[i].id == noteId) {
+                            var retElem = notes[i];
+                            notes.remove({id:noteId});
+                            return retElem;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     /**
      * Add the child to the parent if it does not already exist,
      * and update the specified attribute accordingly (e.g. the prioInTheme)
@@ -784,7 +928,7 @@ $(document).ready(function () {
      */
     var addChildToParent = function(parentObj, childObj, attr) {
         var children = parentObj.children;
-        if(typeof children === "undefined") {
+        if (typeof children === "undefined") {
             children = new Array();
             parentObj.children = children; 
         }
@@ -815,11 +959,11 @@ $(document).ready(function () {
         console.log("Sort called");
 
         var comp = null;
-        if(archivedView == true) {
+        if (archivedView == true) {
             comp = getComparatorFor("dateArchived");
         } else {
             var orderBy = $("#order-by").val();
-            if(orderBy == "prio") {
+            if (orderBy == "prio") {
                 comp = prioComparator;
             } else {
                 comp = getComparatorFor(orderBy);
@@ -829,13 +973,13 @@ $(document).ready(function () {
         ulObj.children('li.parentLi').sort(comp).appendTo(ulObj);
 
         iterAllParents(function(parent) {
-            if(typeof parent.children !== "undefined") {
+            if (typeof parent.children !== "undefined") {
                 var idArr = new Array();
-                for(var i = 0; i < parent.children.length; i++) {
+                for (var i = 0; i < parent.children.length; i++) {
                     idArr.push('li#' + parent.children[i].id);
                 }
 
-                if(idArr.length > 0) {
+                if (idArr.length > 0) {
                     $('li#' + parent.id + '.parentLi').after($(idArr.toString()));
                 }
             }
@@ -871,10 +1015,10 @@ $(document).ready(function () {
         var v2 = getParent(b.id)[attr];
 
         if (attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
-            if(v1 !== null) {
+            if (v1 !== null) {
                 v1 = v1.compareValue;
             }
-            if(v2 !== null) {
+            if (v2 !== null) {
                 v2 = v2.compareValue;
             }
         }
@@ -929,14 +1073,14 @@ $(document).ready(function () {
      * Function to trigger when a long description is expanded.
      */
     var expandText = function (item) {
-        extendedDescriptions.push(item.attr("class"));
+        expandedItems.push(item.attr("class"));
     };
 
     /**
      * Function to trigger when a long description is collapsed.
      */
     var collapseText = function (item) {
-        extendedDescriptions.remove(item.attr("class"));
+        expandedItems.remove(item.attr("class"));
     };
 
     var truncateOptions = {
@@ -960,6 +1104,24 @@ $(document).ready(function () {
         return paragraph;
     };
 
+    /**
+     * Truncate the specified paragraph
+     */
+    var trunc = function(paragraph, afterElement) {
+        paragraph.dotdotdot({
+            ellipsis: '...',
+            wrap: 'letter',
+            watch: 'window'
+        });
+    };
+
+    var isElementTruncated = function(element) {
+        if (element != null && element.length > 0) {
+            return element.triggerHandler("isTruncated.dot");
+        }
+        return false;
+    };
+
     var focusAndSelectText = function(id) {
         $("#"+id).focus();
         $("#"+id).select();
@@ -971,9 +1133,12 @@ $(document).ready(function () {
         //Save offset
         var offset = null, offsetObj = null, inputFocus = null;
         if (editingItems.length > 0) {
+            offsetObj = editingItems[editingItems.length - 1]; // fetch the latest item
             inputFocus = $(document.activeElement);
-            offsetObj = editingItems[0];
-            offset = $("li#" + editingItems[0].id + "." + editingItems[0].type).offset();
+            offset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+            if (offset == null) { // no matched elements => probably a note
+                offset = $("#" + offsetObj.id).offset();
+            }
         }
 
         var orderBy = $("#order-by").val();
@@ -983,6 +1148,9 @@ $(document).ready(function () {
         if (offset !== null) {
             // Restore offset
             var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
+            if (newOffset == null) {
+                newOffset = $("#" + offsetObj.id).offset();
+            }
             if (newOffset.top != offset.top) {
                 // Restore focus
                 var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
@@ -1037,7 +1205,7 @@ $(document).ready(function () {
         $(children).slideToggle();
     };
 
-    var extendedDescriptions = new Array();
+    var expandedItems = new Array();
 
     //Read cookie with selected items..
     var selectedItems = new Array();
@@ -1070,7 +1238,7 @@ $(document).ready(function () {
                         var parent = getParentBy(function(p) {
                             return p.themeId == cookieItem.id;
                         });
-                        if(parent != null) {
+                        if (parent != null) {
                             var selectedItem = new Object();
                             selectedItem.id = parent.id;
                             selectedItem.type = "parent";
@@ -1083,7 +1251,7 @@ $(document).ready(function () {
                         var parent = getParentBy(function(p) {
                             return p.epicId == cookieItem.id;
                         });
-                        if(parent != null) {
+                        if (parent != null) {
                             var selectedItem = new Object();
                             selectedItem.id = parent.id;
                             selectedItem.type = "parent";
@@ -1112,7 +1280,7 @@ $(document).ready(function () {
                         var parent = getParentBy(function(p) {
                             return p.themeId == cookieItem.id;
                         });
-                        if(parent != null) {
+                        if (parent != null) {
                             var selectedItem = new Object();
                             selectedItem.id = parent.id;
                             selectedItem.type = "parent";
@@ -1153,7 +1321,7 @@ $(document).ready(function () {
     };
 
     var unselectAll = function() {
-        for(var i = 0; i < selectedItems.length; i++) {
+        for (var i = 0; i < selectedItems.length; i++) {
             $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected over");
         }
         selectedItems = new Array();
@@ -1225,7 +1393,7 @@ $(document).ready(function () {
             if (arguments.length == 0) {
                 return selectedItems[i-1];
             }
-            while(i--) {
+            while (i--) {
                 if (selectedItems[i].type == type) {
                     return selectedItems[i];
                 }
@@ -1474,30 +1642,30 @@ $(document).ready(function () {
                 $.unblockUI();
                 
                 var children = newObj.children;
-                if(type == "Story") {
+                if (type == "Story") {
                     updateStoryLi(newObj);
-                    if(children.length > 0) {
-                        for(var i = 0; i < children.length; i++) {
+                    if (children.length > 0) {
+                        for (var i = 0; i < children.length; i++) {
                             updateTaskLi(children[i]);
                         }
                     }
                     editStory(newObj.id);
                     scrollTo(newObj.id);
                     focusAndSelectText("title"+newObj.id);
-                } else if(type == "Epic") {
+                } else if (type == "Epic") {
                     updateEpicLi(newObj);
-                    if(children.length > 0) {
-                        for(var i = 0; i < children.length; i++) {
+                    if (children.length > 0) {
+                        for (var i = 0; i < children.length; i++) {
                             updateStoryLi(children[i]);
                         }
                     }
                     editEpic(newObj.id);
                     scrollTo(newObj.id);
                     focusAndSelectText("epicTitle" + newObj.id);
-                } else if(type == "Theme") {
+                } else if (type == "Theme") {
                     updateThemeLi(newObj);
-                    if(children.length > 0) {
-                        for(var i = 0; i < children.length; i++) {
+                    if (children.length > 0) {
+                        for (var i = 0; i < children.length; i++) {
                             updateEpicLi(children[i]);
                         }
                     }
@@ -1525,6 +1693,10 @@ $(document).ready(function () {
             itemType = "epic";
         } else if (item.hasClass("theme")) {
             itemType = "theme";
+        } else if (item.hasClass("note")) {
+            itemType = "note";
+            var splitStr = itemId.split("-"); // as note-id:s are on the form "note-#"
+            itemId = parseInt(splitStr[splitStr.length - 1]);
         };
 
         $('#delete-item').attr("title","Delete "+itemType);
@@ -1544,7 +1716,7 @@ $(document).ready(function () {
                         contentType: "application/json; charset=utf-8",
                         success: function (data) {
                             $.unblockUI();
-                            removeItem(item);
+                            removeItem(itemId);
                             unselectAll();
                             if (archivedView) {
                                 reBuildArchivedList();
@@ -1566,47 +1738,65 @@ $(document).ready(function () {
     };
     
     /**
-     * Remove the object and the li-element, and if a parent, all the corresponding li-children
+     * Remove the object and the corresponding li-element, and if a parent, all the corresponding li-children
      * from the page
+     * @param itemId The id of the item to remove
      */
-    var removeItem = function(itemLi) {
-        var itemId = itemLi.attr('id');
-        if(itemLi.hasClass('parentLi')) { // A parent was removed
+    var removeItem = function(itemId) {
+        var itemLi = $("li#" + itemId);
+        if (itemLi.length == 0) { // no match - try note
+            itemLi = $("#note-" + itemId);
+        }
+
+        if (itemLi.hasClass('parentLi')) { // A parent was removed
             var obj = removeParent(itemLi.attr('id'));
-            if(typeof obj !== "undefined") {
+            if (typeof obj !== "undefined") {
                 $('li[parentid="' + itemId + '"]').remove();
                 itemLi.remove();
                 decrPrioForParents(obj.prio);
             }
-        } else if(typeof itemId !== "undefined") { // A child was removed
+        } else if (itemLi.hasClass("note")) { // a removed note
+            var note = removeNote(itemId);
+            itemLi.remove();
+            var storyId = parseInt(note.storyId);
+            var showSingleNote = (expandedItems.indexOf(storyId) == -1);
+            if (showSingleNote) {
+                var singleNote = getSingleNote(getNotes(storyId));
+                if (singleNote != null) {
+                    updateNoteLi(singleNote); // A note was removed with the list collapsed
+                }
+            }
+        } else if (itemLi.length > 0) { // A child was removed
             var parentLi = $("li#" + itemLi.attr("parentid"));
             var parent = getParent(itemLi.attr("parentid"));
             var children = parent.children;
             var position = -1;
-            for(var i = 0; i < children.length; i++) {
-                if(children[i].id == itemId) {
+            for (var i = 0; i < children.length; i++) {
+                if (children[i].id == itemId) {
                     position = i;
                     break;
                 }
             }
-            if(position >= 0) {
+            if (position >= 0) {
                 children.splice(position, 1);
                 itemLi.remove();
                 toggleExpandBtn(parentLi, itemLi, children);
 
                 var attr = "prioInStory";
-                if(view == "epic-story") {
+                if (view == "epic-story") {
                     attr = "prioInEpic";
-                } else if(view == "theme-epic") {
+                } else if (view == "theme-epic") {
                     attr = "prioInTheme";
                 }
 
-                for(var i = 0; i < children.length; i++) { // Update the prio for all children
+                for (var i = 0; i < children.length; i++) { // Update the prio for all children
                     children[i][attr] = i + 1;
                 }
             }
+        } else {
+            removeNote(itemId); // test to see if it's a hidden note
         }
-        if(typeof itemId !== "undefined") {
+        if (typeof itemLi !== "undefined") {
             editingItems.remove({id:itemId});
         }
     };
@@ -1638,18 +1828,21 @@ $(document).ready(function () {
      */
     var bulkCancel = function() {
         for (var i = 0; i < editingItems.length; i++) {
-            $("." + editingItems[i].id).toggleClass('hidden-edit');
             var bindEvent = null;
-            if(editingItems[i].type == "story") {
+            if (editingItems[i].type == "story") {
                 bindEvent = editStory;
-            } else if(editingItems[i].type == "task") {
+            } else if (editingItems[i].type == "task") {
                 bindEvent = editTask;
-            } else if(editingItems[i].type == "epic") {
+            } else if (editingItems[i].type == "epic") {
                 bindEvent = editEpic;
-            } else if(editingItems[i].type == "theme") {
+            } else if (editingItems[i].type == "theme") {
                 bindEvent = editTheme;
             }
-            $('li#'+editingItems[i].id).dblclick(bindEvent);
+
+            if (bindEvent != null) {
+                $("." + editingItems[i].id).toggleClass('hidden-edit');
+                $('li#'+editingItems[i].id).dblclick(bindEvent);
+            }
         }
         editingItems = new Array();
         updateWhenItemsClosed();
@@ -1662,7 +1855,10 @@ $(document).ready(function () {
         displayUpdateMsg();
         while (editingItems.length > 0) {
             var lastElement = $(editingItems).last()[0];
-            var id = eval(lastElement.id);
+            var id = lastElement.id;
+            if(lastElement.type != "note") {
+                id = eval(lastElement.id);
+            }
             editingItems.remove({id:id});
 
             if (lastElement.type == "task") {
@@ -1683,12 +1879,101 @@ $(document).ready(function () {
      * Returns true if you are going into edit mode on a parent/child.
      */
     var isGoingIntoEdit = function isGoingIntoEdit(editId){
-        for(var i = 0; editingItems.length > i; i++) {
+        for (var i = 0; editingItems.length > i; i++) {
             if (editingItems[i].id == editId) {
                 return false;
             }
         }
         return true;
+    };
+
+    /**
+     * Toggles the Notes-list for the specified story-element
+     * @param storyLi The story-li-element
+     * @param open True to open/expand, false to close/collapse
+     */
+    var toggleNotesList = function(storyLi, open) {
+        var moreNotesP = storyLi.find(".more-notes-loader-p");
+        var notesFormDiv = $("#notes-form-" + storyLi.attr("id"));
+        var expanded = false;
+
+        if (open) {
+            moreNotesP.removeClass("ui-hidden");
+            if (loggedIn === true) {
+                notesFormDiv.removeClass("ui-hidden");
+                notesFormDiv.find("textarea").autosize('');
+            }
+        } else {
+            moreNotesP.addClass("ui-hidden");
+            notesFormDiv.addClass("ui-hidden");
+            expanded = true;
+        }
+        
+        if (expanded) { // list open; close
+            collapseNotesList(storyLi);
+        } else { // list closed; open
+            var showSysMsgs = storyLi.find(".show-sys-msgs").prop('checked');
+            expandNotesList(storyLi, showSysMsgs);
+        }
+
+    };
+
+    /**
+     * Collapse the notes-list belonging to the
+     * specified story-li-element
+     * @param storyLi The li-element for the Story
+     */
+    var collapseNotesList = function(storyLi) {
+        var notes = getNotes(storyLi.attr("id"));
+        var ul = storyLi.find("div.notes-container ul");
+        ul.empty();
+        var singleNote = getSingleNote(notes);
+        if (singleNote != null) {
+            var noteLi = updateNoteLi(singleNote);
+            noteLi.find("div.note").addClass("single-note");
+        } else {
+            storyLi.find("div.notes-container").addClass("ui-hidden");
+        }
+    };
+
+    /**
+     * Get the 'single-note' (i.e. the newest non-system-generated note)
+     * from the specified notes
+     * @param notes The notes
+     * @returns A note, or null if no single-note found
+     */
+    var getSingleNote = function(notes) {
+        var singleNote = null;
+        for (var i = 0; i < notes.length; i++) {
+            if (notes[i].systemGenerated === false) {
+                singleNote = notes[i];
+                break;
+            }
+        }
+        return singleNote;
+    };
+
+    /**
+     * Expand the notes-list belonging to the specified
+     * story-li-element
+     * 
+     * @param storyLi
+     *            The li-element for the story
+     * @param inclSysMsgs
+     *            True to display system-generated messages as
+     *            well, or false to hide them
+     */
+    var expandNotesList = function(storyLi, inclSysMsgs) {
+        var notes = getNotes(storyLi.attr("id"));
+        var ul = storyLi.find("div.notes-container ul");
+        ul.empty();
+
+        for (var i = notes.length - 1; i >= 0; i--) {
+            var note = notes[i];
+            if (inclSysMsgs || note.systemGenerated === false) {
+                updateNoteLi(note);
+            }
+        }
     };
 
     var editStory = function(event) {
@@ -1709,6 +1994,12 @@ $(document).ready(function () {
             story = getChild(storyId);
         }
         if (isGoingIntoEdit(storyId)) {
+            if (expandedItems.indexOf(storyId) == -1) {
+                // Expand the story
+                var eventObj = jQuery.Event('click');
+                eventObj.target = $("li#" + storyId);
+                toggleExpandableItem(eventObj);
+            }
             $("li#"+storyId).unbind("dblclick"); //Only the cancel button closes again
             editingItems.push({id:storyId, type:"story"});
             $('button.'+storyId).button();
@@ -1808,7 +2099,7 @@ $(document).ready(function () {
             $("textarea#theme"+storyId).val(escapeHtml(story.themeTitle));
             
             //auto resize the textareas to fit the text
-            $('textarea'+"."+storyId).autosize('');
+            $("textarea."+storyId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:storyId});
             $("."+storyId).toggleClass('hidden-edit');
@@ -1853,7 +2144,7 @@ $(document).ready(function () {
             success: function (updatedStory) {
                 if (view == "story-task") {
                     if (getParent(storyId).archived != updatedStory.archived) { // we changed archived status
-                        removeItem($("li#" + storyId));
+                        removeItem(storyId);
                     } else {
                         updateStoryLi(updatedStory);
                     }
@@ -1886,7 +2177,7 @@ $(document).ready(function () {
 
         putInCorrPrioPos(ulObj, lastItemObj, newItemLi);
 
-        if($('#order-by').val() != "prio") {
+        if ($('#order-by').val() != "prio") {
             sortList(ulObj);
         } 
     };
@@ -1933,14 +2224,14 @@ $(document).ready(function () {
      */
     var getParentOrLastChildElement = function(itemId) {
         var elem = getParent(itemId);
-        if(elem == null) {
+        if (elem == null) {
             findChild(itemId, function(childObj, parentObj, posInParent) {
                 elem = parentObj;
             });
         }
-        if(elem != null) {
+        if (elem != null) {
             var children = elem.children;
-            if(typeof children !== "undefined" && children.length > 0) {
+            if (typeof children !== "undefined" && children.length > 0) {
                 return $('li#' + children[children.length - 1].id);
             } else {
                 return $('li#' + elem.id);
@@ -1950,6 +2241,111 @@ $(document).ready(function () {
     };
     
     /**
+     * Finds and updates (or creates) a Note-li with new values
+     * @param updatedNote The new Note-object
+     * @param appendFirst True to prepend, rather than the default append
+     * @returns The updated or created li-object
+     */
+    var updateNoteLi = function(updatedNote, appendFirst) {
+        var noteId = updatedNote.id;
+        var notesArray = getNotes(updatedNote.storyId);
+        var notePos = -1;
+
+        for (var i = 0; i < notesArray.length; i++) {
+            if (notesArray[i].id == noteId) {
+                notePos = i;
+                break;
+            }
+        }
+
+        var lastElem = null;
+        var offset = null;
+
+        if (notePos < 0) { // new note
+            notesArray.unshift(updatedNote);
+        } else {
+            notesArray[notePos] = updatedNote;
+        }
+
+        var ulList = $("li#" + updatedNote.storyId).find(".notes-container ul");
+        var noteItem = $("#note-" + noteId);
+        var singleMode = false;
+        var scrollTop = false;
+        if (noteItem.length == 0) { // No html-element exists for the Note
+            var divItem = $('div#note-placeholder').clone();
+            var htmlStr = divItem.html();
+            htmlStr = htmlStr.replace(/-1/g, noteId); // Replace all occurences of -1
+            noteItem = $(htmlStr);
+            noteItem.addClass("ui-hidden");
+
+            var showSysMsgs = $("li#" + updatedNote.storyId).find(".show-sys-msgs").prop('checked');
+            var sysGen = updatedNote.systemGenerated;
+            var insertItem = (!sysGen || sysGen && showSysMsgs);
+            if (expandedItems.indexOf(updatedNote.storyId) == -1) {
+                // Only showing one note
+                singleMode = true;
+                insertItem = !sysGen; // only non-system-msgs are shown in single-mode
+                if (insertItem) {
+                    ulList.empty();
+                }
+            } else if (ulList.scrollTop() > 40) {
+                // Several notes in list, but not scrolled to top - save current list-position
+                // (40 px marginal)
+                lastElem = ulList.children().last();
+                offset = lastElem.offset();
+                noteItem.find("div.note").removeClass("single-note");
+            } else {
+                // Several notes and scrolled to bottom - scroll along with new elements
+                scrollTop = true;
+                noteItem.find("div.note").removeClass("single-note");
+            }
+
+            if (insertItem) {
+                if (appendFirst === true) {
+                    ulList.append(noteItem);
+                } else {
+                    ulList.prepend(noteItem);
+                }
+            }
+        }
+
+        if (!disableEditsBoolean) {
+            $("a.deleteItem", noteItem).unbind('click');
+            $("a.deleteItem", noteItem).click(deleteItem);
+        } else {
+            $("a.deleteItem", noteItem).addClass('disabled');
+        }
+
+        $("div.single-note", noteItem).unbind();
+        $("div.single-note", noteItem).click(toggleExpandableItem);
+
+        noteItem.find("span.user").text(updatedNote.user);
+        noteItem.find("span.message").html(addLinksAndLineBreaks(updatedNote.message));
+        noteItem.find("span.date").text(getFullDateAndTime(updatedNote.createdDate));
+        noteItem.fadeIn("slow");
+        if (singleMode) {
+            var noteDiv = noteItem.find("div.note.single-note");
+            trunc(noteDiv.find("p.user-msg"), null);
+        }
+
+        if (lastElem !== null && offset !== null) {
+            var newOffset = lastElem.offset();
+            if (typeof newOffset !== "undefined") {
+                if (newOffset.top != offset.top) {
+                    // Restore scroll
+                    var newPos = ulList.scrollTop() + (newOffset.top - offset.top);
+                    ulList.scrollTop(newPos);
+                }
+            }
+        }
+
+        if (scrollTop) {
+            ulList.scrollTop(0);
+        }
+        return noteItem;
+    };
+
+    /**
      * Finds and updates a story li-element with new values.
      * @param updatedStory JSON data for the updated story
      * @param oneline set to true if it should be rendered in oneline mode
@@ -1958,13 +2354,13 @@ $(document).ready(function () {
         var storyId = updatedStory.id;
 
         var ulObj = null;
-        if(updatedStory.archived && archivedView) {
+        if (updatedStory.archived && archivedView) {
             ulObj = $('ul#archived-list-container');
         } else if (!updatedStory.archived && !archivedView) {
             ulObj = $('ul#list-container');
         }
 
-        if($('li#' + storyId + '.story').length == 0) { //Was a new story
+        if ($('li#' + storyId + '.story').length == 0) { //Was a new story
             var divItem = null;
             if (oneline) {
                 divItem = $('div#story-oneline-placeholder').clone();
@@ -1976,16 +2372,29 @@ $(document).ready(function () {
 
             var newItem = $(htmlStr);
 
-            if(view == "story-task") {
+            if (view == "story-task") {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
-            } else if(view == "epic-story") {
+
+                var notes = getNotes(storyId);
+                var singleNote = getSingleNote(notes);
+                if (singleNote != null) {
+                    var noteLi = updateNoteLi(singleNote);
+                    noteLi.find("div.note").addClass("single-note");
+                } else {
+                    newItem.find("div.notes-container").addClass("ui-hidden");
+                }
+                
+                if (updatedStory.hasMoreNotes === true) {
+                    setLoadNotesBtnState(newItem.find("a.more-notes-loader"), 'more-to-load');
+                }
+            } else if (view == "epic-story") {
                 newItem.attr('parentid', updatedStory.epicId);
                 var parent = getParent(updatedStory.epicId);
                 var attr = 'prioInEpic';
 
-                if(typeof parent !== "undefined") {
+                if (parent != null) {
 
-                    if(updatedStory[attr] > 1) {
+                    if (updatedStory[attr] > 1) {
                         $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
@@ -1998,8 +2407,8 @@ $(document).ready(function () {
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(storyId, updatedStory);
-            if(view == "story-task") {
-                if(typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
+            if (view == "story-task") {
+                if (typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
                     $("li#" + storyId + " div.icon").addClass("expand-icon ui-icon ui-icon-triangle-1-e");
                 }
 
@@ -2023,12 +2432,23 @@ $(document).ready(function () {
 
         //Re-add truncate on the description paragraph
         var descriptionParagraph = storyLi.find('.story-description');
-        descriptionParagraph = untruncate(descriptionParagraph, story.description);
-        descriptionParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+storyId})
-        );
-        if (extendedDescriptions.indexOf('truncate'+storyId) != -1) {
-            $('a.truncate'+storyId, descriptionParagraph.parent()).click();
+        if (descriptionParagraph.length > 0) {
+            descriptionParagraph.html(addLinksAndLineBreaks(story.description));
+
+            descriptionParagraph.removeClass("untrunc-description trunc-description");
+            if (expandedItems.indexOf(storyId) > -1) {
+                descriptionParagraph.addClass("untrunc-description");
+            } else {
+                descriptionParagraph.addClass("trunc-description");
+                trunc(descriptionParagraph, null);
+            }
+
+            if (!isElementTruncated(descriptionParagraph) 
+                    && view != "story-task" && expandedItems.indexOf(storyId) == -1) {
+                storyLi.find("p.expand-item-p").addClass("ui-hidden");
+            } else {
+                storyLi.find("p.expand-item-p").removeClass("ui-hidden");
+            }
         }
 
         storyLi.find('p.customerSite').html(getSiteImage(story.customerSite));
@@ -2052,6 +2472,10 @@ $(document).ready(function () {
             $('#archived-text' + storyId).text("");
             $('#date-archived' + storyId).text("");
             $('#archiveStory' + storyId).attr('checked', false);
+        }
+
+        if (story.hasMoreNotes === false) {
+            setLoadNotesBtnState($("#" + storyId + " a.more-notes-loader"), 'all-loaded');
         }
 
         var oneline = $("li#" + storyId + ".oneline-li");
@@ -2166,8 +2590,8 @@ $(document).ready(function () {
 
         iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
-        if(childrenArr.length > 0) {
-            if(visibleChild) {
+        if (childrenArr.length > 0) {
+            if (visibleChild) {
                 iconDiv.addClass('ui-icon-triangle-1-s');
             } else {
                 iconDiv.addClass('ui-icon-triangle-1-e');
@@ -2196,7 +2620,7 @@ $(document).ready(function () {
     var updateTaskLi = function(updatedTask) {
         var taskId = updatedTask.id;
 
-        if($('li#' + taskId + '.task').length == 0) {
+        if ($('li#' + taskId + '.task').length == 0) {
             var divItem = $('div#task-placeholder').clone();
             var htmlStr = divItem.html();
             var parentLi = $('li#' + updatedTask.parentId + '.story');
@@ -2209,7 +2633,7 @@ $(document).ready(function () {
             var parent = getParent(updatedTask.parentId);
             var children = parent.children;
 
-            if(updatedTask.prioInStory > 1) {
+            if (updatedTask.prioInStory > 1) {
                 $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
             } else {
                 $('li#' + updatedTask.parentId + '.story').after(newItem);
@@ -2232,7 +2656,7 @@ $(document).ready(function () {
         titleParagraph.truncate(
                 $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
         );
-        if (extendedDescriptions.indexOf('truncate'+taskId) != -1) {
+        if (expandedItems.indexOf('truncate'+taskId) != -1) {
             $('a.truncate'+taskId, titleParagraph.parent()).click();
         }
     };
@@ -2268,7 +2692,7 @@ $(document).ready(function () {
             }
 
             //auto resize the textareas to fit the text
-            $('textarea'+"."+taskId).autosize('');
+            $("textarea."+taskId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:taskId});
             $("."+taskId).toggleClass('hidden-edit');
@@ -2298,7 +2722,7 @@ $(document).ready(function () {
         var themeTitle = $("textarea#epicTheme"+epicId).val();
         // In the Theme-Epic-view there is no textarea for Theme, so
         // we have to get it from the map instead
-        if(themeTitle == null) {
+        if (themeTitle == null) {
             findChild(epicId, function(childObj, parentObj, posInParent) {
                 themeTitle = childObj.themeTitle;
             });
@@ -2315,7 +2739,7 @@ $(document).ready(function () {
             success: function (updatedEpic) {
                 if (view == "epic-story") {
                     if (getParent(epicId).archived != updatedEpic.archived) {
-                        removeItem($("li#" + epicId));
+                        removeItem(epicId);
                     } else {
                         updateEpicLi(updatedEpic);
                         exitEditMode(epicId);
@@ -2346,13 +2770,13 @@ $(document).ready(function () {
         var epicId = updatedEpic.id;
 
         var ulObj = null;
-        if(updatedEpic.archived) {
+        if (updatedEpic.archived) {
             ulObj = $("ul#archived-list-container");
         } else {
             ulObj = $("ul#list-container");
         }
 
-        if($('li#' + epicId + '.epic').length == 0) {
+        if ($('li#' + epicId + '.epic').length == 0) {
             var divItem = null;
             if (oneline) {
                 divItem = $('div#epic-oneline-placeholder').clone();
@@ -2364,18 +2788,18 @@ $(document).ready(function () {
             
             newItem = $(htmlStr);            
             newItem.attr('id', epicId);
-            if(view == "theme-epic") {
+            if (view == "theme-epic") {
                 newItem.attr('parentid', updatedEpic.themeId);
             }
 
-            if(view == "epic-story") {
+            if (view == "epic-story") {
                 handleNewParentItem(updatedEpic.lastItem, newItem, updatedEpic, ulObj);
             } else {
                 var parent = getParent(updatedEpic.themeId);
                 var attr = 'prioInTheme';
-                if(typeof parent !== "undefined") {
+                if (parent != null) {
                     
-                    if(updatedEpic[attr] > 1) {
+                    if (updatedEpic[attr] > 1) {
                         $('li#' + (parent.children[updatedEpic[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
@@ -2388,10 +2812,10 @@ $(document).ready(function () {
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(epicId, updatedEpic);
-            if(view == "epic-story") {
+            if (view == "epic-story") {
                 // If the update has meant a change of archive-status...
                 putInCorrPrioPos(ulObj, updatedEpic.lastItem, $('li#' + epicId + '.epic'));
-                if($("#order-by").val() != "prio") {
+                if ($("#order-by").val() != "prio") {
                     sortList(ulObj);
                 }
             }
@@ -2400,14 +2824,23 @@ $(document).ready(function () {
         $('.titles-epic-story, .titles-theme-epic').find('p.theme.'+epicId).html((updatedEpic.themeTitle != undefined) ? updatedEpic.themeTitle : "");
         $('.titles-epic-story, .titles-theme-epic').find('p.titleText.'+epicId).html(updatedEpic.title);
 
-        //Re-add truncate on the description paragraph
         var descriptionParagraph = $('.titles-epic-story, .titles-theme-epic').find('p.description.'+epicId);
-        descriptionParagraph = untruncate(descriptionParagraph, updatedEpic.description);
-        descriptionParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+epicId, max_length: 90})
-        );
-        if (extendedDescriptions.indexOf('truncate'+epicId) != -1) {
-            $('a.truncate'+epicId, descriptionParagraph.parent()).click();
+        if (descriptionParagraph.length > 0) {
+            descriptionParagraph.html(addLinksAndLineBreaks(updatedEpic.description));
+
+            descriptionParagraph.removeClass("untrunc-description trunc-description");
+            if (expandedItems.indexOf(epicId) > -1) {
+                descriptionParagraph.addClass("untrunc-description");
+            } else {
+                descriptionParagraph.addClass("trunc-description");
+                trunc(descriptionParagraph, null);
+            }
+
+            if (!isElementTruncated(descriptionParagraph) && expandedItems.indexOf(epicId) == -1) {
+                $("li#" + epicId).find("p.expand-item-p").addClass("ui-hidden");
+            } else {
+                $("li#" + epicId).find("p.expand-item-p").removeClass("ui-hidden");
+            }
         }
 
         if (updatedEpic.archived == true) {
@@ -2486,7 +2919,7 @@ $(document).ready(function () {
             $('#archiveEpic' + epicId).prop('checked', epic.archived);
             
             //auto resize the textareas to fit the text
-            $('textarea'+"."+epicId).autosize('');
+            $('textarea.'+epicId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:epicId});
             $("."+epicId).toggleClass('hidden-edit');
@@ -2521,7 +2954,7 @@ $(document).ready(function () {
             success: function (updatedTheme) {
                 //if theme was moved from or to archive
                 if (getParent(themeId).archived != updatedTheme.archived) {
-                    removeItem($("li#" + themeId));
+                    removeItem(themeId);
                 } else {
                     updateThemeLi(updatedTheme);
                     exitEditMode(themeId);
@@ -2548,13 +2981,13 @@ $(document).ready(function () {
         var themeId = updatedTheme.id;
 
         var ulObj = null;
-        if(updatedTheme.archived) {
+        if (updatedTheme.archived) {
             ulObj = $("ul#archived-list-container");
         } else {
             ulObj = $("ul#list-container");
         }
 
-        if($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
+        if ($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
             var divItem = null;
             if (oneline) {
                 divItem = $('div#theme-oneline-placeholder').clone();
@@ -2573,23 +3006,32 @@ $(document).ready(function () {
 
             // If the update has meant a change of archive-status...
             putInCorrPrioPos(ulObj, updatedTheme.lastItem, $('li#' + themeId + '.theme'));
-            if($("#order-by").val() != "prio") {
+            if ($("#order-by").val() != "prio") {
                 sortList(ulObj);
             }
         }
 
         $('.titles-theme-epic').find('p.titleText.'+themeId).html(updatedTheme.title);
 
-        //Re-add truncate on the description paragraph
         var descriptionParagraph = $('.titles-theme-epic').find('p.description.'+themeId);
-        descriptionParagraph = untruncate(descriptionParagraph, updatedTheme.description);
-        descriptionParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+themeId, max_length: 90})
-        );
-        if (extendedDescriptions.indexOf('truncate'+themeId) != -1) {
-            $('a.truncate'+themeId, descriptionParagraph.parent()).click();
-        }
+        if (descriptionParagraph.length > 0) {
+            descriptionParagraph.html(addLinksAndLineBreaks(updatedTheme.description));
 
+            descriptionParagraph.removeClass("untrunc-description trunc-description");
+            if (expandedItems.indexOf(themeId) > -1) {
+                descriptionParagraph.addClass("untrunc-description");
+            } else {
+                descriptionParagraph.addClass("trunc-description");
+                trunc(descriptionParagraph, null);
+            }
+
+            if (!isElementTruncated(descriptionParagraph) && expandedItems.indexOf(themeId) == -1) {
+                $("li#" + themeId).find("p.expand-item-p").addClass("ui-hidden");
+            } else {
+                $("li#" + themeId).find("p.expand-item-p").removeClass("ui-hidden");
+            }
+        }
+        
         if (updatedTheme.archived == true) {
             $('p#archived-text' + themeId).text("Archived");
             $('p#date-archived' + themeId).html(getDate(updatedTheme.dateArchived));
@@ -2647,7 +3089,7 @@ $(document).ready(function () {
             $('#archiveTheme' + themeId).prop('checked', theme.archived);
 
             //auto resize the textareas to fit the text
-            $('textarea'+"."+themeId).autosize('');
+            $('textarea.'+themeId).autosize('').trigger("autosize.resize");
         } else {
             editingItems.remove({id:themeId});
             $("."+themeId).toggleClass('hidden-edit');
@@ -2686,8 +3128,8 @@ $(document).ready(function () {
                             data: JSON.stringify(storiesToMove),
                             contentType: "application/json; charset=utf-8",
                             success: function (data) {
-                                for(var i = 0; i < storiesToMove.length; i++) {
-                                    removeItem($("li#" + storiesToMove[i]));
+                                for (var i = 0; i < storiesToMove.length; i++) {
+                                    removeItem(storiesToMove[i]);
                                 }
                                 unselectAll();
                                 $.unblockUI();
@@ -2719,7 +3161,130 @@ $(document).ready(function () {
                 }
             });
         }
-    }; 
+    };
+
+    /**
+     * Set the state of the specified "load-notes"-button
+     * @param btn The button-element
+     * @param state 'loading', 'more-to-load' or 'all-loaded'
+     */
+    var setLoadNotesBtnState = function(btn, state) {
+        btn.unbind('click');
+        btn.removeClass('ui-state-disabled');
+        state = state.toLowerCase();
+        if (state === 'loading') {
+            btn.text('[ LOADING ]');
+        } else if (state === 'more-to-load') {
+            btn.text('Load older notes');
+            btn.click(fetchMoreNotesFromServer);
+        } else if (state === 'all-loaded') {
+            btn.addClass('ui-state-disabled');
+            btn.text('All notes loaded');
+        }
+    };
+
+    /**
+     * Used when posting/creating a new Note
+     * @param storyId The id of the Story to post the Note to
+     * @param message The message of the Note
+     */
+    var postNote = function(storyId, message) {
+        displayUpdateMsg();
+
+        var noteContainer = new Object();
+        noteContainer.id = -1;
+        noteContainer.storyId = storyId;
+        noteContainer.message = message;
+        $.ajax({
+            url : "../json/createnote/" + areaName,
+            type : 'POST',
+            dataType : 'json',
+            data : JSON.stringify(noteContainer),
+            contentType : "application/json; charset=utf-8",
+            success : function(newNote) {
+                if (newNote != null) {
+                    $.unblockUI();
+                    $("#notes-textarea-" + storyId).val("").trigger('autosize.resize');
+                    updateNoteLi(newNote);
+
+                    var newElem = $('#note-' + newNote.id);
+                    var ulList = newElem.closest('ul');
+                    ulList.animate({
+                        // scroll up to the new note
+                        scrollTop: 0},
+                        200);
+                }
+            },
+            error : function(error) {
+                $.unblockUI();
+                alert(error);
+            }
+        });
+    };
+
+    /**
+     * Used to get more Notes from the server and put them in the
+     * corresponding note-list
+     */
+    var fetchMoreNotesFromServer = function(event) {
+        var item = $(event.target);
+        setLoadNotesBtnState(item, 'loading');
+        var story = item.closest('li');
+        var storyId = story.attr("id");
+
+        var nbrOfNotes = getNotes(storyId).length;
+        var part = Math.floor(nbrOfNotes / MAX_NOTES) + 1;
+        $.ajax({
+            url : "../json/read-notes/" + storyId + "/" + part,
+            type : 'GET',
+            dataType : 'json',
+            contentType : "application/json; charset=utf-8",
+            success : function(jsonResp) {
+                if (jsonResp != null) {
+                    var moreNotesAvail = jsonResp.moreNotesAvailable;
+                    var notesList = jsonResp.notesList;
+                    var newList = getNotes(storyId).concat(notesList);
+                    setNotesList(storyId, newList);
+                    $("#notes-textarea-" + storyId).val("");
+                    var showSysMsgs = story.find(".show-sys-msgs").prop('checked');
+                    for (var i = 0; i < notesList.length; i++) {
+                        if (showSysMsgs || notesList[i].systemGenerated === false) {
+                            updateNoteLi(notesList[i], true);
+                        }
+                    }
+
+                    if (moreNotesAvail == true) {
+                        setLoadNotesBtnState(item, 'more-to-load');
+                    } else {
+                        setLoadNotesBtnState(item, 'all-loaded');
+                    }
+                }
+            },
+            error : function(error) {
+                $.unblockUI();
+                alert(error);
+            }
+        });
+        if (event != null) {
+            event.stopPropagation();
+        }
+    };
+
+    /**
+     * Show or hide system-notes depending
+     * on the checkbox-status
+     */
+    var toggleSystemNotes = function(event) {
+        var checkbox = $(event.target);
+        var story = checkbox.closest('li.parentLi');
+
+        var offset = checkbox.offset().top;
+        expandNotesList(story, checkbox.prop('checked'));
+        var newOffset = checkbox.offset().top;
+        if (offset != newOffset) {
+            $(window).scrollTop($(window).scrollTop() + (newOffset - offset));
+        }
+    };
 
     /**
      * Updates save all button when the last editing item is going out of edit mode.
@@ -2728,6 +3293,7 @@ $(document).ready(function () {
         if (editingItems.length == 0) {
             $('#save-all').button("option", "disabled", true);
         }
+        updateAllExpandBtns();
     };
 
     /**
@@ -2775,6 +3341,9 @@ $(document).ready(function () {
                         return false; //Makes sure that no hashtag is appended to URL
                     }
                 });
+                if (view == "story-task") {
+                    notesMap = data.notesMap;
+                }
                 var archivedItems = data.archivedItems;
                 for (var i=0; i<archivedItems.length; i++) {
                     var childData = archivedItems[i].children;
@@ -2796,7 +3365,6 @@ $(document).ready(function () {
                         }
                     }
                     //TODO: Make sure that sort is not called several times
-
                 }
 
                 updateTypeMarkWidth();
@@ -2833,25 +3401,16 @@ $(document).ready(function () {
             var currentId = $(this).attr("id");
             if (visible[currentId] != true) {
                 $(this).addClass("ui-hidden");
+                $(this).css("display", "none");
             }
         });
 
         //Truncating long description texts
         $("li").each(function() {
             var currentId = $(this).attr("id");
-            $('p.story-description', this).truncate(
-                    $.extend(truncateOptions, {className: 'truncate'+currentId})
-            );
-            $('p.epic-description, p.theme-description', this).truncate(
-                    $.extend(truncateOptions, {className: 'truncate'+currentId, max_length: 200})
-            );
             $('p.taskInfo', this).truncate(
                     $.extend(truncateOptions, {className: 'truncate'+currentId, max_length: 90})
             );
-
-            if (extendedDescriptions.indexOf('truncate'+currentId) != -1) {
-                $('a.truncate'+currentId, this).click();
-            }
         });
 
         $('.expand-icon').click(expandClick);
@@ -2948,6 +3507,33 @@ $(document).ready(function () {
             $("#save-all").button( "option", "disabled", false );
             //$(".save-button."+id).button( "option", "disabled", false );
         });
+
+        if (typeof loggedIn !== "undefined" && loggedIn === true) {
+            $(".note-textarea").keyup(function (e) {
+                if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
+                    var storyId = $(this).closest("li.story").attr("id");
+
+                    if ($(this).val().length > 0) { // prevent empty notes
+                        editingItems.remove({id:$(this).attr("id"), type:"note"});
+                        postNote(parseInt(storyId), $(this).val());
+                    }
+                    e.stopPropagation();
+                }
+            });
+
+            $(".note-textarea").focus(function(event) {
+                editingItems.push({id:$(this).attr("id"), type:"note"});
+            });
+            $(".note-textarea").blur(function(event) {
+                editingItems.remove({id:$(this).attr("id"), type:"note"});
+            });
+        } else {
+            $("div.notes-form").addClass("ui-hidden");
+        }
+        $(".more-notes-loader").click(fetchMoreNotesFromServer);
+        $(".show-sys-msgs").click(toggleSystemNotes);
+
+        $(".expand-item-btn").click(toggleExpandableItem);
 
         if (disableEditsBoolean) {
             disableEdits();
@@ -3075,6 +3661,7 @@ $(document).ready(function () {
             lastItem.id = lastId;
             jsonData.lastItem = lastItem;
         }
+        expandedItems.remove(id);
 
         li.animate({height: 20}, 200, function(){
             li.remove();
@@ -3122,7 +3709,7 @@ $(document).ready(function () {
         //Call refresh when excessive calls for bindEventsToItem has stopped
         delay(function() {
             $("#list-container").sortable("refresh");
-        }, 250 );
+        }, 250, TIMER_BIND_EVENTS );
 
         elem.click(liClick);
         elem.mousedown(function () {
@@ -3212,6 +3799,32 @@ $(document).ready(function () {
             $(this).autocomplete('enable');
         });
 
+        if (typeof loggedIn !== "undefined"  && loggedIn === true) {
+            $(".note-textarea", elem).keyup(function (e) {
+                if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
+                    var storyId = $(this).closest("li.story").attr("id");
+
+                    if ($(this).val().length > 0) {
+                        editingItems.remove({id:$(this).attr("id"), type:"note"});
+                        postNote(parseInt(storyId), $(this).val());
+                    }
+                    e.stopPropagation();
+                }
+            });
+            $(".note-textarea", elem).focus(function(event) {
+                editingItems.push({id:$(this).attr("id"), type:"note"});
+            });
+            $(".note-textarea", elem).blur(function(event) {
+                editingItems.remove({id:$(this).attr("id"), type:"note"});
+            });
+        } else {
+            $("div.notes-form", elem).addClass("ui-hidden");
+        }
+        $(".more-notes-loader", elem).click(fetchMoreNotesFromServer);
+        $(".show-sys-msgs", elem).click(toggleSystemNotes);
+
+        $(".expand-item-btn", elem).click(toggleExpandableItem);
+
         //Stops textarea from making a new line when trying to save changes.
         $("textarea", elem).keydown(function(e){
             if (e.keyCode == KEYCODE_ENTER && !e.shiftKey) {
@@ -3227,13 +3840,79 @@ $(document).ready(function () {
         $(".oneline.title-span", elem).click(expandOneline);
     };
 
+    /**
+     * Expands or collapses the clicked Story/Theme/Epic-element
+     */
+    var toggleExpandableItem = function(event) {
+        var li = $(event.target).closest("li.story, li.epic, li.theme");
+        var id = parseInt(li.attr("id"));
+        var descr = li.find("p.story-description, p.epic-description, p.theme-description");
+        var isParentStory = (li.hasClass("parentLi") && li.hasClass("story"));
+
+        if (expandedItems.indexOf(id) == -1) { // collapsed; open
+            descr.trigger("destroy.dot");
+            descr.removeClass("trunc-description").addClass("untrunc-description");
+            expandedItems.push(id);
+
+            exclScrollBarFromSortable($("p.story-description, p.epic-description, p.theme-description"));
+            exclScrollBarFromSortable($("div.notes-container ul"));
+            exclScrollBarFromSortable($("div.titles textarea.description, div.titles-theme-epic textarea.description"));
+
+            if (isParentStory) {
+                li.find("div.notes-container").removeClass("ui-hidden").addClass("in-edit");
+                toggleNotesList(li, true);
+                li.find("div.notes-form textarea").focus();
+            }
+        } else { // already open; collapse
+            descr.removeClass("untrunc-description").addClass("trunc-description");
+            trunc(descr, null);
+            expandedItems.remove(id);
+
+            if (!isGoingIntoEdit(id)) { // currently editing
+                var event = jQuery.Event('click');
+                event.data = {id:id};
+                $(".cancelButton", li).trigger(event); // cancel editing
+            }
+
+            if (isParentStory) {
+                li.find("div.notes-container").removeClass("in-edit");
+                toggleNotesList(li, false);
+            }
+        }
+    };
+
     var setHeightAndMargin = function (value) {
         $("#list-container-div").css("margin", value+"px auto");
+    };
+
+    /**
+     * Iterates all non-oneline-li:s and checks if the elements'
+     * description-paragrah is truncated or not, and based on this
+     * hides or shows the expand-button
+     */
+    var updateAllExpandBtns = function() {
+        var elements = $("#list-container li:not(.oneline-li)");
+        if (archivedView === true) {
+            elements = $("#archived-list-container li:not(.oneline-li)");
+        }
+
+        elements.each(function(index) {
+            var paragraph = $(this).find("p.story-description, p.epic-description, p.theme-description");
+            paragraph.trigger("update.dot");
+            var expandBtn = $(this).find("p.expand-item-p");
+            if (!isElementTruncated(paragraph) && view != "story-task" || expandedItems.indexOf($(this).attr("id")) > -1) {
+                expandBtn.addClass("ui-hidden");
+            } else {
+                expandBtn.removeClass("ui-hidden");
+            }
+        });
     };
 
     $(window).resize(function() {
         $("#header").css("height", "auto");
         setHeightAndMargin($("#header").height());
+        // Delay to let dotdotdot truncate before we check
+        delay(updateAllExpandBtns, 10, TIMER_RETRUNCATE);
     });
 
     /*
@@ -3319,7 +3998,7 @@ $(document).ready(function () {
         });
         moveContainer.movedItems = selectedItems;
         var moveType = null;
-        if(selectedItems.length > 0) {
+        if (selectedItems.length > 0) {
             moveType = (selectedItems[0].type == "child") ? "childMove" : "parentMove";
         }
 
@@ -3334,8 +4013,8 @@ $(document).ready(function () {
             data: JSON.stringify(moveContainer),
             contentType: "application/json; charset=utf-8",
             success: function (data) {
-                if(data != null) {
-                    if(moveType == "childMove") {
+                if (data != null) {
+                    if (moveType == "childMove") {
                         var dataObj = new Object();
                         dataObj.objects = data;
                         dataObj.view = view;
@@ -3393,7 +4072,7 @@ $(document).ready(function () {
 
             /* A child-element must not be positioned in the beginning of the list, as there
              * is no parent */
-            if(ui.item.hasClass('childLi') && ui.item.index() == 0) {
+            if (ui.item.hasClass('childLi') && ui.item.index() == 0) {
                 $(this).sortable('cancel');
             } else {
                 displayUpdateMsg();
@@ -3436,7 +4115,7 @@ $(document).ready(function () {
 
             iterAllParents(function(parent) {
                 var expBtn = $("li#" + parent.id).find("div.icon");
-                if(expBtn.hasClass("ui-icon-triangle-1-e")) {
+                if (expBtn.hasClass("ui-icon-triangle-1-e")) {
                     toggleChildren(expBtn);
                 }
             });
@@ -3457,26 +4136,28 @@ $(document).ready(function () {
     $(".showArchive").buttonset();
 
     /**
-     * Sets timeout for a function, to be reset after each call on delay.
+     * Sets timeout for a function, to be reset after each call on delay
+     * for the same timer-group ( TIMER_FILTER / TIMER_BIND_EVENT /
+     *  TIMER_SCROLL_SORTABLE ).
      * Can for example be used to trigger a function after
      * typing has stopped in a textbox.
      * Usage:
      * delay(function() {
             //To be called after timeout
-        }, *delayInMs* ); 
+        }, *delayInMs*, TIMER_* ); 
      */
     var delay = (function() {
-        var timer = 0;
-        return function(callback, ms) {
-            clearTimeout (timer);
-            timer = setTimeout(callback, ms);
+        var timer = [0, 0, 0, 0];
+        return function(callback, ms, index) {
+            clearTimeout (timer[index]);
+            timer[index] = setTimeout(callback, ms);
         };
     })();
 
     $('#filter').keyup(function() {
         delay(function() {
             updateFilter();
-        }, 500 );
+        }, 500, TIMER_FILTER );
     });
 
     /*
@@ -3492,23 +4173,27 @@ $(document).ready(function () {
                 var pLi = $("li#" + parent.id);
                 var cLi = $('[parentid="' + parent.id + '"]');
                 var visibleChildren = true;
-                if(isFiltered(parent.id) || !isFilterActive()) {
+                if (isFiltered(parent.id) || !isFilterActive()) {
                     pLi.removeClass("ui-hidden");
-                    if(pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
+                    pLi.css("display", "list-item");
+                    if (pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
                         cLi.css("display", "list-item");
                         cLi.removeClass("ui-hidden");
                     }
                 } else {
                     visibleChildren = false;
                     pLi.addClass("ui-hidden");
-                    if(typeof parent.children !== "undefined") {
+                    pLi.css("display", "none");
+                    if (typeof parent.children !== "undefined") {
                         cLi.css("display", "none");
                         cLi.addClass("ui-hidden");
                     }
                 }
 
-                for(var i = 0; i < parent.children.length; i++) {
-                    visible[parent.children[i]] = visibleChildren;
+                if (typeof parent.children !== "undefined") {
+                    for (var i = 0; i < parent.children.length; i++) {
+                        visible[parent.children[i]] = visibleChildren;
+                    }
                 }
             });
         }

@@ -72,4 +72,5 @@
         <fmt:formatDate value="${theme.dateArchived}" pattern="yyyy-MM-dd" />
     </p>
     <br style="clear: both" />
+    <p class="expand-item-p"><a class="expand-item-btn">. . .</a></p>
 </li>

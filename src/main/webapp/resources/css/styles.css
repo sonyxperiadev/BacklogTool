@@ -355,28 +355,44 @@ p.typeMark {
 
 div.story-attr3 {
     display: inline-block;
-    width: 18%;
+    width: 36%;
     float: left;
     word-wrap: break-word;
 }
 
 div.story-attr1-2 {
     display: inline-block;
-    width: 10%;
+    width: 20%;
     float: left;
     word-wrap: break-word;
 }
 div.times{
     display: inline-block;
-    width: 7%;
+    width: 14%;
     float: left;
     word-wrap: break-word;
 }
 
 div.stakeholders {
     display: inline-block;
-    width: 15%;
+    width: 30%;
     float: left;
+}
+
+div.story-right-content {
+    float: left;
+    width: 50%;
+    margin-left: 10px;
+}
+
+div.notes-container {
+    padding: 10px 20px 5px 20px;
+    border-left: 1px solid #cccccc;
+    margin-top: 5px;
+}
+
+div.notes-container.in-edit {
+    border: 1px solid #cccccc;
 }
 
 select.contributorSite, select.customerSite, select.story-attr1, select.story-attr2, select.story-attr3 {
@@ -780,9 +796,8 @@ p.addOptionSeries, p.addOption {
 }
 
 #releases h3 {
-    margin-bottom: 2px;    
+    margin-bottom: 2px;
 }
-
 
 #create-area {
     margin: 5px;
@@ -875,4 +890,114 @@ span.oneline.title-span {
 #table-header > .header-title {
     margin-left: 4px;
     width: 34%;
+}
+
+div.note {
+    border-top: 1px solid #a9a9a9;
+    border-bottom: 1px solid #a9a9a9;
+    padding: 5px;
+    font-size: 0.9em;
+}
+
+div.note:not(.single-note) {
+    border-bottom: 0px;
+}
+div.note.single-note {
+    border-radius: 5px;
+    border: 1px solid #a9a9a9;
+}
+
+div.note.single-note a.deleteItem {
+    display: none;
+}
+
+div.note p.user-msg {
+    font-size: 0.95em;
+}
+
+div.note:not(.single-note) p.user-msg {
+    word-wrap: break-word;
+}
+
+div.note.single-note p.user-msg  {
+    max-height: 25px;
+    max-width: 100%;
+}
+
+div.note span.user {
+    font-weight: bold;
+}
+
+div.note span.date {
+    font-size: 0.8em;
+    color: #606060;
+    float: right;
+    margin-right: 5px;
+    line-height: 16px;
+}
+
+a.notes-link {
+    font-weight: bold;
+    text-decoration: none;
+    color: #1c94c4;
+    font-size: 1.2em;
+}
+
+p.expand-notes-btn {
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+p.more-notes-loader-p {
+    margin: 5px 0 0 0;
+    padding: 0;
+}
+
+.notes-container ul {
+    max-height: 300px;
+    overflow: auto;
+    clear: both;
+}
+
+input.show-sys-msgs {
+    display: inline;
+    vertical-align: middle;
+}
+
+label.sys-msgs-label {
+    float: right;
+}
+
+label.sys-msgs-label span {
+    vertical-align: middle;
+}
+
+p.trunc-description {
+    max-height: 80px;
+    overflow: visible;
+}
+
+p.untrunc-description {
+    max-height: 390px;
+    overflow: auto;
+}
+
+p.expand-item-p {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 1.1em;
+    line-height: 1.1em;
+    font-weight: bold;
+}
+
+div.titles textarea.description, div.titles-theme-epic textarea.description {
+    max-height: 406px;
+    overflow: auto;
+    margin: 4px 0 10px 0px;
+}
+
+div.titles textarea.description {
+    min-height: 100px;
 }
