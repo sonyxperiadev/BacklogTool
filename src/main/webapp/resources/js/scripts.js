@@ -498,10 +498,6 @@ $(document).ready(function () {
                 removeItem(data);
             } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
-
-                $("div.notes-container ul").each(function(index) {
-                    $(this).scrollTop($(this).prop("scrollHeight"));
-                });
             } else if (jsonObj.type == "Note") {
                 updateNoteLi(data);
             } else if(jsonObj.type == "AreaDelete") {
@@ -1973,10 +1969,6 @@ $(document).ready(function () {
                 updateNoteLi(note);
             }
         }
-        // scroll to bottom where the newest note is
-        ul.animate({ 
-            scrollTop: ul.prop("scrollHeight")},
-            500);
     };
 
     var editStory = function(event) {
@@ -2263,7 +2255,6 @@ $(document).ready(function () {
 
         var lastElem = null;
         var offset = null;
-        var scrollToBottom = false;
 
         if (notePos < 0) { // new note
             notesArray.unshift(updatedNote);
@@ -2274,6 +2265,7 @@ $(document).ready(function () {
         var ulList = $("li#" + updatedNote.storyId).find(".notes-container ul");
         var noteItem = $("#note-" + noteId);
         var singleMode = false;
+        var scrollTop = false;
         if (noteItem.length == 0) { // No html-element exists for the Note
             var divItem = $('div#note-placeholder').clone();
             var htmlStr = divItem.html();
@@ -2291,23 +2283,23 @@ $(document).ready(function () {
                 if (insertItem) {
                     ulList.empty();
                 }
-            } else if (ulList.outerHeight() < (ulList.prop("scrollHeight") - ulList.scrollTop() - 40)) {
-                // Several notes in list, but not scrolled to bottom - save current list-position
+            } else if (ulList.scrollTop() > 40) {
+                // Several notes in list, but not scrolled to top - save current list-position
                 // (40 px marginal)
                 lastElem = ulList.children().last();
                 offset = lastElem.offset();
                 noteItem.find("div.note").removeClass("single-note");
             } else {
                 // Several notes and scrolled to bottom - scroll along with new elements
-                scrollToBottom = true;
+                scrollTop = true;
                 noteItem.find("div.note").removeClass("single-note");
             }
 
             if (insertItem) {
                 if (appendFirst === true) {
-                    ulList.prepend(noteItem);
-                } else {
                     ulList.append(noteItem);
+                } else {
+                    ulList.prepend(noteItem);
                 }
             }
         }
@@ -2342,10 +2334,9 @@ $(document).ready(function () {
             }
         }
 
-        if (scrollToBottom) {
-            ulList.scrollTop(ulList.prop("scrollHeight"));
+        if(scrollTop) {
+            ulList.scrollTop(0);
         }
-
         return noteItem;
     };
 
@@ -3214,9 +3205,9 @@ $(document).ready(function () {
                     var newElem = $('#note-' + newNote.id);
                     var ulList = newElem.closest('ul');
                     ulList.animate({
-                        // scroll down to the new story
-                        scrollTop: ulList.prop("scrollHeight")},
-                        500);
+                        // scroll up to the new story
+                        scrollTop: 0},
+                        200);
                 }
             },
             error : function(error) {
@@ -3511,6 +3502,7 @@ $(document).ready(function () {
                     var storyId = $(this).closest("li.story").attr("id");
 
                     if ($(this).val().length > 0) { // prevent empty notes
+                        editingItems.remove({id:$(this).attr("id"), type:"note"});
                         postNote(parseInt(storyId), $(this).val());
                     }
                     e.stopPropagation();
@@ -3518,10 +3510,10 @@ $(document).ready(function () {
             });
 
             $(".note-textarea").focus(function(event) {
-                editingItems.push({id:$(this).attr("id"), type:"note"}); 
+                editingItems.push({id:$(this).attr("id"), type:"note"});
             });
             $(".note-textarea").blur(function(event) {
-                editingItems.remove({id:$(this).attr("id"), type:"note"}); 
+                editingItems.remove({id:$(this).attr("id"), type:"note"});
             });
         } else {
             $("div.notes-form").addClass("ui-hidden");
@@ -3801,6 +3793,7 @@ $(document).ready(function () {
                     var storyId = $(this).closest("li.story").attr("id");
 
                     if ($(this).val().length > 0) {
+                        editingItems.remove({id:$(this).attr("id"), type:"note"});
                         postNote(parseInt(storyId), $(this).val());
                     }
                     e.stopPropagation();

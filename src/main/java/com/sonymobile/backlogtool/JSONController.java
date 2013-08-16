@@ -661,12 +661,14 @@ public class JSONController {
             session.save("com.sonymobile.backlogtool.Story", newStory);
             newStory.setTitle("New story " + newStory.getId());
 
+            String pushViews = STORY_TASK_VIEW;
             if (epic != null) {
                 epic.getChildren().add(newStory);
+                pushViews += "|" + EPIC_STORY_VIEW;
             }
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Story.class, newStory, STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Story.class, newStory, pushViews));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -999,20 +1001,12 @@ public class JSONController {
             story.setCustomer(updatedStory.getCustomer());
             story.setArchived(updatedStory.isArchived());
 
-            if (updatedStory.getThemeTitle() != null) {
-                story.setTheme(theme);
-
-                if (newEpic != null) {
-                    newEpic.setTheme(theme);
-                }
-            }
-            if (updatedStory.getEpicTitle() != null) {
-                story.setEpic(newEpic);
-
-                if (theme != null) {
-                    theme.getChildren().add(newEpic);
-                }
-            }
+            story.setTheme(theme);
+            story.setEpic(newEpic);
+            if (theme != null && newEpic != null) {
+                theme.getChildren().add(newEpic);
+                newEpic.setTheme(theme);
+            } 
 
             if (theme != null) {
                 messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
@@ -1024,7 +1018,10 @@ public class JSONController {
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
 
-            String updatedStoryViews = EPIC_STORY_VIEW;
+            StringBuilder updatedStoryViews = new StringBuilder();
+            if (newEpic != null) {
+                updatedStoryViews.append(EPIC_STORY_VIEW).append("|");
+            }
             if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
                 Note.createSystemNote(String.format("User %s archived the story", username), story, session);
 
@@ -1034,9 +1031,10 @@ public class JSONController {
 
                 messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
             } else {
-                updatedStoryViews += "|" + STORY_TASK_VIEW;
+                updatedStoryViews.append(STORY_TASK_VIEW);
             }
-            messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews));
+
+            messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews.toString()));
 
             tx.commit();
             AtmosphereHandler.pushJsonMessages(areaName, messages);

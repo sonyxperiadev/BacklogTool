@@ -386,7 +386,7 @@ div.story-right-content {
 }
 
 div.notes-container {
-    padding: 5px 20px 10px 20px;
+    padding: 10px 20px 5px 20px;
     border-left: 1px solid #cccccc;
     margin-top: 5px;
 }
@@ -950,7 +950,7 @@ p.expand-notes-btn {
 }
 
 p.more-notes-loader-p {
-    margin: 0;
+    margin: 5px 0 0 0;
     padding: 0;
 }
 
@@ -979,7 +979,7 @@ p.trunc-description {
 }
 
 p.untrunc-description {
-    max-height: 380px;
+    max-height: 390px;
     overflow: auto;
 }
 

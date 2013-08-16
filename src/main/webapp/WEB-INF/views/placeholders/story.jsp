@@ -242,6 +242,13 @@
 
         <c:if test='${view.equals("story-task")}'>
             <div class="notes-container">
+                <div id="notes-form-${story.id}" class="notes-form ui-hidden">
+                    <textarea placeholder="Note - Press enter to post" id="notes-textarea-${story.id}"
+                    class="note-textarea"
+                    rows="2" maxlength="1000"></textarea>
+                    <br style="clear: both;" />
+                </div>
+                <ul></ul>
                 <p class="more-notes-loader-p ui-hidden">
                     <a class="more-notes-loader note-link ui-state-disabled">Load older notes</a>
                     <label class="sys-msgs-label">
@@ -249,13 +256,6 @@
                         <input type="checkbox" class="show-sys-msgs" />
                     </label>
                 </p>
-                <ul></ul>
-                <div id="notes-form-${story.id}" class="notes-form ui-hidden">
-                    <textarea placeholder="Note - Press enter to post" id="notes-textarea-${story.id}"
-                    class="note-textarea"
-                    rows="2" maxlength="1000"></textarea>
-                    <br style="clear: both;" />
-                </div>
             </div>
         </c:if>
     </div>
