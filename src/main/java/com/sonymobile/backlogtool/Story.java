@@ -220,7 +220,7 @@ public class Story {
         if (notes != null) {
             Iterator<Note> itr = notes.iterator();
             Note tmpNote = null;
-            while(itr.hasNext() && latestNote == null) {
+            while (itr.hasNext() && latestNote == null) {
                 tmpNote = itr.next();
                 if (!tmpNote.isSystemGenerated()) {
                     latestNote = tmpNote;
@@ -489,7 +489,7 @@ public class Story {
      */
     @JsonSerialize
     public boolean hasMoreNotes() {
-        return notes != null && notes.size() > 10;
+        return notes != null && notes.size() > MAX_START_NOTES;
     }
 
 }

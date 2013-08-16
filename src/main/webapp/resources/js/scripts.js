@@ -312,7 +312,7 @@ $(document).ready(function () {
      * Escapes html from param text
      */
     var escapeHtml = function(text) {
-        if(text == null) {
+        if (text == null) {
             return "";
         }
         return $("<div/>").html(text).text();
@@ -400,7 +400,7 @@ $(document).ready(function () {
 //      request.logLevel = 'debug';
 
         request.onMessage = function(response) {
-            if(archivedView == false) {
+            if (archivedView == false) {
                 var data = response.responseBody;
 
                 //Data is on format {msg1},{msg2},
@@ -415,7 +415,7 @@ $(document).ready(function () {
                 }
 
                 for (var i=0; i<jsonObj.length; i++) {
-                    if(jsonObj[i].views.indexOf(view) > -1 || jsonObj[i].views == "*") {
+                    if (jsonObj[i].views.indexOf(view) > -1 || jsonObj[i].views == "*") {
                         processPushData(jsonObj[i]);
                     }
                 }
@@ -423,7 +423,7 @@ $(document).ready(function () {
             }
         };
 
-        if(request.logLevel == "debug") {
+        if (request.logLevel == "debug") {
             request.onError = function(response) {
                 window.console && console.log("No json-data in push-message");
             };
@@ -456,62 +456,62 @@ $(document).ready(function () {
     var processPushData = function processPushData(jsonObj) {
         var data = jsonObj.data;
         var childData = new Array();
-        if(typeof data.children !== "undefined" && data.children != null) {
+        if (typeof data.children !== "undefined" && data.children != null) {
             childData = data.children;
             data.children = new Array();
         }
-        if(data) {
+        if (data) {
             /* Store current offset and focus in order to be able to restore
              * these after the push-message has been processed */ 
             var offset = null, offsetObj = null, inputFocus = null;
-            if(editingItems.length > 0) {
+            if (editingItems.length > 0) {
                 offsetObj = editingItems[editingItems.length - 1]; // fetch the latest item
                 inputFocus = $(document.activeElement);
                 offset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-                if(offset == null) { // no matched elements => probably a note
+                if (offset == null) { // no matched elements => probably a note
                     offset = $("#" + offsetObj.id).offset();
                 }
             }
 
-            if(jsonObj.type == "Story") {
+            if (jsonObj.type == "Story") {
                 if (data.latestNonSystemNote != null && getNotes(data.id).length == 0) {
                     getNotes(data.id).push(data.latestNonSystemNote);
                 }
                 updateStoryLi(data, !allExpanded);
-                for(var i = 0; i < childData.length; i++) {
+                for (var i = 0; i < childData.length; i++) {
                     updateTaskLi(childData[i]);
                 }
                 updateTypeMarkWidth();
-            } else if(jsonObj.type == "Task") {
+            } else if (jsonObj.type == "Task") {
                 updateTaskLi(data);
-            } else if(jsonObj.type == "Epic") {
+            } else if (jsonObj.type == "Epic") {
                 updateEpicLi(data, !allExpanded);
-                for(var i = 0; i < childData.length; i++) {
+                for (var i = 0; i < childData.length; i++) {
                     updateStoryLi(childData[i], !allExpanded);
                 }
-            } else if(jsonObj.type == "Theme") {
+            } else if (jsonObj.type == "Theme") {
                 updateThemeLi(data, !allExpanded);
-                for(var i = 0; i < childData.length; i++) {
+                for (var i = 0; i < childData.length; i++) {
                     updateEpicLi(childData[i], !allExpanded);
                 }
-            } else if(jsonObj.type == "Delete") {
+            } else if (jsonObj.type == "Delete") {
                 removeItem(data);
-            } else if(jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
+            } else if (jsonObj.type == "childMove" || jsonObj.type == "parentMove") {
                 handleMovePush(jsonObj.type, data);
             } else if (jsonObj.type == "Note") {
                 updateNoteLi(data);
-            } else if(jsonObj.type == "AreaDelete") {
+            } else if (jsonObj.type == "AreaDelete") {
                 displayAreaRemovedDialog();
             }
 
-            if(offset !== null) {
+            if (offset !== null) {
                 // Restore offset
                 var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-                if(newOffset == null) {
+                if (newOffset == null) {
                     newOffset = $("#" + offsetObj.id).offset();
                 }
-                if(typeof newOffset !== "undefined") {
-                    if(newOffset.top != offset.top) {
+                if (typeof newOffset !== "undefined") {
+                    if (newOffset.top != offset.top) {
                         // Restore scroll
                         var newPos = $(window).scrollTop() + (newOffset.top - offset.top);
                         $(window).scrollTop(newPos);
@@ -531,20 +531,20 @@ $(document).ready(function () {
     var handleMovePush = function(moveType, dataObj) {
         var objList = dataObj.objects;
         var childAttr = "prioInStory";
-        if(view == "epic-story") {
+        if (view == "epic-story") {
             childAttr = "prioInEpic";
-        } else if(view == "theme-epic") {
+        } else if (view == "theme-epic") {
             childAttr = "prioInTheme";
         }
         var ulObj = $('ul#list-container');
 
-        if(moveType == "parentMove") {
-            for(var id in objList) {
+        if (moveType == "parentMove") {
+            for (var id in objList) {
                 var p = getParent(id);
                 p.prio = objList[id];
             }
         } else { // child-move
-            for(var i = 0; i < objList.length; i++) {
+            for (var i = 0; i < objList.length; i++) {
                 var p = objList[i];
                 var children = p.children;
                 // The children should be sorted in correct prio-order in the parent
@@ -558,26 +558,26 @@ $(document).ready(function () {
                     }
                 });
                 var parentObj = getParent(p.id);
-                if(parentObj == null) {
+                if (parentObj == null) {
                     // Only happens when an Epic or Story is "created" via a Story
                     parentObj = p;
                     parentObj.children = new Array();
-                    if(view == "epic-story") {
+                    if (view == "epic-story") {
                         updateEpicLi(parentObj);
-                    } else if(view == "theme-epic") {
+                    } else if (view == "theme-epic") {
                         updateThemeLi(parentObj);
                     }
                 }
 
                 var childIdArr = new Array();
                 var parentLi = $("li#" + p.id + ".parentLi");
-                for(var j = 0; j < children.length; j++) {
+                for (var j = 0; j < children.length; j++) {
                     var childId = children[j].id;
                     var childLi = $("li#" + childId + ".childLi");
-                    if(childLi.length == 0) {
-                        if(view == "epic-story") {
+                    if (childLi.length == 0) {
+                        if (view == "epic-story") {
                             updateStoryLi(children[j]);
-                        } else if(view == "theme-epic") {
+                        } else if (view == "theme-epic") {
                             updateEpicLi(children[j]);
                         }
                     } else if (view == "epic-story") {
@@ -586,7 +586,7 @@ $(document).ready(function () {
                     childLi.attr('parentid', p.id);
 
                     // If the prioIn* is 1, it should be placed immediately after it's parent
-                    if(children[j][childAttr] == 1) {
+                    if (children[j][childAttr] == 1) {
                         parentLi.after(childLi);
                     } else {
                         $("li#" + children[j-1].id + ".childLi").after(childLi);
@@ -642,20 +642,20 @@ $(document).ready(function () {
             var elemWith = $(this).width();
             var dragAreaWidth = elemWith - 20;
             var offsetX = e.offsetX;
-            if(offsetX == null) {
+            if (offsetX == null) {
                 // Fix for Firefox
                 offsetX = e.clientX - $(e.target).offset().left + window.pageXOffset; 
             }
 
-            if(offsetX <= elemWith && offsetX >= dragAreaWidth) {
+            if (offsetX <= elemWith && offsetX >= dragAreaWidth) {
                 $("#list-container").sortable("option", "disabled", true);
                 delay(function() { // to not make sortable off 'permanent'
-                    if(!preventSortable()) {
+                    if (!preventSortable()) {
                         $("#list-container").sortable("option", "disabled", false);
                     }
                 }, 2000, TIMER_SCROLL_SORTABLE );
             } else {
-                if(!preventSortable()) {
+                if (!preventSortable()) {
                     $("#list-container").sortable("option", "disabled", false);
                 }
             }
@@ -667,7 +667,7 @@ $(document).ready(function () {
      * @returns True if sortable should be disabled, otherwise false
      */
     var preventSortable = function() {
-        return (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio");
+        return (isFilterActive() || disableEditsBoolean || $("#order-by").val() != "prio" || archivedView === true);
     };
 
     //Apply filter from URL if it exists
@@ -694,8 +694,8 @@ $(document).ready(function () {
      */
     var getParent = function(id) {
         var p = parentsMap[id];
-        if(typeof p !== "undefined" && p != null) {
-            if(typeof p.children === "undefined") {
+        if (typeof p !== "undefined" && p != null) {
+            if (typeof p.children === "undefined") {
                 p.children = new Array();
             }
         } else {
@@ -739,7 +739,7 @@ $(document).ready(function () {
      */
     var replaceParent = function(id, newParent) {
         var p = getParent(id);
-        if(typeof p !== "undefined") {
+        if (typeof p !== "undefined") {
             var children = p.children;
             newParent.children = children;
             putParent(id, newParent);
@@ -754,7 +754,7 @@ $(document).ready(function () {
      */
     var replaceParentOrChild = function(id, newObject) {
         var p = parentsMap[id];
-        if(typeof p !== "undefined") {
+        if (typeof p !== "undefined") {
             var children = p.children;
             newObject.children = children;
             putParent(id, newObject);
@@ -786,11 +786,11 @@ $(document).ready(function () {
      * @param resFunc The callback when a match is found 
      */
     var findChild = function(id, resFunc) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
-                for(var i = 0; i < parentsMap[key].children.length; i++) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
+                for (var i = 0; i < parentsMap[key].children.length; i++) {
                     var child = parentsMap[key].children[i];
-                    if(child.id == id) {
+                    if (child.id == id) {
                         resFunc(child, parentsMap[key], i);
                         return;
                     }
@@ -827,10 +827,10 @@ $(document).ready(function () {
      * @param fromPrio The lowest prio the parent must have to get it's prio increased
      */
     var incrPrioForParents = function(fromPrio) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key)) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
                 var p = parentsMap[key];
-                if(p.prio >= fromPrio) {
+                if (p.prio >= fromPrio) {
                     p.prio++;
                 }
             }
@@ -843,10 +843,10 @@ $(document).ready(function () {
      * @param fromPrio The lowest prio the parent must have to get it's prio decreased
      */
     var decrPrioForParents = function(fromPrio) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key)) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
                 var p = parentsMap[key];
-                if(p.prio >= fromPrio) {
+                if (p.prio >= fromPrio) {
                     p.prio--;
                 }
             }
@@ -859,8 +859,8 @@ $(document).ready(function () {
      * @param cbForEachParent Function called with (p) for each parent
      */
     var iterAllParents = function(cbForEachParent) {
-        for(var key in parentsMap) {
-            if(parentsMap.hasOwnProperty(key)) {
+        for (var key in parentsMap) {
+            if (parentsMap.hasOwnProperty(key)) {
                 cbForEachParent(parentsMap[key]);
             }
         }
@@ -903,14 +903,16 @@ $(document).ready(function () {
      * @returns The removed note
      */
     var removeNote = function(noteId) {
-        for (var storyId in notesMap) {
-            if (notesMap.hasOwnProperty(storyId)) {
-                var notes = notesMap[storyId];
-                for (var i = 0; i < notes.length; i++) {
-                    if (notes[i].id == noteId) {
-                        var retElem = notes[i];
-                        notes.remove({id:noteId});
-                        return retElem;
+        if(typeof notesMap !== "undefined") {
+            for (var storyId in notesMap) {
+                if (notesMap.hasOwnProperty(storyId)) {
+                    var notes = notesMap[storyId];
+                    for (var i = 0; i < notes.length; i++) {
+                        if (notes[i].id == noteId) {
+                            var retElem = notes[i];
+                            notes.remove({id:noteId});
+                            return retElem;
+                        }
                     }
                 }
             }
@@ -926,7 +928,7 @@ $(document).ready(function () {
      */
     var addChildToParent = function(parentObj, childObj, attr) {
         var children = parentObj.children;
-        if(typeof children === "undefined") {
+        if (typeof children === "undefined") {
             children = new Array();
             parentObj.children = children; 
         }
@@ -957,11 +959,11 @@ $(document).ready(function () {
         console.log("Sort called");
 
         var comp = null;
-        if(archivedView == true) {
+        if (archivedView == true) {
             comp = getComparatorFor("dateArchived");
         } else {
             var orderBy = $("#order-by").val();
-            if(orderBy == "prio") {
+            if (orderBy == "prio") {
                 comp = prioComparator;
             } else {
                 comp = getComparatorFor(orderBy);
@@ -971,13 +973,13 @@ $(document).ready(function () {
         ulObj.children('li.parentLi').sort(comp).appendTo(ulObj);
 
         iterAllParents(function(parent) {
-            if(typeof parent.children !== "undefined") {
+            if (typeof parent.children !== "undefined") {
                 var idArr = new Array();
-                for(var i = 0; i < parent.children.length; i++) {
+                for (var i = 0; i < parent.children.length; i++) {
                     idArr.push('li#' + parent.children[i].id);
                 }
 
-                if(idArr.length > 0) {
+                if (idArr.length > 0) {
                     $('li#' + parent.id + '.parentLi').after($(idArr.toString()));
                 }
             }
@@ -1013,10 +1015,10 @@ $(document).ready(function () {
         var v2 = getParent(b.id)[attr];
 
         if (attr == "storyAttr1" || attr == "storyAttr2" || attr == "storyAttr3") {
-            if(v1 !== null) {
+            if (v1 !== null) {
                 v1 = v1.compareValue;
             }
-            if(v2 !== null) {
+            if (v2 !== null) {
                 v2 = v2.compareValue;
             }
         }
@@ -1134,7 +1136,7 @@ $(document).ready(function () {
             offsetObj = editingItems[editingItems.length - 1]; // fetch the latest item
             inputFocus = $(document.activeElement);
             offset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-            if(offset == null) { // no matched elements => probably a note
+            if (offset == null) { // no matched elements => probably a note
                 offset = $("#" + offsetObj.id).offset();
             }
         }
@@ -1146,7 +1148,7 @@ $(document).ready(function () {
         if (offset !== null) {
             // Restore offset
             var newOffset = $("li#" + offsetObj.id + "." + offsetObj.type).offset();
-            if(newOffset == null) {
+            if (newOffset == null) {
                 newOffset = $("#" + offsetObj.id).offset();
             }
             if (newOffset.top != offset.top) {
@@ -1236,7 +1238,7 @@ $(document).ready(function () {
                         var parent = getParentBy(function(p) {
                             return p.themeId == cookieItem.id;
                         });
-                        if(parent != null) {
+                        if (parent != null) {
                             var selectedItem = new Object();
                             selectedItem.id = parent.id;
                             selectedItem.type = "parent";
@@ -1249,7 +1251,7 @@ $(document).ready(function () {
                         var parent = getParentBy(function(p) {
                             return p.epicId == cookieItem.id;
                         });
-                        if(parent != null) {
+                        if (parent != null) {
                             var selectedItem = new Object();
                             selectedItem.id = parent.id;
                             selectedItem.type = "parent";
@@ -1278,7 +1280,7 @@ $(document).ready(function () {
                         var parent = getParentBy(function(p) {
                             return p.themeId == cookieItem.id;
                         });
-                        if(parent != null) {
+                        if (parent != null) {
                             var selectedItem = new Object();
                             selectedItem.id = parent.id;
                             selectedItem.type = "parent";
@@ -1319,7 +1321,7 @@ $(document).ready(function () {
     };
 
     var unselectAll = function() {
-        for(var i = 0; i < selectedItems.length; i++) {
+        for (var i = 0; i < selectedItems.length; i++) {
             $('li[id|=' + selectedItems[i].id + ']').removeClass("ui-selected over");
         }
         selectedItems = new Array();
@@ -1391,7 +1393,7 @@ $(document).ready(function () {
             if (arguments.length == 0) {
                 return selectedItems[i-1];
             }
-            while(i--) {
+            while (i--) {
                 if (selectedItems[i].type == type) {
                     return selectedItems[i];
                 }
@@ -1640,30 +1642,30 @@ $(document).ready(function () {
                 $.unblockUI();
                 
                 var children = newObj.children;
-                if(type == "Story") {
+                if (type == "Story") {
                     updateStoryLi(newObj);
-                    if(children.length > 0) {
-                        for(var i = 0; i < children.length; i++) {
+                    if (children.length > 0) {
+                        for (var i = 0; i < children.length; i++) {
                             updateTaskLi(children[i]);
                         }
                     }
                     editStory(newObj.id);
                     scrollTo(newObj.id);
                     focusAndSelectText("title"+newObj.id);
-                } else if(type == "Epic") {
+                } else if (type == "Epic") {
                     updateEpicLi(newObj);
-                    if(children.length > 0) {
-                        for(var i = 0; i < children.length; i++) {
+                    if (children.length > 0) {
+                        for (var i = 0; i < children.length; i++) {
                             updateStoryLi(children[i]);
                         }
                     }
                     editEpic(newObj.id);
                     scrollTo(newObj.id);
                     focusAndSelectText("epicTitle" + newObj.id);
-                } else if(type == "Theme") {
+                } else if (type == "Theme") {
                     updateThemeLi(newObj);
-                    if(children.length > 0) {
-                        for(var i = 0; i < children.length; i++) {
+                    if (children.length > 0) {
+                        for (var i = 0; i < children.length; i++) {
                             updateEpicLi(children[i]);
                         }
                     }
@@ -1748,7 +1750,7 @@ $(document).ready(function () {
 
         if (itemLi.hasClass('parentLi')) { // A parent was removed
             var obj = removeParent(itemLi.attr('id'));
-            if(typeof obj !== "undefined") {
+            if (typeof obj !== "undefined") {
                 $('li[parentid="' + itemId + '"]').remove();
                 itemLi.remove();
                 decrPrioForParents(obj.prio);
@@ -1760,7 +1762,7 @@ $(document).ready(function () {
             var showSingleNote = (expandedItems.indexOf(storyId) == -1);
             if (showSingleNote) {
                 var singleNote = getSingleNote(getNotes(storyId));
-                if(singleNote != null) {
+                if (singleNote != null) {
                     updateNoteLi(singleNote); // A note was removed with the list collapsed
                 }
             }
@@ -1769,8 +1771,8 @@ $(document).ready(function () {
             var parent = getParent(itemLi.attr("parentid"));
             var children = parent.children;
             var position = -1;
-            for(var i = 0; i < children.length; i++) {
-                if(children[i].id == itemId) {
+            for (var i = 0; i < children.length; i++) {
+                if (children[i].id == itemId) {
                     position = i;
                     break;
                 }
@@ -1781,13 +1783,13 @@ $(document).ready(function () {
                 toggleExpandBtn(parentLi, itemLi, children);
 
                 var attr = "prioInStory";
-                if(view == "epic-story") {
+                if (view == "epic-story") {
                     attr = "prioInEpic";
-                } else if(view == "theme-epic") {
+                } else if (view == "theme-epic") {
                     attr = "prioInTheme";
                 }
 
-                for(var i = 0; i < children.length; i++) { // Update the prio for all children
+                for (var i = 0; i < children.length; i++) { // Update the prio for all children
                     children[i][attr] = i + 1;
                 }
             }
@@ -1827,17 +1829,17 @@ $(document).ready(function () {
     var bulkCancel = function() {
         for (var i = 0; i < editingItems.length; i++) {
             var bindEvent = null;
-            if(editingItems[i].type == "story") {
+            if (editingItems[i].type == "story") {
                 bindEvent = editStory;
-            } else if(editingItems[i].type == "task") {
+            } else if (editingItems[i].type == "task") {
                 bindEvent = editTask;
-            } else if(editingItems[i].type == "epic") {
+            } else if (editingItems[i].type == "epic") {
                 bindEvent = editEpic;
-            } else if(editingItems[i].type == "theme") {
+            } else if (editingItems[i].type == "theme") {
                 bindEvent = editTheme;
             }
 
-            if(bindEvent != null) {
+            if (bindEvent != null) {
                 $("." + editingItems[i].id).toggleClass('hidden-edit');
                 $('li#'+editingItems[i].id).dblclick(bindEvent);
             }
@@ -1853,7 +1855,10 @@ $(document).ready(function () {
         displayUpdateMsg();
         while (editingItems.length > 0) {
             var lastElement = $(editingItems).last()[0];
-            var id = eval(lastElement.id);
+            var id = lastElement.id;
+            if(lastElement.type != "note") {
+                id = eval(lastElement.id);
+            }
             editingItems.remove({id:id});
 
             if (lastElement.type == "task") {
@@ -1874,7 +1879,7 @@ $(document).ready(function () {
      * Returns true if you are going into edit mode on a parent/child.
      */
     var isGoingIntoEdit = function isGoingIntoEdit(editId){
-        for(var i = 0; editingItems.length > i; i++) {
+        for (var i = 0; editingItems.length > i; i++) {
             if (editingItems[i].id == editId) {
                 return false;
             }
@@ -2172,7 +2177,7 @@ $(document).ready(function () {
 
         putInCorrPrioPos(ulObj, lastItemObj, newItemLi);
 
-        if($('#order-by').val() != "prio") {
+        if ($('#order-by').val() != "prio") {
             sortList(ulObj);
         } 
     };
@@ -2219,14 +2224,14 @@ $(document).ready(function () {
      */
     var getParentOrLastChildElement = function(itemId) {
         var elem = getParent(itemId);
-        if(elem == null) {
+        if (elem == null) {
             findChild(itemId, function(childObj, parentObj, posInParent) {
                 elem = parentObj;
             });
         }
-        if(elem != null) {
+        if (elem != null) {
             var children = elem.children;
-            if(typeof children !== "undefined" && children.length > 0) {
+            if (typeof children !== "undefined" && children.length > 0) {
                 return $('li#' + children[children.length - 1].id);
             } else {
                 return $('li#' + elem.id);
@@ -2334,7 +2339,7 @@ $(document).ready(function () {
             }
         }
 
-        if(scrollTop) {
+        if (scrollTop) {
             ulList.scrollTop(0);
         }
         return noteItem;
@@ -2349,13 +2354,13 @@ $(document).ready(function () {
         var storyId = updatedStory.id;
 
         var ulObj = null;
-        if(updatedStory.archived && archivedView) {
+        if (updatedStory.archived && archivedView) {
             ulObj = $('ul#archived-list-container');
         } else if (!updatedStory.archived && !archivedView) {
             ulObj = $('ul#list-container');
         }
 
-        if($('li#' + storyId + '.story').length == 0) { //Was a new story
+        if ($('li#' + storyId + '.story').length == 0) { //Was a new story
             var divItem = null;
             if (oneline) {
                 divItem = $('div#story-oneline-placeholder').clone();
@@ -2367,22 +2372,22 @@ $(document).ready(function () {
 
             var newItem = $(htmlStr);
 
-            if(view == "story-task") {
+            if (view == "story-task") {
                 handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
 
                 var notes = getNotes(storyId);
                 var singleNote = getSingleNote(notes);
-                if(singleNote != null) {
+                if (singleNote != null) {
                     var noteLi = updateNoteLi(singleNote);
                     noteLi.find("div.note").addClass("single-note");
                 } else {
                     newItem.find("div.notes-container").addClass("ui-hidden");
                 }
                 
-                if(updatedStory.hasMoreNotes === true) {
+                if (updatedStory.hasMoreNotes === true) {
                     setLoadNotesBtnState(newItem.find("a.more-notes-loader"), 'more-to-load');
                 }
-            } else if(view == "epic-story") {
+            } else if (view == "epic-story") {
                 newItem.attr('parentid', updatedStory.epicId);
                 var parent = getParent(updatedStory.epicId);
                 var attr = 'prioInEpic';
@@ -2402,8 +2407,8 @@ $(document).ready(function () {
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(storyId, updatedStory);
-            if(view == "story-task") {
-                if(typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
+            if (view == "story-task") {
+                if (typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
                     $("li#" + storyId + " div.icon").addClass("expand-icon ui-icon ui-icon-triangle-1-e");
                 }
 
@@ -2585,8 +2590,8 @@ $(document).ready(function () {
 
         iconDiv.removeClass('ui-icon expand-icon ui-icon-triangle-1-s ui-icon-triangle-1-e');
 
-        if(childrenArr.length > 0) {
-            if(visibleChild) {
+        if (childrenArr.length > 0) {
+            if (visibleChild) {
                 iconDiv.addClass('ui-icon-triangle-1-s');
             } else {
                 iconDiv.addClass('ui-icon-triangle-1-e');
@@ -2615,7 +2620,7 @@ $(document).ready(function () {
     var updateTaskLi = function(updatedTask) {
         var taskId = updatedTask.id;
 
-        if($('li#' + taskId + '.task').length == 0) {
+        if ($('li#' + taskId + '.task').length == 0) {
             var divItem = $('div#task-placeholder').clone();
             var htmlStr = divItem.html();
             var parentLi = $('li#' + updatedTask.parentId + '.story');
@@ -2628,7 +2633,7 @@ $(document).ready(function () {
             var parent = getParent(updatedTask.parentId);
             var children = parent.children;
 
-            if(updatedTask.prioInStory > 1) {
+            if (updatedTask.prioInStory > 1) {
                 $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
             } else {
                 $('li#' + updatedTask.parentId + '.story').after(newItem);
@@ -2717,7 +2722,7 @@ $(document).ready(function () {
         var themeTitle = $("textarea#epicTheme"+epicId).val();
         // In the Theme-Epic-view there is no textarea for Theme, so
         // we have to get it from the map instead
-        if(themeTitle == null) {
+        if (themeTitle == null) {
             findChild(epicId, function(childObj, parentObj, posInParent) {
                 themeTitle = childObj.themeTitle;
             });
@@ -2765,13 +2770,13 @@ $(document).ready(function () {
         var epicId = updatedEpic.id;
 
         var ulObj = null;
-        if(updatedEpic.archived) {
+        if (updatedEpic.archived) {
             ulObj = $("ul#archived-list-container");
         } else {
             ulObj = $("ul#list-container");
         }
 
-        if($('li#' + epicId + '.epic').length == 0) {
+        if ($('li#' + epicId + '.epic').length == 0) {
             var divItem = null;
             if (oneline) {
                 divItem = $('div#epic-oneline-placeholder').clone();
@@ -2783,18 +2788,18 @@ $(document).ready(function () {
             
             newItem = $(htmlStr);            
             newItem.attr('id', epicId);
-            if(view == "theme-epic") {
+            if (view == "theme-epic") {
                 newItem.attr('parentid', updatedEpic.themeId);
             }
 
-            if(view == "epic-story") {
+            if (view == "epic-story") {
                 handleNewParentItem(updatedEpic.lastItem, newItem, updatedEpic, ulObj);
             } else {
                 var parent = getParent(updatedEpic.themeId);
                 var attr = 'prioInTheme';
-                if(parent != null) {
+                if (parent != null) {
                     
-                    if(updatedEpic[attr] > 1) {
+                    if (updatedEpic[attr] > 1) {
                         $('li#' + (parent.children[updatedEpic[attr] - 2].id)).after(newItem);
                     } else {
                         $('li#' + parent.id).after(newItem);
@@ -2807,10 +2812,10 @@ $(document).ready(function () {
             bindEventsToItem(newItem);
         } else {
             replaceParentOrChild(epicId, updatedEpic);
-            if(view == "epic-story") {
+            if (view == "epic-story") {
                 // If the update has meant a change of archive-status...
                 putInCorrPrioPos(ulObj, updatedEpic.lastItem, $('li#' + epicId + '.epic'));
-                if($("#order-by").val() != "prio") {
+                if ($("#order-by").val() != "prio") {
                     sortList(ulObj);
                 }
             }
@@ -2976,13 +2981,13 @@ $(document).ready(function () {
         var themeId = updatedTheme.id;
 
         var ulObj = null;
-        if(updatedTheme.archived) {
+        if (updatedTheme.archived) {
             ulObj = $("ul#archived-list-container");
         } else {
             ulObj = $("ul#list-container");
         }
 
-        if($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
+        if ($('li#' + themeId + '.theme').length == 0 && view == "theme-epic") {
             var divItem = null;
             if (oneline) {
                 divItem = $('div#theme-oneline-placeholder').clone();
@@ -3001,7 +3006,7 @@ $(document).ready(function () {
 
             // If the update has meant a change of archive-status...
             putInCorrPrioPos(ulObj, updatedTheme.lastItem, $('li#' + themeId + '.theme'));
-            if($("#order-by").val() != "prio") {
+            if ($("#order-by").val() != "prio") {
                 sortList(ulObj);
             }
         }
@@ -3123,7 +3128,7 @@ $(document).ready(function () {
                             data: JSON.stringify(storiesToMove),
                             contentType: "application/json; charset=utf-8",
                             success: function (data) {
-                                for(var i = 0; i < storiesToMove.length; i++) {
+                                for (var i = 0; i < storiesToMove.length; i++) {
                                     removeItem(storiesToMove[i]);
                                 }
                                 unselectAll();
@@ -3205,7 +3210,7 @@ $(document).ready(function () {
                     var newElem = $('#note-' + newNote.id);
                     var ulList = newElem.closest('ul');
                     ulList.animate({
-                        // scroll up to the new story
+                        // scroll up to the new note
                         scrollTop: 0},
                         200);
                 }
@@ -3272,7 +3277,13 @@ $(document).ready(function () {
     var toggleSystemNotes = function(event) {
         var checkbox = $(event.target);
         var story = checkbox.closest('li.parentLi');
+
+        var offset = checkbox.offset().top;
         expandNotesList(story, checkbox.prop('checked'));
+        var newOffset = checkbox.offset().top;
+        if (offset != newOffset) {
+            $(window).scrollTop($(window).scrollTop() + (newOffset - offset));
+        }
     };
 
     /**
@@ -3282,6 +3293,7 @@ $(document).ready(function () {
         if (editingItems.length == 0) {
             $('#save-all').button("option", "disabled", true);
         }
+        updateAllExpandBtns();
     };
 
     /**
@@ -3329,7 +3341,7 @@ $(document).ready(function () {
                         return false; //Makes sure that no hashtag is appended to URL
                     }
                 });
-                if(view == "story-task") {
+                if (view == "story-task") {
                     notesMap = data.notesMap;
                 }
                 var archivedItems = data.archivedItems;
@@ -3886,6 +3898,7 @@ $(document).ready(function () {
 
         elements.each(function(index) {
             var paragraph = $(this).find("p.story-description, p.epic-description, p.theme-description");
+            paragraph.trigger("update.dot");
             var expandBtn = $(this).find("p.expand-item-p");
             if (!isElementTruncated(paragraph) && view != "story-task" || expandedItems.indexOf($(this).attr("id")) > -1) {
                 expandBtn.addClass("ui-hidden");
@@ -3985,7 +3998,7 @@ $(document).ready(function () {
         });
         moveContainer.movedItems = selectedItems;
         var moveType = null;
-        if(selectedItems.length > 0) {
+        if (selectedItems.length > 0) {
             moveType = (selectedItems[0].type == "child") ? "childMove" : "parentMove";
         }
 
@@ -4000,8 +4013,8 @@ $(document).ready(function () {
             data: JSON.stringify(moveContainer),
             contentType: "application/json; charset=utf-8",
             success: function (data) {
-                if(data != null) {
-                    if(moveType == "childMove") {
+                if (data != null) {
+                    if (moveType == "childMove") {
                         var dataObj = new Object();
                         dataObj.objects = data;
                         dataObj.view = view;
@@ -4059,7 +4072,7 @@ $(document).ready(function () {
 
             /* A child-element must not be positioned in the beginning of the list, as there
              * is no parent */
-            if(ui.item.hasClass('childLi') && ui.item.index() == 0) {
+            if (ui.item.hasClass('childLi') && ui.item.index() == 0) {
                 $(this).sortable('cancel');
             } else {
                 displayUpdateMsg();
@@ -4102,7 +4115,7 @@ $(document).ready(function () {
 
             iterAllParents(function(parent) {
                 var expBtn = $("li#" + parent.id).find("div.icon");
-                if(expBtn.hasClass("ui-icon-triangle-1-e")) {
+                if (expBtn.hasClass("ui-icon-triangle-1-e")) {
                     toggleChildren(expBtn);
                 }
             });
@@ -4160,10 +4173,10 @@ $(document).ready(function () {
                 var pLi = $("li#" + parent.id);
                 var cLi = $('[parentid="' + parent.id + '"]');
                 var visibleChildren = true;
-                if(isFiltered(parent.id) || !isFilterActive()) {
+                if (isFiltered(parent.id) || !isFilterActive()) {
                     pLi.removeClass("ui-hidden");
                     pLi.css("display", "list-item");
-                    if(pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
+                    if (pLi.find("div.icon").hasClass("ui-icon-triangle-1-s")) {
                         cLi.css("display", "list-item");
                         cLi.removeClass("ui-hidden");
                     }
@@ -4171,14 +4184,14 @@ $(document).ready(function () {
                     visibleChildren = false;
                     pLi.addClass("ui-hidden");
                     pLi.css("display", "none");
-                    if(typeof parent.children !== "undefined") {
+                    if (typeof parent.children !== "undefined") {
                         cLi.css("display", "none");
                         cLi.addClass("ui-hidden");
                     }
                 }
 
                 if (typeof parent.children !== "undefined") {
-                    for(var i = 0; i < parent.children.length; i++) {
+                    for (var i = 0; i < parent.children.length; i++) {
                         visible[parent.children[i]] = visibleChildren;
                     }
                 }

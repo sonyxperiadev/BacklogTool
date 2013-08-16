@@ -993,9 +993,9 @@ p.expand-item-p {
 }
 
 div.titles textarea.description, div.titles-theme-epic textarea.description {
-    max-height: 400px;
+    max-height: 406px;
     overflow: auto;
-    margin: 10px 0px;
+    margin: 4px 0 10px 0px;
 }
 
 div.titles textarea.description {

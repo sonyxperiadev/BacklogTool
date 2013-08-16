@@ -235,6 +235,7 @@ public class JSONController {
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
+        long nbrOfItems = 0;
         try {
             tx = session.beginTransaction();
             
@@ -252,11 +253,7 @@ public class JSONController {
                                         " where story.id = ?");
             countQuery.setParameter(0, storyid);
 
-            long nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
-            int totalNbrOfParts = (int) Math.ceil((double) nbrOfItems / JSONController.NOTES_PER_PART);
-            if (part >= totalNbrOfParts) {
-                moreNotesAvailable = false;
-            }
+            nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
             
             tx.commit();
         } catch (Exception e) {
@@ -267,6 +264,12 @@ public class JSONController {
         } finally {
             session.close();
         }
+
+        int totalNbrOfParts = (int) Math.ceil((double) nbrOfItems / JSONController.NOTES_PER_PART);
+        if (part >= totalNbrOfParts) {
+            moreNotesAvailable = false;
+        }
+
         Map<String,Object> jsonMap = new HashMap<String, Object>();
         jsonMap.put("moreNotesAvailable", moreNotesAvailable);
         jsonMap.put("notesList", list);
@@ -339,7 +342,7 @@ public class JSONController {
            @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
 
         List<Object> archivedItems = new ArrayList<Object>();
-        Map<Integer, Set<Note>> notesForStories = new HashMap<Integer, Set<Note>>();
+        Map<Integer, List<Note>> notesForStories = new HashMap<Integer, List<Note>>();
         int nbrOfPages = 0;
         Area area = null;
 
@@ -350,24 +353,18 @@ public class JSONController {
 
             area = (Area) session.get(Area.class, areaName);
             if (area != null && type.matches("Story|Epic|Theme")) {
-                String notesJoin = "";
-                if (type.equals("Story")) {
-                    notesJoin = "left join fetch i.notes ";
-                }
                 Query archivedQuery = null;
                 if (filterIds == null || filterIds.isEmpty()) {
-                    archivedQuery = session.createQuery("from " + type + " i " +
-                            notesJoin +
-                            "where i.area = ? " +
-                            "and i.archived=true " +
-                            "order by i.dateArchived desc");
+                    archivedQuery = session.createQuery("from " + type + " " +
+                            "where area = ? " +
+                            "and archived=true " +
+                            "order by dateArchived desc");
                 } else {
-                    archivedQuery = session.createQuery("from " + type + " i " +
-                            notesJoin +
-                            "where i.area = ? " +
-                            "and i.archived=true " +
-                            "and i.id in (:filterIds) " +
-                            "order by i.dateArchived desc");
+                    archivedQuery = session.createQuery("from " + type + " " +
+                            "where area = ? " +
+                            "and archived=true " +
+                            "and id in (:filterIds) " +
+                            "order by dateArchived desc");
                     archivedQuery.setParameterList("filterIds", filterIds);
                 }
 
@@ -396,7 +393,8 @@ public class JSONController {
                     if (type.equals("Story")) {
                         Story s = (Story) item;
                         Hibernate.initialize(s.getChildren());
-                        notesForStories.put(s.getId(), s.getNotes());
+                        Hibernate.initialize(s.getNotes());
+                        notesForStories.put(s.getId(), s.getTenNewestNotes());
                     } else if (type.equals("Epic")) {
                         Hibernate.initialize(((Epic) item).getChildren());
                     } else if (type.equals("Theme")) {
@@ -1586,7 +1584,7 @@ public class JSONController {
 
             Note noteToRemove = (Note) session.get(Note.class, noteId);
             Story parentStory =  (Story) session.get(Story.class, noteToRemove.getStoryId());
-            if (!parentStory.getArea().getName().equals(areaName)) {
+            if (parentStory == null || !parentStory.getArea().getName().equals(areaName)) {
                 throw new Error("Trying to modify unauthorized object");
             }
 
@@ -1990,7 +1988,7 @@ public class JSONController {
                     }
                     List<Note> notes = story.getTenNewestNotes();
                     Collections.reverse(notes);
-                    for(Note n : notes) {
+                    for (Note n : notes) {
                         pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
                     }
                 }

@@ -111,7 +111,6 @@ public class Note {
     /**
      * @return Message where <a>-tags have been added around URLs and
      *         newline-chars have been replaced with <br />
-     *         .
      */
     @JsonIgnore
     public String getMessageWithLinksAndLineBreaks() {

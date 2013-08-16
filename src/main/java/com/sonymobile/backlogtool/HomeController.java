@@ -353,7 +353,7 @@ public class HomeController {
             String jsonAreaData = "";
             String jsonNotesData = "";
 
-            // maps IDs to Stories
+            // maps Story-IDs to Stories
             HashMap<Integer, Story> map = new HashMap<Integer, Story>();
             // maps Story-IDs to Notes
             HashMap<Integer, List<Note>> notesMap = new HashMap<Integer, List<Note>>();
