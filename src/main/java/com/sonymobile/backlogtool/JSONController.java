@@ -84,6 +84,7 @@ import com.sonymobile.backlogtool.permission.User;
 public class JSONController {
 
     public static final int ELEMENTS_PER_ARCHIVED_PAGE = 20;
+    public static final int NOTES_PER_PART = 10;
     public static final String STORY_TASK_VIEW = "story-task";
     public static final String EPIC_STORY_VIEW = "epic-story";
     public static final String THEME_EPIC_VIEW = "theme-epic";
@@ -98,29 +99,6 @@ public class JSONController {
 
     @Autowired
     ServletContext context;
-
-    //        @RequestMapping(value="/emptyDB", method=RequestMethod.GET)
-    //        @Transactional
-    //        public @ResponseBody void emptyDB() {
-    //            Session session = sessionFactory.getCurrentSession();
-    //
-    //            session.createSQLQuery("DROP TABLE stories CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE tasks CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE users CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE areas CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_editors CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_admins CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_adminldapgroups CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE area_editorldapgroups CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE themes CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE epics CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE attributes CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE attributeoptions CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP TABLE attributes_attributeoptions CASCADE").executeUpdate();
-    //            session.createSQLQuery("DROP SEQUENCE hibernate_sequence").executeUpdate();
-    //
-    //            System.out.println("DB was dropped");
-    //        }
 
     @RequestMapping(value="/readstory-task/{areaName}", method=RequestMethod.GET)
     @Transactional
@@ -249,6 +227,55 @@ public class JSONController {
 
     }
 
+    @RequestMapping(value="/read-notes/{storyid}/{part}", method=RequestMethod.GET)
+    @Transactional
+    public @ResponseBody Map<String, Object> readNotes(@PathVariable Integer storyid, @PathVariable int part) throws JsonGenerationException, JsonMappingException, IOException {
+        List<Note> list = new ArrayList<Note>();
+        boolean moreNotesAvailable = true;
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        long nbrOfItems = 0;
+        try {
+            tx = session.beginTransaction();
+            
+            String queryString1 = "from Note " +
+                    "where story.id = ? " +
+                    "order by created desc";
+            Query query1 = session.createQuery(queryString1);
+            query1.setParameter(0, storyid);
+            query1.setMaxResults(10);
+            query1.setFirstResult(NOTES_PER_PART * (part-1));
+            query1.setMaxResults(NOTES_PER_PART);
+            list = Util.castList(Note.class, query1.list());
+            
+            Query countQuery = session.createQuery("select count(id) from Note" + 
+                                        " where story.id = ?");
+            countQuery.setParameter(0, storyid);
+
+            nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
+            
+            tx.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+
+        int totalNbrOfParts = (int) Math.ceil((double) nbrOfItems / JSONController.NOTES_PER_PART);
+        if (part >= totalNbrOfParts) {
+            moreNotesAvailable = false;
+        }
+
+        Map<String,Object> jsonMap = new HashMap<String, Object>();
+        jsonMap.put("moreNotesAvailable", moreNotesAvailable);
+        jsonMap.put("notesList", list);
+        return jsonMap;
+    }  
+
     @RequestMapping(value="/readtheme-epic/{areaName}", method=RequestMethod.GET)
     @Transactional
     public @ResponseBody ResponseEntity<String> printJsonThemes(@PathVariable String areaName, @RequestParam String order)
@@ -315,6 +342,7 @@ public class JSONController {
            @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
 
         List<Object> archivedItems = new ArrayList<Object>();
+        Map<Integer, List<Note>> notesForStories = new HashMap<Integer, List<Note>>();
         int nbrOfPages = 0;
         Area area = null;
 
@@ -363,7 +391,10 @@ public class JSONController {
 
                 for (Object item : archivedItems) {
                     if (type.equals("Story")) {
-                        Hibernate.initialize(((Story) item).getChildren());
+                        Story s = (Story) item;
+                        Hibernate.initialize(s.getChildren());
+                        Hibernate.initialize(s.getNotes());
+                        notesForStories.put(s.getId(), s.getTenNewestNotes());
                     } else if (type.equals("Epic")) {
                         Hibernate.initialize(((Epic) item).getChildren());
                     } else if (type.equals("Theme")) {
@@ -388,6 +419,7 @@ public class JSONController {
         Map<String,Object> archivedInfo = new HashMap<String, Object>();
         archivedInfo.put("nbrOfPages", nbrOfPages);
         archivedInfo.put("archivedItems", archivedItems);
+        archivedInfo.put("notesMap", notesForStories);
         return mapper.writeValueAsString(archivedInfo);
     }
 
@@ -451,6 +483,48 @@ public class JSONController {
             session.close();
         }
         return titles;
+    }
+
+    @RequestMapping(value="/createnote/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody Note createNote(@PathVariable String areaName, @RequestBody NewNoteContainer newNote) throws Exception {
+        if (!isLoggedIn()) {
+            throw new Error("Trying to create note without being authenticated");
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Story story = (Story) session.get(Story.class, newNote.getStoryId());
+            if (!story.getArea().getName().equals(areaName)) {
+                throw new Error("Trying to modify unauthorized object");
+            }
+
+            newNote.setStory(story);
+            newNote.setUser(username);
+            Date d = new Date();
+            newNote.setCreatedDate(d);
+            newNote.setModifiedDate(d);
+            session.save("com.sonymobile.backlogtool.Note", newNote);
+
+            story.getNotes().add(newNote);
+
+            tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Note.class, newNote, STORY_TASK_VIEW));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+
+        return newNote;
     }
 
     @PreAuthorize("hasPermission(#areaName, 'isEditor')")
@@ -801,6 +875,8 @@ public class JSONController {
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
            @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
@@ -886,6 +962,29 @@ public class JSONController {
                 attr3 = (AttributeOption) session.get(AttributeOption.class, Integer.parseInt(updatedStory.getStoryAttr3Id()));
             } catch(NumberFormatException e) {}
 
+            List<String> messages = new ArrayList<String>();
+            String message = "User %s set %s to %s";
+            String updatedAttr = getUpdatedAttrValue(story.getStoryAttr1(), attr1);
+            if (updatedAttr != null) {
+                String storyAttr1Name = story.getArea().getStoryAttr1().getName();
+                Note n = Note.createSystemNote(String.format(message, username, storyAttr1Name, updatedAttr), story, session);
+                messages.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+            }
+
+            updatedAttr = getUpdatedAttrValue(story.getStoryAttr2(), attr2);
+            if (updatedAttr != null) {
+                String storyAttr1Name = story.getArea().getStoryAttr2().getName();
+                Note n = Note.createSystemNote(String.format(message, username, storyAttr1Name, updatedAttr), story, session);
+                messages.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+            }
+
+            updatedAttr = getUpdatedAttrValue(story.getStoryAttr3(), attr3);
+            if (updatedAttr != null) {
+                String storyAttr1Name = story.getArea().getStoryAttr3().getName();
+                Note n = Note.createSystemNote(String.format(message, username, storyAttr1Name, updatedAttr), story, session);
+                messages.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
+            }
+
             story.setStoryAttr1(attr1);
             story.setStoryAttr2(attr2);
             story.setStoryAttr3(attr3);
@@ -907,7 +1006,6 @@ public class JSONController {
                 newEpic.setTheme(theme);
             } 
 
-            List<String> messages = new ArrayList<String>();
             if (theme != null) {
                 messages.add(getJsonStringInclChildren(Theme.class.getSimpleName(), theme, THEME_EPIC_VIEW));
             }
@@ -917,17 +1015,23 @@ public class JSONController {
                 moveActionMap.put("objects", parentsToPush);
                 messages.add(JSONController.getJsonStringInclChildren("childMove", moveActionMap, EPIC_STORY_VIEW));
             }
+
             StringBuilder updatedStoryViews = new StringBuilder();
             if (newEpic != null) {
                 updatedStoryViews.append(EPIC_STORY_VIEW).append("|");
             }
             if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
+                Note.createSystemNote(String.format("User %s archived the story", username), story, session);
+
                 messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
             } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
+                Note.createSystemNote(String.format("User %s unarchived the story", username), story, session);
+
                 messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
             } else {
                 updatedStoryViews.append(STORY_TASK_VIEW);
             }
+
             messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews.toString()));
 
             tx.commit();
@@ -1469,6 +1573,37 @@ public class JSONController {
         return themeToPush;
     }
 
+    @PreAuthorize("hasPermission(#areaName, 'isEditor')")
+    @RequestMapping(value="/deletenote/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody boolean deleteNote(@PathVariable String areaName, @RequestBody int noteId) throws JsonGenerationException, JsonMappingException, IOException {
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Note noteToRemove = (Note) session.get(Note.class, noteId);
+            Story parentStory =  (Story) session.get(Story.class, noteToRemove.getStoryId());
+            if (parentStory == null || !parentStory.getArea().getName().equals(areaName)) {
+                throw new Error("Trying to modify unauthorized object");
+            }
+
+            parentStory.getNotes().remove(noteToRemove);
+            session.delete(noteToRemove);
+
+            tx.commit();
+            AtmosphereHandler.push(areaName, getJsonStringInclChildren(PUSH_ACTION_DELETE, noteId, STORY_TASK_VIEW));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            session.close();
+        }
+
+        return true;
+    }
 
     /**
      * Used when deleting a story.
@@ -1493,6 +1628,7 @@ public class JSONController {
             }
 
             Set<Task> tasksInStory = storyToRemove.getChildren();
+            Set<Note> notesInStory = storyToRemove.getNotes();
 
             //Move up all stories under this story
             Query query = session.createQuery("from Story where prio > ? and area.name like ? and archived=false");
@@ -1506,6 +1642,10 @@ public class JSONController {
 
             for (Task taskToRemove : tasksInStory) {
                 session.delete(taskToRemove);
+            }
+
+            for (Note noteToRemove : notesInStory) {
+                session.delete(noteToRemove);
             }
             Epic parentEpic = storyToRemove.getEpic();
             if (parentEpic != null) {
@@ -1825,6 +1965,10 @@ public class JSONController {
                         newEpic.getChildren().add(story);
                         story.setTheme(newEpic.getTheme());
                     }
+                    String noteMsg = String.format("User %s moved the story to area %s", username, newArea.getName());
+                    Note note = Note.createSystemNote(noteMsg, story, session);
+                    pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW));
+
                     pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
                     pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
                 }
@@ -1841,6 +1985,11 @@ public class JSONController {
                     }
                     if (epic != null && updatedEpics.add(epic)) {
                         pushMsgsNewArea.add(getJsonStringExclChildren(Epic.class, epic, EPIC_STORY_VIEW));
+                    }
+                    List<Note> notes = story.getTenNewestNotes();
+                    Collections.reverse(notes);
+                    for (Note n : notes) {
+                        pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), n, STORY_TASK_VIEW));
                     }
                 }
             }
@@ -2048,6 +2197,13 @@ public class JSONController {
             tx = session.beginTransaction();
 
             //Firstly, unlink elements from each other
+            Query noteQuery = session.createQuery("from Note where story.area.name like ?");
+            noteQuery.setParameter(0, areaName);
+            List<Note> notes = Util.castList(Note.class, noteQuery.list());
+            for (Note note : notes) {
+                note.setStory(null);
+            }
+
             Query taskQuery = session.createQuery("from Task where story.area.name like ?");
             taskQuery.setParameter(0, areaName);
             List<Task> tasks = Util.castList(Task.class, taskQuery.list());
@@ -2082,6 +2238,10 @@ public class JSONController {
             tx = session.beginTransaction();
 
             //Secondly, remove all elements
+            for (Note note : notes) {
+                session.delete(note);
+            }
+
             for (Task task : tasks) {
                 session.delete(task);
             }
@@ -2444,6 +2604,33 @@ public class JSONController {
         typeMapper.put("data", data);
         typeMapper.put("views", viewParam);
         return mapper.writeValueAsString(typeMapper);
+    }
+
+    /**
+     * Returns the new attribute-value if this is different from the current
+     * one, otherwise null
+     * 
+     * @param currentAttr
+     *            The current attribute option
+     * @param newAttr
+     *            The new attribute option
+     * @return The value of the new attribute option, or null if is doesn't
+     *         differ from the current
+     */
+    private String getUpdatedAttrValue(AttributeOption currentAttr,
+            AttributeOption newAttr) {
+        String newAttrValue = "nothing", currAttrValue = "nothing";
+        if (currentAttr != null) {
+            currAttrValue = currentAttr.getName();
+        }
+        if (newAttr != null) {
+            newAttrValue = newAttr.getName();
+        }
+
+        if (currAttrValue.equals(newAttrValue)) {
+            return null;
+        }
+        return newAttrValue;
     }
 
     /**
