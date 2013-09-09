@@ -288,6 +288,14 @@ p.description {
     margin-top: 5px;
 }
 
+p.story-description, p.epic-description, p.theme-description {
+	font-weight: normal !important;
+}
+
+li * a {
+	font-weight: bold;
+}
+
 .title {
     height: 19px;
     color: #494949;
