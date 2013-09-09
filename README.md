@@ -35,6 +35,17 @@ This tool supports login with existing LDAP user accounts, which means that user
 
 [Screenshots of the tool can be viewed here](https://github.com/sonyxperiadev/BacklogTool/wiki/Screenshots)
 
+Online demo
+===========
+
+A demo instance of Backlog tool is available at http://backlogtool.net. Login with
+* Username: admin
+* Password: test
+
+Note that the demo server is put on hibernate when not used, so it might take a minute to load the first page when it's resuming. 
+The database is emptied regularly so use it only for testing.
+
+
 Installation instructions
 =========================
 
