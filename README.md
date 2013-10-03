@@ -58,7 +58,7 @@ For users
 ---------
 1. Download the latest backlogtool.war file from https://github.com/sonyxperiadev/BacklogTool/releases and backlogtool.properties from https://github.com/sonyxperiadev/BacklogTool/raw/master/backlogtool.properties
 2. Copy the .war-file to [Tomcat location]/webapps
-3. Copy the backlog.properties-file to [Tomcat location]/conf and edit it with your own options. The conf folder does not exist by default so you might have to create it.
+3. Copy the backlog.properties-file to [Tomcat location]/conf and edit it with your own options. The database you set in the config file must exist; it will _not_ be created automatically. Also, the conf folder does not exist by default so you might have to create it.
 4. (Optional) If you want to allow area names with special characters, set URIEncoding like this: http://struts.apache.org/2.0.6/docs/how-to-support-utf-8-uriencoding-with-tomcat.html
 5. Make sure the database and LDAP servers are running and start Tomcat.
 6. Backlogtool should now be available at http://localhost:8080/backlogtool. If you want to run backlogtool as the web root, rename 'backlogtool.war' to 'ROOT.war' and restart the server
