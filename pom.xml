@@ -13,9 +13,11 @@
     <properties>
         <java-version>1.6</java-version>
         <maven.test.failure.ignore>true</maven.test.failure.ignore>
-        <org.springframework-version>3.1.0.RELEASE</org.springframework-version>
+        <org.springframework-version>3.2.4.RELEASE</org.springframework-version>
+        <org.springframework.security-version>3.1.4.RELEASE</org.springframework.security-version>
         <org.aspectj-version>1.6.9</org.aspectj-version>
         <org.slf4j-version>1.6.6</org.slf4j-version>
+        <org.atmosphere-version>1.1.0.RC4</org.atmosphere-version>
     </properties>
     <dependencies>
         <!-- Spring -->
@@ -176,39 +178,39 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>3.1.0.RELEASE</version>
+            <version>${org.springframework.security-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>3.1.0.RELEASE</version>
+            <version>${org.springframework.security-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>3.1.0.RELEASE</version>
+            <version>${org.springframework.security-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-ldap</artifactId>
-            <version>3.1.0.RELEASE</version>
+            <version>${org.springframework.security-version}</version>
         </dependency>
 
         <!-- Atmosphere -->
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-runtime</artifactId>
-            <version>1.1.0.RC4</version>
+            <version>${org.atmosphere-version}</version>
         </dependency>
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-compat-jbossweb</artifactId>
-            <version>1.1.0.RC4</version>
+            <version>${org.atmosphere-version}</version>
         </dependency>
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-compat-tomcat</artifactId>
-            <version>1.1.0.RC4</version>
+            <version>${org.atmosphere-version}</version>
         </dependency>
         
         <!--Hibernate Ehcache-->
@@ -277,11 +279,6 @@
             <id>mvn-public</id>
             <name>MVNRepository</name>
             <url>http://mvnrepository.com</url>
-        </repository>
-        <repository>
-            <id>ICEfaces Repo</id>
-            <name>ICEfaces Repo</name>
-            <url>http://anonsvn.icefaces.org/repo/maven2/releases/</url>
         </repository>
     </repositories>
 </project>
