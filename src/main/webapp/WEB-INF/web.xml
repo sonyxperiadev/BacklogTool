@@ -54,7 +54,7 @@ THE SOFTWARE.
   </listener>
     <servlet>
         <servlet-name>appServlet</servlet-name>
-        <servlet-class>org.atmosphere.cpr.MeteorNativeCometServlet</servlet-class>
+        <servlet-class>org.atmosphere.cpr.MeteorServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>

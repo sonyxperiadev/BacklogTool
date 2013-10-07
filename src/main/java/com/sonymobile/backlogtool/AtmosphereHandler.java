@@ -55,14 +55,8 @@ public final class AtmosphereHandler implements HandlerMethodArgumentResolver {
      */
     public static void suspendClient(final AtmosphereResource resource,
             String areaName) {
-        getBroadcasterForArea(areaName).addAtmosphereResource(resource);
-
-        if (AtmosphereResource.TRANSPORT.LONG_POLLING.equals(resource
-                .transport())) {
-            resource.resumeOnBroadcast(true).suspend(-1);
-        } else {
-            resource.suspend(-1);
-        }
+        Broadcaster broadcaster = getBroadcasterForArea(areaName);
+        resource.setBroadcaster(broadcaster).suspend();
     }
 
     /**
