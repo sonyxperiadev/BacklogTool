@@ -24,7 +24,6 @@
 package com.sonymobile.backlogtool;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,10 +38,7 @@ import java.util.Comparator;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereResourceFactory;
-import org.atmosphere.cpr.Broadcaster;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -56,10 +52,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +63,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.sonymobile.backlogtool.permission.User;
+
+import static com.sonymobile.backlogtool.Util.isLoggedIn;
+import static com.sonymobile.backlogtool.Util.getUserName;
 
 
 /**
@@ -491,8 +486,7 @@ public class JSONController {
         if (!isLoggedIn()) {
             throw new Error("Trying to create note without being authenticated");
         }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
+        String username = getUserName();
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -875,8 +869,7 @@ public class JSONController {
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
            @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
+        String username = getUserName();
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Story story = null;
@@ -1834,9 +1827,7 @@ public class JSONController {
     @Transactional
     public @ResponseBody boolean moveToArea(@PathVariable String areaName,
             @RequestBody int[] storyIds, @RequestParam String newAreaName) {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
+        String username = getUserName();
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -2075,8 +2066,10 @@ public class JSONController {
         areaName = areaName.replaceAll("\\<.*?>","").replaceAll("[\"/\\\\.?;#%\u20AC]", "");        
         areaName = areaName.trim();
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
+        String username = getUserName();
+        if (username == null) {
+            throw new Error("Trying to create area without being logged in");
+        }
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -2559,12 +2552,6 @@ public class JSONController {
     @Transactional
     public @ResponseBody Area readArea(@PathVariable String areaName) {
         return Util.getArea(areaName, sessionFactory);
-    }
-
-    private boolean isLoggedIn() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        GrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
-        return !auth.getAuthorities().contains(anonymous);
     }
 
     /**

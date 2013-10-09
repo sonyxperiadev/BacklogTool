@@ -34,6 +34,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 /**
@@ -164,5 +168,33 @@ public final class Util {
         }
         return text.replaceAll("(?i)((https|http):\\/\\/[^\\s]+)", "<a href='$1'>$1</a>")
                 .replaceAll("\\n", "<br />");
+    }
+    
+    /**
+     * Checks if active user is logged in.
+     * @return true if logged in, otherwise false
+     */
+    public static boolean isLoggedIn() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth == null) {
+            return false;
+        }
+        GrantedAuthority anonymous = new SimpleGrantedAuthority(
+                "ROLE_ANONYMOUS");
+        return !auth.getAuthorities().contains(anonymous);
+    }
+    
+    /**
+     * Gets the username of the active user.
+     * @return username or null if the user is not logged in
+     */
+    public static String getUserName() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth == null) {
+            return null;
+        }
+        return auth.getName();
     }
 }
