@@ -59,10 +59,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.sonymobile.backlogtool.permission.User;
+
+import static com.sonymobile.backlogtool.Util.isLoggedIn;
+import static com.sonymobile.backlogtool.Util.getUserName;
 
 /**
  * Handles requests for the application web pages.
@@ -86,9 +88,6 @@ public class HomeController {
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ModelAndView home(Locale locale, Model model,
             HttpServletResponse response) {
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        String username = auth.getName();
 
         List<String> adminAreas = null;
         List<String> nonAdminAreas = null;
@@ -98,7 +97,11 @@ public class HomeController {
         try {
             tx = session.beginTransaction();
 
-            User currentUser = (User) session.get(User.class, username);
+            String username = getUserName();
+            User currentUser = null;
+            if (username != null) {
+                currentUser = (User) session.get(User.class, username);
+            }
 
             Query allAreasQuery = session
                     .createQuery("from Area order by name");
@@ -138,8 +141,7 @@ public class HomeController {
         view.addObject("view", "home");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext()
-                .getAuthentication().getName());
+        view.addObject("loggedInUser", getUserName());
         return view;
     }
 
@@ -184,8 +186,7 @@ public class HomeController {
         view.addObject("icons", icons);
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
-        view.addObject("loggedInUser", SecurityContextHolder.getContext()
-                .getAuthentication().getName());
+        view.addObject("loggedInUser", getUserName());
         return view;
     }
 
@@ -336,12 +337,10 @@ public class HomeController {
 
         Area area = Util.getArea(areaName, sessionFactory);
 
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        String username = auth.getName();
+        String username = getUserName();
 
         List<Story> nonArchivedStories = new ArrayList<Story>();
-        Set<String> adminAreas = null;
+        Set<String> adminAreas = new HashSet<String>();
         ModelAndView view = new ModelAndView();
 
         if (area == null) {
@@ -367,8 +366,10 @@ public class HomeController {
                 //it's no point of moving stories to the same area.
                 //Allow only admins to move since missing story attributes are created
                 //automatically.
-                adminAreas = getAdminAreaNames(session, username);
-                adminAreas.remove(area.getName());
+                if (username != null) {
+                    adminAreas = getAdminAreaNames(session, username);
+                    adminAreas.remove(area.getName());
+                }
 
                 if (!archivedView) {
                     String queryString = null;
@@ -452,8 +453,7 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("loggedInUser", SecurityContextHolder.getContext()
-                .getAuthentication().getName());
+        view.addObject("loggedInUser", getUserName());
         return view;
     }
 
@@ -546,8 +546,7 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("loggedInUser", SecurityContextHolder.getContext()
-                .getAuthentication().getName());
+        view.addObject("loggedInUser", getUserName());
         return view;
     }
 
@@ -639,8 +638,7 @@ public class HomeController {
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
         view.addObject("isLoggedIn", isLoggedIn());
-        view.addObject("loggedInUser", SecurityContextHolder.getContext()
-                .getAuthentication().getName());
+        view.addObject("loggedInUser", getUserName());
         return view;
     }
 
@@ -797,21 +795,19 @@ public class HomeController {
      * @return disableEdits true if edits shall be disabled
      */
     private boolean isDisableEdits(String areaName) {
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
         if (!isLoggedIn()) {
             // Not logged in, edits must be disabled.
             return true;
         }
-        String username = auth.getName();
+        String username = getUserName();
         boolean disableEdits = true;
 
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-
-            User currentUser = (User) session.get(User.class, username);
+            User currentUser = null;
+            currentUser = (User) session.get(User.class, username);
 
             Area area = (Area) session.get(Area.class, areaName);
             if (area != null
@@ -829,14 +825,6 @@ public class HomeController {
             session.close();
         }
         return disableEdits;
-    }
-
-    private boolean isLoggedIn() {
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        GrantedAuthority anonymous = new SimpleGrantedAuthority(
-                "ROLE_ANONYMOUS");
-        return !auth.getAuthorities().contains(anonymous);
     }
 
 }
