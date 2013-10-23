@@ -3571,6 +3571,7 @@ $(document).ready(function () {
                 maxWidth = width;
             }
         });
+        maxWidth = Math.ceil(maxWidth*1.1);
         $(".typeMark, .header-id").width(maxWidth);
     };
 
@@ -3913,6 +3914,7 @@ $(document).ready(function () {
         setHeightAndMargin($("#header").height());
         // Delay to let dotdotdot truncate before we check
         delay(updateAllExpandBtns, 10, TIMER_RETRUNCATE);
+        updateTypeMarkWidth();
     });
 
     /*

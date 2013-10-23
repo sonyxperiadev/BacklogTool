@@ -298,7 +298,7 @@ p.theme,p.epic,p.typeMark {
     display: inline;
     float: left;
     font-size: 0.75em;
-    padding: 0.3em;
+    padding: 3px;
     text-align: center;
 }
 
