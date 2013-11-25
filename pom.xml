@@ -202,21 +202,6 @@
             <artifactId>atmosphere-runtime</artifactId>
             <version>${org.atmosphere-version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>atmosphere-runtime-native</artifactId>
-            <version>${org.atmosphere-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>atmosphere-compat-jbossweb</artifactId>
-            <version>${org.atmosphere-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>atmosphere-compat-tomcat</artifactId>
-            <version>${org.atmosphere-version}</version>
-        </dependency>
         
         <!--Hibernate Ehcache-->
         <dependency>

@@ -72,14 +72,6 @@ THE SOFTWARE.
             <param-value>90</param-value>
         </init-param>
         <init-param>
-            <param-name>org.atmosphere.useNative</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <init-param>
-            <param-name>org.atmosphere.useWebSocketAndServlet3</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <init-param>
             <param-name>org.atmosphere.cpr.noCacheHeaders</param-name>
             <param-value>true</param-value>
         </init-param>
