@@ -395,8 +395,9 @@ $(document).ready(function () {
         var request = new $.atmosphere.AtmosphereRequest();
         request.url = '../json/register/' + areaName;
         request.contentType = "application/json";
+        request.timeout = -1;
         request.transport = 'websocket';
-        request.fallbackTransport = 'long-polling';
+        request.fallbackTransport = 'websocket';
 //      request.logLevel = 'debug';
 
         request.onMessage = function(response) {
