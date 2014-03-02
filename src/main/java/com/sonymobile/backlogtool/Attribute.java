@@ -55,13 +55,13 @@ public class Attribute {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)
-    int id;
+    private int id;
 
-    String name;
+    private String name;
 
     @OrderBy(value="compareValue")
     @OneToMany(fetch=FetchType.EAGER)
-    Set<AttributeOption> options = new HashSet<AttributeOption>();
+    private Set<AttributeOption> options = new HashSet<AttributeOption>();
 
     public Attribute() {}
 

@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *  Copyright 2012-2014 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -1000,4 +1000,49 @@ div.titles textarea.description, div.titles-theme-epic textarea.description {
 
 div.titles textarea.description {
     min-height: 100px;
+}
+
+#status-table {
+	width: 100%;
+	table-layout: fixed;
+	border:none;
+	border-collapse: collapse;
+}
+
+.status-list {
+	min-height: 400px;
+}
+
+#status-table td {
+	border-left: 1px solid #000;
+	border-right: 1px solid #000;
+	vertical-align: top;
+	height: 100%;
+/* 	min-width: 50px; */
+}
+
+.status-item {
+	vertical-align: top;
+	margin-bottom: 5px;
+/* 	color: black; */
+}
+
+.status-child-header {
+    background-color: gainsboro;
+    font-size: 0.7em;
+    margin-bottom: 2px;
+    text-align: center;
+/*     color: black; */
+    font-weight: normal;
+}
+
+.child-container {
+/* 	margin-left:20px; */
+}
+
+.board-task {
+/* 	color: black; */
+	margin-left:35px;
+/* 	font-size: 0.9em; */
+	font-weight: normal;
 }

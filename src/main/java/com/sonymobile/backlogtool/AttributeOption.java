@@ -66,6 +66,11 @@ public class AttributeOption {
         this.compareValue = compareValue;
     }
 
+    public AttributeOption(int id, String name) {
+        this.name = name;
+        this.id = id;
+    }
+
     public AttributeOption copy() {
         AttributeOption copy = new AttributeOption();
         copy.name = name;
