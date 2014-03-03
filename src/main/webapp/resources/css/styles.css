@@ -1031,7 +1031,7 @@ div.titles textarea.description {
     background-color: gainsboro;
     font-size: 0.7em;
     margin-bottom: 2px;
-    text-align: center;
+    text-align: right;
 /*     color: black; */
     font-weight: normal;
 }

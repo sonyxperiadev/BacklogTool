@@ -164,7 +164,7 @@ function getURLParameter(name) {
  * @returns {Boolean} true if information has been typed
  */
 function isFilterActive() {
-    return $("#filter").val().length > 0;
+    return $("#filter").length && $("#filter").val().length > 0;
 }
 
 function displayUpdateMsg() {

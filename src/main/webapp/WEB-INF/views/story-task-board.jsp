@@ -61,6 +61,11 @@ THE SOFTWARE.
             <c:import url="header.jsp" />
         </div>
         <div id="main">
+            <div id="story-board-placeholder" class="placeholder" >
+                <c:set var="story" value="${placeholderStory}"/>
+                <%@ include file="/WEB-INF/views/placeholders/story-board.jsp"%>
+            </div>
+        
             <div id="list-container-div">
                 <p>Shows the currently active stories.</p>
                 <br>
@@ -77,17 +82,7 @@ THE SOFTWARE.
                                 <td>
                                     <ul id="${currentStatus.id > 0 ? currentStatus.id : 'null'}" class="status-list">
                                         <c:forEach var="story" items="${storiesByStatusId[currentStatus.id]}">
-                                            <li id="${story.id}" class="ui-state-default status-item story">
-                                            <c:choose>
-                                                <c:when test="${fn:length(story.children) == 0}">
-                                                    <div class="oneline expand-icon ui-icon ui-icon-blank"></div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div title="Show tasks" class="oneline expand-icon ui-icon ui-icon-triangle-1-e"></div>
-                                                </c:otherwise>
-                                            </c:choose>
-                                                ${story.title}
-                                            </li>
+                                            <%@ include file="/WEB-INF/views/placeholders/story-board.jsp" %>
                                         </c:forEach>
                                     </ul>
                                 </td>

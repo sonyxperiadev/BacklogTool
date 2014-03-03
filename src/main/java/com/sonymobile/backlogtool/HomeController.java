@@ -705,7 +705,12 @@ public class HomeController {
         mapper.getSerializationConfig().addMixInAnnotations(Story.class, NotesExcluder.class);
         String jsonNonArchivedStories = mapper.writeValueAsString(storiesById);
         String jsonAreaData = mapper.writeValueAsString(area);
+        
+        Story placeholderStory = new Story();
+        placeholderStory.setId(-1);
+        placeholderStory.addTask(new Task());
 
+        view.addObject("placeholderStory", placeholderStory);
         view.addObject("statuses", statuses);
         view.addObject("storiesByStatusId", storiesByStatusId);
         view.addObject("boardView", true);

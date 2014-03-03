@@ -22,77 +22,30 @@
  *  THE SOFTWARE.
  */
 
-function appendTask(task) {
+/**
+ * Function triggered when the expand buttons are pressed on a story to display tasks.
+ */
+function boardExpand(e) {
+    var story = getParent(this.parentNode.id);
+    var storyLi = $(this.parentNode);
     
-}
-
-$(document).ready(function () {
-    if ($('.status-td:first').width() < 100) {
-        $('.status-td').width("150px");
-        $('#status-table').width("auto");
-        $('#main').css("overflow-x","scroll");
-    }
-    
-    
-    
-    $( ".status-list" ).sortable({
-        connectWith: ".status-list",
-        cursor: "move",
-        placeholder: "ui-state-highlight",
-        distance: 5,
-        start: function( event, ui ) {
-            if (ui.item.hasClass("story")) {
-                $('.ui-icon-triangle-1-s').click();//Collapses all open stories.
+    if ($(this).attr("class").indexOf("ui-icon-triangle-1-s") != -1) { //clicked to expand
+        var options = area.taskAttr1.options.slice(0);
+        options.push({id:"null", name:"UNCATEGORIZED"});
+        storyLi.append('<ul class="child-container"></ul>');
+        var storyUl = storyLi.children('ul').first();
+        options.forEach(function(status) {
+            storyUl.append('<li id="' + status.id + '" class="status-child-header">' + status.name + '</li>');
+        });
+        story.children.forEach(function(task) {
+            var taskStatus = null;
+            if (task.taskAttr1 != null) {
+                taskStatus = task.taskAttr1.id;
             }
-            //Make sure the helper is correct height:
-            ui.helper.height("auto");
-            ui.placeholder.height(ui.helper.outerHeight());
-        },
-        receive: function( event, ui ) {
-            displayUpdateMsg();
-            var storyId = $(ui.item).attr("id");
-            var statusId = event.target.id;
-
-            $.ajax({
-                url : "../json/changeStoryAttr1/" + areaName + "?storyId=" + storyId,
-                type : 'POST',
-                data : statusId,
-                contentType : "application/json; charset=utf-8",
-                success : function(response) {
-                    if (response != true) {
-                        alert('Failed to change status; reloading page');
-                        location.reload();
-                    }
-                },
-                error : function(request, status, error) {
-                    alert(error);
-                    location.reload();
-                }
-            });
-            $.unblockUI();
-            
-        },
-      }).disableSelection();
-    
-    $(".expand-icon").click(function(e) {
-        var story = getParent(this.parentNode.id);
-        var storyLi = $(this.parentNode);
+            storyUl.children('#' + taskStatus).first().after('<li class="board-task" id="' + task.id  + '">' + task.title + '</li>');
+        });
         
-        if ($(this).attr("class").indexOf("ui-icon-triangle-1-s") != -1) { //clicked to expand
-            var options = area.taskAttr1.options.slice(0);
-            options.push({id:"null", name:"UNCATEGORIZED"});
-            storyLi.append('<ul class="child-container"></ul>');
-            var storyUl = storyLi.children('ul').first();
-            options.forEach(function(status) {
-                storyUl.append('<li id="' + status.id + '" class="status-child-header">' + status.name + '</li>');
-            });
-            story.children.forEach(function(task) {
-                var taskStatus = null;
-                if (task.taskAttr1 != null) {
-                    taskStatus = task.taskAttr1.id;
-                }
-                storyUl.children('#' + taskStatus).first().after('<li class="board-task" id="' + task.id  + '">' + task.title + '</li>');
-            });
+        if(loggedIn) {
             storyUl.sortable({
                 cancel: '.status-child-header',
                 axis: 'y',
@@ -127,11 +80,63 @@ $(document).ready(function () {
                     }
                 }
             });
-            
-        } else if ($(this).attr("class").indexOf("ui-icon-triangle-1-e") != -1) { //clicked to collapse
-            $(this).siblings('ul').first().remove();
         }
+    } else if ($(this).attr("class").indexOf("ui-icon-triangle-1-e") != -1) { //clicked to collapse
+        $(this).siblings('ul').first().remove();
+    }
 
-    });
+}
+
+$(document).ready(function () {
+    if ($('.status-td:first').width() < 100) {
+        $('.status-td').width("150px");
+        $('#status-table').width("auto");
+    }
+    
+    if (loggedIn) {
+        $(".status-list").sortable({
+            connectWith: ".status-list",
+            cursor: "move",
+            placeholder: "ui-state-highlight",
+            distance: 5,
+            start: function( event, ui ) {
+                if (ui.item.hasClass("story")) {
+                    $('.ui-icon-triangle-1-s').click();//Collapses all open stories.
+                }
+                //Make sure the helper is correct height:
+                ui.helper.height("auto");
+                ui.placeholder.height(ui.helper.outerHeight());
+            },
+            receive: function( event, ui ) {
+                displayUpdateMsg();
+                var storyId = $(ui.item).attr("id");
+                var statusId = event.target.id;
+
+                $.ajax({
+                    url : "../json/changeStoryAttr1/" + areaName + "?storyId=" + storyId,
+                    type : 'POST',
+                    data : statusId,
+                    contentType : "application/json; charset=utf-8",
+                    success : function(response) {
+                        if (response != true) {
+                            alert('Failed to change status; reloading page');
+                            location.reload();
+                        }
+                    },
+                    error : function(request, status, error) {
+                        alert(error);
+                        location.reload();
+                    }
+                });
+                $.unblockUI();
+                
+            },
+          }).disableSelection();
+    }
+    
+//    När story uppdaterad / Ny skapad. Ta bort den med samma id. Klona in placeholdern under rätt kolumn. Ta bort ikonen om ej tasks. Appicera klick-funktion. Trigga klick om den var öppen.
+//    Samma skall gälla om en task uppdateras.
+    
+    $(".expand-icon").click(boardExpand);
     
 });
