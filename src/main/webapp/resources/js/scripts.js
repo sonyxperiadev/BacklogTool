@@ -3126,7 +3126,7 @@ $(document).ready(function () {
                 buttons : {
                     "Move stories" : function() {
                         $.ajax({
-                            url: "../json/moveToArea" + "/" + areaName + "?newAreaName="+newArea,
+                            url: "../json/moveToArea" + "/" + areaName + "?newAreaName="+encodeURIComponent(newArea),
                             type: 'POST',
                             dataType: 'json',
                             data: JSON.stringify(storiesToMove),
