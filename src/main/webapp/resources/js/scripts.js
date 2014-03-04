@@ -455,6 +455,7 @@ $(document).ready(function () {
         request.url = '../json/register/' + areaName;
         request.contentType = "application/json";
         request.timeout = -1;
+        request.maxReconnectOnClose = Infinity;
         request.transport = 'websocket';
         request.fallbackTransport = 'websocket';
 //      request.logLevel = 'debug';
