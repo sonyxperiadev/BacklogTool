@@ -1018,7 +1018,6 @@ div.titles textarea.description {
 	border-right: 1px solid #000;
 	vertical-align: top;
 	height: 100%;
-/* 	min-width: 50px; */
 }
 
 .status-td {
@@ -1047,7 +1046,6 @@ div.titles textarea.description {
 .status-item {
 	vertical-align: top;
 	margin-bottom: 5px;
-/* 	color: black; */
 }
 
 .status-child-header {
@@ -1055,7 +1053,6 @@ div.titles textarea.description {
     font-size: 0.7em;
     margin-bottom: 2px;
     text-align: right;
-/*     color: black; */
     font-weight: normal;
 }
 
@@ -1063,13 +1060,23 @@ div.titles textarea.description {
 /* 	margin-left:20px; */
 }
 
-.board-task {
-/* 	color: black; */
-	margin-left:35px;
-/* 	font-size: 0.9em; */
+.board-story {
 	font-weight: normal;
+	color: black !important;
+}
+
+.board-task {
+	font-weight: normal;
+	margin-left:35px;
+	color: black;
 }
 
 .small-text {
 	font-size: 12px;
 }
+
+.navigation-button {
+	margin-left: 5px !important;
+	margin-top: 2px !important;
+}
+

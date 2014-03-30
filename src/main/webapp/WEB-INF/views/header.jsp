@@ -141,6 +141,28 @@ THE SOFTWARE.
     </c:if>
 </div>
 <div class="navigation-links">
+    <c:if test="${view == 'story-task'}">
+        <a id="kanban-view" class="fff inline navigation-button" href="../story-task-board/${area.name}">Switch to kanban view</a>
+        <script>
+            $("#kanban-view").button({
+                text: false,
+                icons: {
+                    primary: 'silk-icon-text-columns'
+                }
+            });
+        </script>
+    </c:if>
+    <c:if test="${view == 'story-task-board'}">
+        <a id="normal-view" class="fff inline navigation-button" href="../story-task/${area.name}">Switch to normal view</a>
+        <script>
+            $("#normal-view").button({
+                text: false,
+                icons: {
+                    primary: 'silk-icon-text-align-justify'
+                }
+            });
+        </script>
+    </c:if>
     <a title="STORY TASK VIEW" class="story-task-link navigation-link" href="../story-task/${area.name}">STORY TASK </a> 
     <a title="EPIC STORY VIEW" class="epic-story-link navigation-link" href="../epic-story/${area.name}">EPIC STORY /&nbsp</a> 
     <a title="THEME EPIC VIEW" class="theme-epic-link navigation-link" href="../theme-epic/${area.name}">THEME EPIC /&nbsp</a> 

@@ -32,7 +32,7 @@
                 class="oneline expand-icon ui-icon ui-icon-triangle-1-e"></div>
         </c:otherwise>
     </c:choose>
-    <a href="../story-task/${area.name}?ids=${story.id}" target="_blank">
+    <a href="../story-task/${area.name}?ids=${story.id}" target="_blank" class="board-story">
         ${story.title}
     </a>
 </li>
