@@ -73,8 +73,10 @@ THE SOFTWARE.
                             <c:forEach var="currentStatus" items="${statuses}">
                                 <td class="status-td">
                                 <div>
-                                    <p class="left">${currentStatus.name}
-                                    </p>
+                                    <c:if test='${currentStatus.icon != null && currentStatus.iconEnabled}'>
+                                        <img class="attr-icon left" src="../resources/image/${currentStatus.icon}" />
+                                    </c:if> 
+                                    <p class="left">&nbsp;${currentStatus.name}</p>
                                     <a class="right red-cross" title="Hide column">X</p>
                                 </div>
                                 </td>

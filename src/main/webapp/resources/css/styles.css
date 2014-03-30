@@ -1023,6 +1023,8 @@ div.titles textarea.description {
 
 .status-td {
 	padding-right: 5px;
+	padding-left: 5px;
+	padding-bottom: 6px;
 }
 
 .left {
