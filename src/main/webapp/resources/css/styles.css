@@ -1021,6 +1021,27 @@ div.titles textarea.description {
 /* 	min-width: 50px; */
 }
 
+.status-td {
+	padding-right: 5px;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.red-cross {
+	color: red;
+	font-size: 12px;
+}
+
+.red-cross:hover {
+	text-decoration: underline;
+}
+
 .status-item {
 	vertical-align: top;
 	margin-bottom: 5px;
@@ -1045,4 +1066,8 @@ div.titles textarea.description {
 	margin-left:35px;
 /* 	font-size: 0.9em; */
 	font-weight: normal;
+}
+
+.small-text {
+	font-size: 12px;
 }

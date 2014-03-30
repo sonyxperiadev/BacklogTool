@@ -139,4 +139,24 @@ $(document).ready(function () {
     
     $(".expand-icon").click(boardExpand);
     
+    $(".red-cross").click(function() {
+        var index = $(this).closest(".status-td").index() + 1;
+        var column = $("#status-table td:nth-child(" + index + "), th:nth-child(" + index + ")");
+        column.hide();
+        
+        if ($('#header-buttons').text().trim() == '') {
+            $('#header-buttons').append('Hidden columns: ');
+        }
+       
+        var statusName = $(this).siblings().text();
+        $('<a/>', {
+            'class':'small-text',
+            'text': statusName + ', ',
+        }).on('click', function(){
+            column.show();
+            $(this).remove();
+        }).appendTo('#header-buttons');
+        
+    });
+    
 });

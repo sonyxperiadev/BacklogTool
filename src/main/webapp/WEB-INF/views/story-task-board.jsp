@@ -67,13 +67,16 @@ THE SOFTWARE.
             </div>
         
             <div id="list-container-div">
-                <p>Shows the currently active stories.</p>
                 <br>
                     <table id="status-table">
                         <tr id="status-names">
                             <c:forEach var="currentStatus" items="${statuses}">
                                 <td class="status-td">
-                                    <p>${currentStatus.name}</p>
+                                <div>
+                                    <p class="left">${currentStatus.name}
+                                    </p>
+                                    <a class="right red-cross" title="Hide column">X</p>
+                                </div>
                                 </td>
                             </c:forEach>              
                         </tr>
