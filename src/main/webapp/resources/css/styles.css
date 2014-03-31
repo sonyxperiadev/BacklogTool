@@ -1067,8 +1067,12 @@ div.titles textarea.description {
 
 .board-task {
 	font-weight: normal;
-	margin-left:35px;
+	padding-left:35px;
 	color: black;
+	border-bottom: 1px solid #ccc;
+	border-top: 1px solid #ccc;
+	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
 .small-text {
