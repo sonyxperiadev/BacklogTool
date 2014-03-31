@@ -36,6 +36,7 @@ THE SOFTWARE.
         var disableEditsBoolean = "${disableEdits}" == "true" ? true : false;
         var parentsMap = ${jsonDataNonArchivedStories};
         var area = ${jsonAreaData};
+        var nbrOfColumns = ${statuses.size()};
     </script>
     <link rel="shortcut icon" href="<c:url value="/resources/css/ui-lightness/images/favicon.ico" />"></link>
     <link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/ui-lightness/jquery-ui-1.10.3.custom.min.css" />"></link>
@@ -66,7 +67,7 @@ THE SOFTWARE.
                 <%@ include file="/WEB-INF/views/placeholders/story-board.jsp"%>
             </div>
         
-            <div id="list-container-div">
+            <div id="table-container-div">
                 <br>
                     <table id="status-table">
                         <tr id="status-names">

@@ -602,6 +602,19 @@ div.navigation-links a {
     width: 90%;
     margin: 87px auto;
 }
+
+#table-container-div {
+	/* Firefox */
+	width: -moz-calc(100% - 180px);
+	/* WebKit */
+	width: -webkit-calc(100% - 180px);
+	/* Opera */
+	width: -o-calc(100% - 180px);
+	/* Standard */
+	width: calc(100% - 180px);
+	margin: 90px;
+}
+
 #left-panel, #right-panel {
     float: left;
 }
@@ -1018,6 +1031,7 @@ div.titles textarea.description {
 	border-right: 1px solid #000;
 	vertical-align: top;
 	height: 100%;
+	padding: 6px;
 }
 
 .status-td {
@@ -1054,10 +1068,6 @@ div.titles textarea.description {
     margin-bottom: 3px;
     text-align: right;
     font-weight: normal;
-}
-
-.child-container {
-/* 	margin-left:20px; */
 }
 
 .board-story {

@@ -22,6 +22,8 @@
  *  THE SOFTWARE.
  */
 
+var MIN_COLUMN_WIDTH = 300;
+
 /**
  * Function triggered when the expand buttons are pressed on a story to display tasks.
  */
@@ -32,7 +34,7 @@ function boardExpand(e) {
     if ($(this).attr("class").indexOf("ui-icon-triangle-1-s") != -1) { //clicked to expand
         var options = area.taskAttr1.options.slice(0);
         options.push({id:"null", name:"UNCATEGORIZED"});
-        storyLi.append('<ul class="child-container"></ul>');
+        storyLi.append('<ul></ul>');
         var storyUl = storyLi.children('ul').first();
         options.forEach(function(status) {
             storyUl.append('<li id="' + status.id + '" class="status-child-header">' + status.name + '</li>');
@@ -90,10 +92,12 @@ function boardExpand(e) {
 }
 
 $(document).ready(function () {
-    if ($('.status-td:first').width() < 100) {
-        $('.status-td').width("150px");
-        $('#status-table').width("auto");
-    }
+    var changeColumnWidth = function() {
+        var width = nbrOfColumns * MIN_COLUMN_WIDTH;
+        $('body').css('min-width', Math.max(width,900) + 'px');
+    };
+    
+    changeColumnWidth();
     
     if (loggedIn) {
         $(".status-list").sortable({
@@ -142,6 +146,8 @@ $(document).ready(function () {
         var index = $(this).closest(".status-td").index() + 1;
         var column = $("#status-table td:nth-child(" + index + "), th:nth-child(" + index + ")");
         column.hide();
+        nbrOfColumns--;
+        changeColumnWidth();
         
         if ($('#header-buttons').text().trim() == '') {
             $('#header-buttons').append('Hidden columns: ');
@@ -153,6 +159,8 @@ $(document).ready(function () {
             'text': statusName + ', ',
         }).on('click', function(){
             column.show();
+            nbrOfColumns++;
+            changeColumnWidth();
             $(this).remove();
         }).appendTo('#header-buttons');
         
