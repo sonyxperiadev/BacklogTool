@@ -680,49 +680,49 @@ public class HomeController {
             } finally {
                 session.close();
             }
-
-        }
-        Map<Integer,List<Story>> storiesByStatusId = new HashMap<Integer,List<Story>>();
-        HashMap<Integer, Story> storiesById = new HashMap<Integer, Story>();
-        for (Story story : stories) {
-            int statusId = -1;
-            if (story.getStoryAttr1() != null) {
-                statusId = story.getStoryAttr1().getId();
+        
+            Map<Integer,List<Story>> storiesByStatusId = new HashMap<Integer,List<Story>>();
+            HashMap<Integer, Story> storiesById = new HashMap<Integer, Story>();
+            for (Story story : stories) {
+                int statusId = -1;
+                if (story.getStoryAttr1() != null) {
+                    statusId = story.getStoryAttr1().getId();
+                }
+                List<Story> mappedList = storiesByStatusId.get(statusId);
+                if (mappedList == null) {
+                    mappedList = new ArrayList<Story>();
+                }
+                storiesByStatusId.put(statusId, mappedList);
+                mappedList.add(story);
+                storiesById.put(story.getId(), story);
             }
-            List<Story> mappedList = storiesByStatusId.get(statusId);
-            if (mappedList == null) {
-                mappedList = new ArrayList<Story>();
-            }
-            storiesByStatusId.put(statusId, mappedList);
-            mappedList.add(story);
-            storiesById.put(story.getId(), story);
+            
+            Set<AttributeOption> statuses = area.getStoryAttr1().getOptions();
+            statuses.add(new AttributeOption(-1, "UNCATEGORIZED"));
+            
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.getSerializationConfig().addMixInAnnotations(Story.class, NotesExcluder.class);
+            String jsonNonArchivedStories = mapper.writeValueAsString(storiesById);
+            String jsonAreaData = mapper.writeValueAsString(area);
+            
+            Story placeholderStory = new Story();
+            placeholderStory.setId(-1);
+            placeholderStory.addTask(new Task());
+    
+            view.addObject("placeholderStory", placeholderStory);
+            view.addObject("statuses", statuses);
+            view.addObject("storiesByStatusId", storiesByStatusId);
+            view.addObject("area", area);
+            view.addObject("disableEdits", isDisableEdits(areaName));
+            view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
+            view.addObject("jsonAreaData", jsonAreaData);
         }
-        
-        Set<AttributeOption> statuses = area.getStoryAttr1().getOptions();
-        statuses.add(new AttributeOption(-1, "UNCATEGORIZED"));
-        
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().addMixInAnnotations(Story.class, NotesExcluder.class);
-        String jsonNonArchivedStories = mapper.writeValueAsString(storiesById);
-        String jsonAreaData = mapper.writeValueAsString(area);
-        
-        Story placeholderStory = new Story();
-        placeholderStory.setId(-1);
-        placeholderStory.addTask(new Task());
-
-        view.addObject("placeholderStory", placeholderStory);
-        view.addObject("statuses", statuses);
-        view.addObject("storiesByStatusId", storiesByStatusId);
         view.addObject("boardView", true);
-        view.addObject("area", area);
-        view.addObject("disableEdits", isDisableEdits(areaName));
-        view.addObject("view", "story-task-board");
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("view", "story-task-board");
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("loggedInUser", getUserName());
-        view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
-        view.addObject("jsonAreaData", jsonAreaData);
         return view;
     }
 
