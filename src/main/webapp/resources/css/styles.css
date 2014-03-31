@@ -1051,7 +1051,7 @@ div.titles textarea.description {
 .status-child-header {
     background-color: gainsboro;
     font-size: 0.7em;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
     text-align: right;
     font-weight: normal;
 }
@@ -1077,6 +1077,10 @@ div.titles textarea.description {
 
 .small-text {
 	font-size: 12px;
+}
+
+.normal-text {
+	font-size: 15px;
 }
 
 .navigation-button {

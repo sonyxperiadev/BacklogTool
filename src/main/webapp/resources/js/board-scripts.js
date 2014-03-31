@@ -42,7 +42,8 @@ function boardExpand(e) {
             if (task.taskAttr1 != null) {
                 taskStatus = task.taskAttr1.id;
             }
-            storyUl.children('#' + taskStatus).first().after('<li class="board-task" id="' + task.id  + '">' + task.title + '</li>');
+            storyUl.children('#' + taskStatus).first().after('<li class="board-task" id="' + task.id  + '"><p class="normal-text">' + task.title + '</p></li>');
+            $('p', '#'+task.id).truncate({max_length: 45, more: '...', less: 'less',});
         });
         
         if(loggedIn) {
