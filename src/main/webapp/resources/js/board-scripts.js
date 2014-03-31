@@ -69,6 +69,7 @@ function boardExpand(e) {
                                     alert('Failed to change status; reloading page');
                                     location.reload();
                                 }
+                                getChild(taskId).taskAttr1 = getTaskAttr(statusId);
                             },
                             error : function(request, status, error) {
                                 alert(error);
@@ -133,9 +134,6 @@ $(document).ready(function () {
             },
           }).disableSelection();
     }
-    
-//    När story uppdaterad / Ny skapad. Ta bort den med samma id. Klona in placeholdern under rätt kolumn. Ta bort ikonen om ej tasks. Appicera klick-funktion. Trigga klick om den var öppen.
-//    Samma skall gälla om en task uppdateras.
     
     $(".expand-icon").click(boardExpand);
     

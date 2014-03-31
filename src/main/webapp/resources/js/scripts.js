@@ -207,6 +207,24 @@ function getChild(id) {
 };
 
 /**
+ * Get the task attribute with the specified id. Returns null if no attribute
+ * with that id is found.
+ * @param id The id of the attribute to get
+ * @returns The attribute, or null if it wasn't found
+ */
+function getTaskAttr(id) {
+    var attr = null;
+    var options = area.taskAttr1.options;
+    for (var i=0; i< options.length; i++) {
+        if (options[i].id == id) {
+            attr = options[i];
+            break;
+        }
+    }
+    return attr;
+}
+
+/**
  * Searches for a child with the specified id, and when a match is found
  * the specified function will be called with arguments (childObj, parentObj, posInParent)
  * @param id The id of the child to find
