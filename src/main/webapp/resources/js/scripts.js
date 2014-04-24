@@ -164,8 +164,85 @@ function getURLParameter(name) {
  * @returns {Boolean} true if information has been typed
  */
 function isFilterActive() {
-    return $("#filter").val().length > 0;
+    return $("#filter").length && $("#filter").val().length > 0;
 }
+
+function displayUpdateMsg() {
+    $.blockUI({
+        message: '<h1>Updating...</h1>',
+        fadeIn:  0,
+        overlayCSS: { backgroundColor: '#808080', cursor: null},
+        fadeOut:  350});
+};
+
+/**
+ * Get the parent that has the specified id
+ * @param id The id of the parent to get
+ * @returns The parent if found, otherwise null
+ */
+function getParent(id) {
+    var p = parentsMap[id];
+    if (typeof p !== "undefined" && p != null) {
+        if (typeof p.children === "undefined") {
+            p.children = new Array();
+        }
+    } else {
+        p = null;
+    }
+    return p;
+};
+
+/**
+ * Get the child with the specified id. Returns null if no child
+ * with that id is found.
+ * @param id The id of the child to get
+ * @returns The child, or null if it wasn't found
+ */
+function getChild(id) {
+    var ch = null;
+    findChild(id, function(child, parent, pos) {
+        ch = child;
+    });
+    return ch;
+};
+
+/**
+ * Get the task attribute with the specified id. Returns null if no attribute
+ * with that id is found.
+ * @param id The id of the attribute to get
+ * @returns The attribute, or null if it wasn't found
+ */
+function getTaskAttr(id) {
+    var attr = null;
+    var options = area.taskAttr1.options;
+    for (var i=0; i< options.length; i++) {
+        if (options[i].id == id) {
+            attr = options[i];
+            break;
+        }
+    }
+    return attr;
+}
+
+/**
+ * Searches for a child with the specified id, and when a match is found
+ * the specified function will be called with arguments (childObj, parentObj, posInParent)
+ * @param id The id of the child to find
+ * @param resFunc The callback when a match is found 
+ */
+function findChild(id, resFunc) {
+    for (var key in parentsMap) {
+        if (parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
+            for (var i = 0; i < parentsMap[key].children.length; i++) {
+                var child = parentsMap[key].children[i];
+                if (child.id == id) {
+                    resFunc(child, parentsMap[key], i);
+                    return;
+                }
+            }
+        }
+    }
+};
 
 $(document).ready(function () {
     var KEYCODE_ENTER = 13;
@@ -624,14 +701,6 @@ $(document).ready(function () {
         });
     };
 
-    var displayUpdateMsg = function () {
-        $.blockUI({
-            message: '<h1>Updating...</h1>',
-            fadeIn:  0,
-            overlayCSS: { backgroundColor: '#808080', cursor: null},
-            fadeOut:  350});
-    };
-
     /**
      * Exclude the scrollbar for the specified element.
      * What it does is to disable 'sortable' when the
@@ -690,23 +759,6 @@ $(document).ready(function () {
     }
     
     /**
-     * Get the parent that has the specified id
-     * @param id The id of the parent to get
-     * @returns The parent if found, otherwise null
-     */
-    var getParent = function(id) {
-        var p = parentsMap[id];
-        if (typeof p !== "undefined" && p != null) {
-            if (typeof p.children === "undefined") {
-                p.children = new Array();
-            }
-        } else {
-            p = null;
-        }
-        return p;
-    };
-
-    /**
      * Get the parent that evaluates to true in the
      * specified function
      * 
@@ -764,40 +816,6 @@ $(document).ready(function () {
             findChild(id, function(child, parent, pos) {
                 parent.children[pos] = newObject;
             });
-        }
-    };
-
-    /**
-     * Get the child with the specified id. Returns null if no child
-     * with that id is found.
-     * @param id The id of the child to get
-     * @returns The child, or null if it wasn't found
-     */
-    var getChild = function (id) {
-        var ch = null;
-        findChild(id, function(child, parent, pos) {
-            ch = child;
-        });
-        return ch;
-    };
-    
-    /**
-     * Searches for a child with the specified id, and when a match is found
-     * the specified function will be called with arguments (childObj, parentObj, posInParent)
-     * @param id The id of the child to find
-     * @param resFunc The callback when a match is found 
-     */
-    var findChild = function(id, resFunc) {
-        for (var key in parentsMap) {
-            if (parentsMap.hasOwnProperty(key) && typeof parentsMap[key].children !== "undefined") {
-                for (var i = 0; i < parentsMap[key].children.length; i++) {
-                    var child = parentsMap[key].children[i];
-                    if (child.id == id) {
-                        resFunc(child, parentsMap[key], i);
-                        return;
-                    }
-                }
-            }
         }
     };
     
@@ -1193,18 +1211,21 @@ $(document).ready(function () {
             toggleBtn.removeClass("ui-icon-triangle-1-e");
             toggleBtn.addClass("ui-icon-triangle-1-s");
         }
-        var parent = getParent(toggleBtn.closest('li').attr("id"));
-        var children = new Array();
-        for (var k = 0; k < parent.children.length; k++) {
-            var currentChildId = parent.children[k].id;
-            children.push(document.getElementById(currentChildId));
-            if (visible[currentChildId]) {
-                visible[currentChildId] = false;
-            } else {
-                visible[currentChildId] = true;
+        
+        if (view.indexOf("board") == -1) {
+            var parent = getParent(toggleBtn.closest('li').attr("id"));
+            var children = new Array();
+            for (var k = 0; k < parent.children.length; k++) {
+                var currentChildId = parent.children[k].id;
+                children.push(document.getElementById(currentChildId));
+                if (visible[currentChildId]) {
+                    visible[currentChildId] = false;
+                } else {
+                    visible[currentChildId] = true;
+                }
             }
+            $(children).slideToggle();
         }
-        $(children).slideToggle();
     };
 
     var expandedItems = new Array();
@@ -3960,6 +3981,15 @@ $(document).ready(function () {
         $("#move-li").remove();
         $(".home-link").css("color", "#1c94c4");
         $("#topic-area").text("BACKLOG TOOL");
+    } else if (view == "story-task-board") {
+        $("#print-stories").click(function() {
+            printStories();
+        });
+
+
+        $(".story-task-link").css("color", "#1c94c4");
+        $("#topic").text("BACKLOG TOOL / ");
+        $("#topic-area").text(areaName);
     }
 
     $('#settings').button({

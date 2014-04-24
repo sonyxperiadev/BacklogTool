@@ -85,7 +85,7 @@ public class JSONController {
     public static final String THEME_EPIC_VIEW = "theme-epic";
     public static final String PUSH_ACTION_DELETE = "Delete";
     public static final String ALL_VIEWS = "*";
-    
+
     private static final int UPDATE_ITEM_ARCHIVED = 1;
     private static final int UPDATE_ITEM_UNARCHIVED = 2;
 
@@ -124,7 +124,7 @@ public class JSONController {
                         "where s.area.name like ? and " +
                         "s.archived=false " +
                         "order by s.prio";
-                
+
                 //Since the archived stories don't have any prio, we order them by their date archived.
                 String archivedQueryString = "select distinct s from Story s " +
                         "left join fetch s.children " +
@@ -233,7 +233,7 @@ public class JSONController {
         long nbrOfItems = 0;
         try {
             tx = session.beginTransaction();
-            
+
             String queryString1 = "from Note " +
                     "where story.id = ? " +
                     "order by created desc";
@@ -243,13 +243,13 @@ public class JSONController {
             query1.setFirstResult(NOTES_PER_PART * (part-1));
             query1.setMaxResults(NOTES_PER_PART);
             list = Util.castList(Note.class, query1.list());
-            
+
             Query countQuery = session.createQuery("select count(id) from Note" + 
-                                        " where story.id = ?");
+                    " where story.id = ?");
             countQuery.setParameter(0, storyid);
 
             nbrOfItems = ((Long) countQuery.iterate().next()).longValue();
-            
+
             tx.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -329,12 +329,12 @@ public class JSONController {
         }
         return new ResponseEntity<String>(mapper.writeValueAsString(themes), responseHeaders, HttpStatus.CREATED);
     }
-    
+
     @RequestMapping(value="/read-archived/{areaName}", method=RequestMethod.GET)
     @Transactional
     public @ResponseBody String readArchived(@PathVariable String areaName,
-           @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
-           @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
+            @RequestParam(required = false, value = "ids") Set<Integer> filterIds,
+            @RequestParam String type, @RequestParam int page) throws JsonGenerationException, JsonMappingException, IOException {
 
         List<Object> archivedItems = new ArrayList<Object>();
         Map<Integer, List<Note>> notesForStories = new HashMap<Integer, List<Note>>();
@@ -757,7 +757,7 @@ public class JSONController {
         } finally {
             session.close();
         }
-        
+
         return newEpic;
     }
 
@@ -820,7 +820,7 @@ public class JSONController {
         } finally {
             session.close();
         }
-        
+
         return newTheme;
     }
 
@@ -868,7 +868,7 @@ public class JSONController {
     @RequestMapping(value="/updatestory/{areaName}", method = RequestMethod.POST)
     @Transactional
     public @ResponseBody Story updateStory(@PathVariable String areaName,
-           @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
+            @RequestBody NewStoryContainer updatedStory) throws JsonGenerationException, JsonMappingException, IOException {
         String username = getUserName();
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -1420,7 +1420,7 @@ public class JSONController {
             messages.add(getJsonStringExclChildren(Story.class, storyToPush, EPIC_STORY_VIEW));
             messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), storyToPush, STORY_TASK_VIEW));
             tx.commit();
-            
+
             AtmosphereHandler.pushJsonMessages(areaName, messages);
         } catch (Exception e) {
             e.printStackTrace();
@@ -2098,6 +2098,107 @@ public class JSONController {
         return areaName;
     }
 
+    @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
+    @RequestMapping(value="/changeStoryAttr1/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody boolean changeStoryAttr1(@PathVariable String areaName,
+            @RequestParam int storyId, @RequestBody Integer newAttr1Id) {
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Area area = (Area) session.get(Area.class, areaName);
+            if (area == null) {
+                throw new Exception("Could not find area!");
+            }
+
+            Story story = (Story) session.get(Story.class, storyId);
+            if (!story.getArea().getName().equals(areaName)) {
+                throw new Exception("Trying to modify unauthorized object");
+            }
+            
+            AttributeOption option = null;
+            if (newAttr1Id!= null) {
+                option = (AttributeOption) session.get(AttributeOption.class, newAttr1Id);
+                if (!area.getStoryAttr1().getOptions().contains(option)) {
+                    throw new Exception("Trying to access unauthorized object");
+                }
+            }
+
+            story.setStoryAttr1(option);
+            
+            String pushViews = STORY_TASK_VIEW;
+            if (story.getEpic() != null) {
+                pushViews += "|" + EPIC_STORY_VIEW;
+            }
+            
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Story.class, story, pushViews));
+
+            tx.commit();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+            return false;
+        } finally {
+            session.close();
+        }
+        return true;    
+    }
+    
+    @PreAuthorize("hasPermission(#areaName, 'isAdmin')")
+    @RequestMapping(value="/changeTaskAttr1/{areaName}", method = RequestMethod.POST)
+    @Transactional
+    public @ResponseBody boolean changeTaskAttr1(@PathVariable String areaName,
+            @RequestParam int taskId, @RequestBody Integer newAttr1Id) {
+
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+
+            Area area = (Area) session.get(Area.class, areaName);
+            if (area == null) {
+                throw new Exception("Could not find area!");
+            }
+
+            Task task = (Task) session.get(Task.class, taskId);
+            if (!task.getStory().getArea().getName().equals(areaName)) {
+                throw new Exception("Trying to modify unauthorized object");
+            }
+            
+            AttributeOption option = null;
+            if (newAttr1Id!= null) {
+                option = (AttributeOption) session.get(AttributeOption.class, newAttr1Id);
+                if (!area.getTaskAttr1().getOptions().contains(option)) {
+                    throw new Exception("Trying to access unauthorized object");
+                }
+            }
+
+            task.setTaskAttr1(option);
+            
+            String pushViews = STORY_TASK_VIEW;
+
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, task, pushViews));
+
+            tx.commit();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (tx != null) {
+                tx.rollback();
+            }
+            return false;
+        } finally {
+            session.close();
+        }
+        return true;    
+    }
+
     /**
      * Used when changing name of an area.
      * @return new area name if everything was ok
@@ -2628,7 +2729,7 @@ public class JSONController {
     @RequestMapping(value = "/register/{areaName}", method = RequestMethod.GET)
     @Transactional
     public @ResponseBody void registerForArea(final AtmosphereResource event, @PathVariable String areaName) {
-//        System.out.println("=== INFO === registerForArea() with areaName " + areaName);
+        //        System.out.println("=== INFO === registerForArea() with areaName " + areaName);
         AtmosphereHandler.suspendClient(event, areaName);
     }
 

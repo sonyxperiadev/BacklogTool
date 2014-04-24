@@ -28,11 +28,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -637,6 +640,87 @@ public class HomeController {
         }
         view.addObject("version", version.getVersion());
         view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("isLoggedIn", isLoggedIn());
+        view.addObject("loggedInUser", getUserName());
+        return view;
+    }
+    
+    @RequestMapping(value = "/story-task-board/{areaName}", method = RequestMethod.GET)
+    public ModelAndView storytaskBoard(
+            Locale locale,
+            Model model,
+            @PathVariable String areaName) throws JsonGenerationException, JsonMappingException, IOException {
+
+        Area area = Util.getArea(areaName, sessionFactory);
+
+        ModelAndView view = new ModelAndView();
+        List<Story> stories = Collections.emptyList();
+        
+        if (area == null) {
+            view.setViewName("area-noexist");
+        } else {
+            view.setViewName("story-task-board");
+            Session session = sessionFactory.openSession();
+            Transaction tx = null;
+            try {
+                tx = session.beginTransaction();
+                String queryString = "select distinct s from Story s "
+                        + "left join fetch s.children "
+                        + "where s.area = ? and s.archived = false "
+                        + "order by s.prio";
+                Query query = session.createQuery(queryString);
+                query.setParameter(0, area);
+                stories = Util.castList(Story.class, query.list());
+                tx.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (tx != null) {
+                    tx.rollback();
+                }
+            } finally {
+                session.close();
+            }
+        
+            Map<Integer,List<Story>> storiesByStatusId = new HashMap<Integer,List<Story>>();
+            HashMap<Integer, Story> storiesById = new HashMap<Integer, Story>();
+            for (Story story : stories) {
+                int statusId = -1;
+                if (story.getStoryAttr1() != null) {
+                    statusId = story.getStoryAttr1().getId();
+                }
+                List<Story> mappedList = storiesByStatusId.get(statusId);
+                if (mappedList == null) {
+                    mappedList = new ArrayList<Story>();
+                }
+                storiesByStatusId.put(statusId, mappedList);
+                mappedList.add(story);
+                storiesById.put(story.getId(), story);
+            }
+            
+            Set<AttributeOption> statuses = area.getStoryAttr1().getOptions();
+            statuses.add(new AttributeOption(-1, "UNCATEGORIZED"));
+            
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.getSerializationConfig().addMixInAnnotations(Story.class, NotesExcluder.class);
+            String jsonNonArchivedStories = mapper.writeValueAsString(storiesById);
+            String jsonAreaData = mapper.writeValueAsString(area);
+            
+            Story placeholderStory = new Story();
+            placeholderStory.setId(-1);
+            placeholderStory.addTask(new Task());
+    
+            view.addObject("placeholderStory", placeholderStory);
+            view.addObject("statuses", statuses);
+            view.addObject("storiesByStatusId", storiesByStatusId);
+            view.addObject("area", area);
+            view.addObject("disableEdits", isDisableEdits(areaName));
+            view.addObject("jsonDataNonArchivedStories", jsonNonArchivedStories);
+            view.addObject("jsonAreaData", jsonAreaData);
+        }
+        view.addObject("boardView", true);
+        view.addObject("version", version.getVersion());
+        view.addObject("versionNoDots", version.getVersion().replace(".", ""));
+        view.addObject("view", "story-task-board");
         view.addObject("isLoggedIn", isLoggedIn());
         view.addObject("loggedInUser", getUserName());
         return view;

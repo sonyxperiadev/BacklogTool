@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *  Copyright 2012-2014 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -602,6 +602,19 @@ div.navigation-links a {
     width: 90%;
     margin: 87px auto;
 }
+
+#table-container-div {
+	/* Firefox */
+	width: -moz-calc(100% - 180px);
+	/* WebKit */
+	width: -webkit-calc(100% - 180px);
+	/* Opera */
+	width: -o-calc(100% - 180px);
+	/* Standard */
+	width: calc(100% - 180px);
+	margin: 90px;
+}
+
 #left-panel, #right-panel {
     float: left;
 }
@@ -1001,3 +1014,87 @@ div.titles textarea.description, div.titles-theme-epic textarea.description {
 div.titles textarea.description {
     min-height: 100px;
 }
+
+#status-table {
+	width: 100%;
+	table-layout: fixed;
+	border:none;
+	border-collapse: collapse;
+}
+
+.status-list {
+	min-height: 400px;
+}
+
+#status-table td {
+	border-left: 1px solid #000;
+	border-right: 1px solid #000;
+	vertical-align: top;
+	height: 100%;
+	padding: 6px;
+}
+
+.status-td {
+	padding-right: 5px;
+	padding-left: 5px;
+	padding-bottom: 6px;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.red-cross {
+	color: red;
+	font-size: 12px;
+}
+
+.red-cross:hover {
+	text-decoration: underline;
+}
+
+.status-item {
+	vertical-align: top;
+	margin-bottom: 5px;
+}
+
+.status-child-header {
+    background-color: gainsboro;
+    font-size: 0.7em;
+    margin-bottom: 3px;
+    text-align: right;
+    font-weight: normal;
+}
+
+.board-story {
+	font-weight: normal;
+	color: black !important;
+}
+
+.board-task {
+	font-weight: normal;
+	padding-left:35px;
+	color: black;
+	border-bottom: 1px solid #ccc;
+	border-top: 1px solid #ccc;
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.small-text {
+	font-size: 12px;
+}
+
+.normal-text {
+	font-size: 15px;
+}
+
+.navigation-button {
+	margin-left: 5px !important;
+	margin-top: 2px !important;
+}
+
