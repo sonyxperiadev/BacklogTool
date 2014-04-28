@@ -707,7 +707,6 @@ public class HomeController {
             
             Story placeholderStory = new Story();
             placeholderStory.setId(-1);
-            placeholderStory.addTask(new Task());
     
             view.addObject("placeholderStory", placeholderStory);
             view.addObject("statuses", statuses);

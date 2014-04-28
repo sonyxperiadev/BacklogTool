@@ -21,18 +21,18 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
  --%>
-<li id="${story.id}" class="ui-state-default status-item story">
+<li id="${story.id}" class="ui-state-default status-item story parentLi">
 
     <c:choose>
         <c:when test="${fn:length(story.children) == 0}">
-            <div class="oneline expand-icon ui-icon ui-icon-blank"></div>
+            <div class="oneline board-expand-icon ui-icon ui-icon-blank"></div>
         </c:when>
         <c:otherwise>
-            <div title="Show tasks"
-                class="oneline expand-icon ui-icon ui-icon-triangle-1-e"></div>
+            <div title="Show tabsks"
+                class="oneline board-expand-icon ui-icon ui-icon-triangle-1-e"></div>
         </c:otherwise>
     </c:choose>
-    <a href="../story-task/${area.name}?ids=${story.id}" target="_blank" class="board-story">
+    <a href="../story-task/${area.name}?ids=${story.id}" target="_blank" class="board-story board-title">
         ${story.title}
     </a>
 </li>

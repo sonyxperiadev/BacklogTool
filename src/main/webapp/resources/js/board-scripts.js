@@ -31,7 +31,7 @@ function boardExpand(e) {
     var story = getParent(this.parentNode.id);
     var storyLi = $(this.parentNode);
     
-    if ($(this).attr("class").indexOf("ui-icon-triangle-1-s") != -1) { //clicked to expand
+    if ($(this).attr("class").indexOf("ui-icon-triangle-1-e") != -1) { //clicked to expand
         var options = area.taskAttr1.options.slice(0);
         options.push({id:"null", name:"UNCATEGORIZED"});
         storyLi.append('<ul></ul>');
@@ -47,6 +47,8 @@ function boardExpand(e) {
             storyUl.children('#' + taskStatus).first().after('<li class="board-task" id="' + task.id  + '"><p class="normal-text">' + task.title + '</p></li>');
             $('p', '#'+task.id).truncate({max_length: 45, more: '...', less: 'less',});
         });
+        $(this).removeClass("ui-icon-triangle-1-e");
+        $(this).addClass("ui-icon-triangle-1-s");
         
         if(loggedIn) {
             storyUl.sortable({
@@ -85,8 +87,40 @@ function boardExpand(e) {
                 }
             });
         }
-    } else if ($(this).attr("class").indexOf("ui-icon-triangle-1-e") != -1) { //clicked to collapse
+    } else if ($(this).attr("class").indexOf("ui-icon-triangle-1-s") != -1) { //clicked to collapse
         $(this).siblings('ul').first().remove();
+        $(this).removeClass("ui-icon-triangle-1-s");
+        $(this).addClass("ui-icon-triangle-1-e");
+    }
+
+}
+
+function handleBoardPush(storyId) {
+    var storyLi = $("li#" + storyId);
+    var story = getParent(storyId);
+    var wasExpanded = storyLi.has(".ui-icon-triangle-1-s").length > 0;
+    
+    storyLi.remove();
+    
+    var divItem = $('div#story-placeholder').clone();
+    var htmlStr = divItem.html();
+    htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
+
+    var newItem = $(htmlStr);
+    var statusId = null;
+    if (story.storyAttr1 != null) {
+        statusId = story.storyAttr1.id;
+    }
+    
+    $("ul#"+statusId).append(newItem);
+    newItem.children(".board-title").text(story.title);
+    if (story.children.length > 0) {
+        var expandIcon = newItem.children(".board-expand-icon");
+        expandIcon.removeClass("ui-icon-blank").addClass("ui-icon-triangle-1-e");
+        expandIcon.click(boardExpand);
+        if (wasExpanded) {
+            expandIcon.click();
+        }
     }
 
 }
@@ -117,6 +151,12 @@ $(document).ready(function () {
                 displayUpdateMsg();
                 var storyId = $(ui.item).attr("id");
                 var statusId = event.target.id;
+                
+                var story = getParent(storyId);
+                if (story.storyAttr1 == null) {
+                    story.storyAttr1 = new Object();
+                }
+                story.storyAttr1.id = statusId;
 
                 $.ajax({
                     url : "../json/changeStoryAttr1/" + areaName + "?storyId=" + storyId,
@@ -140,7 +180,7 @@ $(document).ready(function () {
           }).disableSelection();
     }
     
-    $(".expand-icon").click(boardExpand);
+    $(".board-expand-icon").click(boardExpand);
     
     $(".red-cross").click(function() {
         var index = $(this).closest(".status-td").index() + 1;
