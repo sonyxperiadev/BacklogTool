@@ -62,7 +62,7 @@ THE SOFTWARE.
             <c:import url="header.jsp" />
         </div>
         <div id="main">
-            <div id="story-board-placeholder" class="placeholder" >
+            <div id="story-placeholder" class="placeholder" >
                 <c:set var="story" value="${placeholderStory}"/>
                 <%@ include file="/WEB-INF/views/placeholders/story-board.jsp"%>
             </div>

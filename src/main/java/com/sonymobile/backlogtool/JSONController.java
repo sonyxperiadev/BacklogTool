@@ -83,6 +83,7 @@ public class JSONController {
     public static final String STORY_TASK_VIEW = "story-task";
     public static final String EPIC_STORY_VIEW = "epic-story";
     public static final String THEME_EPIC_VIEW = "theme-epic";
+    public static final String STORY_TASK_BOARD_VIEW = "story-task-board";
     public static final String PUSH_ACTION_DELETE = "Delete";
     public static final String ALL_VIEWS = "*";
 
@@ -564,7 +565,8 @@ public class JSONController {
             story.addTask(newTask);
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, newTask, STORY_TASK_VIEW));
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, newTask, STORY_TASK_VIEW
+                    + '|' + STORY_TASK_BOARD_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -653,7 +655,7 @@ public class JSONController {
             session.save("com.sonymobile.backlogtool.Story", newStory);
             newStory.setTitle("New story " + newStory.getId());
 
-            String pushViews = STORY_TASK_VIEW;
+            String pushViews = STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW;
             if (epic != null) {
                 epic.getChildren().add(newStory);
                 pushViews += "|" + EPIC_STORY_VIEW;
@@ -852,7 +854,8 @@ public class JSONController {
             task.setTaskAttr1(attr1);
 
             tx.commit();
-            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, task, STORY_TASK_VIEW));
+            AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, task, STORY_TASK_VIEW
+                    + '|' + STORY_TASK_BOARD_VIEW));
         } catch (Exception e) {
             e.printStackTrace();
             if (tx != null) {
@@ -1016,13 +1019,13 @@ public class JSONController {
             if (archivedStatus == UPDATE_ITEM_ARCHIVED) {
                 Note.createSystemNote(String.format("User %s archived the story", username), story, session);
 
-                messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW));
+                messages.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW));
             } else if (archivedStatus == UPDATE_ITEM_UNARCHIVED) {
                 Note.createSystemNote(String.format("User %s unarchived the story", username), story, session);
 
-                messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW));
+                messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), story, STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW));
             } else {
-                updatedStoryViews.append(STORY_TASK_VIEW);
+                updatedStoryViews.append(STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW);
             }
 
             messages.add(getJsonStringExclChildren(Story.class, story, updatedStoryViews.toString()));
@@ -1418,7 +1421,8 @@ public class JSONController {
             storyToPush.setLastItem(lastItem);
             List<String> messages = new ArrayList<String>();
             messages.add(getJsonStringExclChildren(Story.class, storyToPush, EPIC_STORY_VIEW));
-            messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), storyToPush, STORY_TASK_VIEW));
+            messages.add(getJsonStringInclChildren(Story.class.getSimpleName(), storyToPush, STORY_TASK_VIEW
+                    + '|' + STORY_TASK_BOARD_VIEW));
             tx.commit();
 
             AtmosphereHandler.pushJsonMessages(areaName, messages);
@@ -1960,8 +1964,9 @@ public class JSONController {
                     Note note = Note.createSystemNote(noteMsg, story, session);
                     pushMsgsNewArea.add(getJsonStringInclChildren(Note.class.getSimpleName(), note, STORY_TASK_VIEW));
 
-                    pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW));
-                    pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW + "|" + EPIC_STORY_VIEW));
+                    pushMsgsNewArea.add(getJsonStringExclChildren(Story.class, story, STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW));
+                    pushMsgsOldArea.add(getJsonStringInclChildren(PUSH_ACTION_DELETE, story.getId(), STORY_TASK_VIEW
+                            + '|' + EPIC_STORY_VIEW + '|' + STORY_TASK_BOARD_VIEW));
                 }
                 Util.rebuildRanks(BacklogType.STORY, oldArea, session);
 
@@ -2129,7 +2134,7 @@ public class JSONController {
 
             story.setStoryAttr1(option);
             
-            String pushViews = STORY_TASK_VIEW;
+            String pushViews = STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW;
             if (story.getEpic() != null) {
                 pushViews += "|" + EPIC_STORY_VIEW;
             }
@@ -2181,7 +2186,7 @@ public class JSONController {
 
             task.setTaskAttr1(option);
             
-            String pushViews = STORY_TASK_VIEW;
+            String pushViews = STORY_TASK_VIEW + '|' + STORY_TASK_BOARD_VIEW;
 
             AtmosphereHandler.push(areaName, getJsonStringExclChildren(Task.class, task, pushViews));
 

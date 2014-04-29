@@ -2375,75 +2375,78 @@ $(document).ready(function () {
      */
     var updateStoryLi = function(updatedStory, oneline) {
         var storyId = updatedStory.id;
-
-        var ulObj = null;
-        if (updatedStory.archived && archivedView) {
-            ulObj = $('ul#archived-list-container');
-        } else if (!updatedStory.archived && !archivedView) {
-            ulObj = $('ul#list-container');
-        }
-
-        if ($('li#' + storyId + '.story').length == 0) { //Was a new story
-            var divItem = null;
-            if (oneline) {
-                divItem = $('div#story-oneline-placeholder').clone();
-            } else {
-                divItem = $('div#story-placeholder').clone();
+        replaceParentOrChild(storyId, updatedStory);
+        if (view == 'story-task-board') {
+            handleBoardPush(updatedStory);
+        } else {          
+            var ulObj = null;
+            if (updatedStory.archived && archivedView) {
+                ulObj = $('ul#archived-list-container');
+            } else if (!updatedStory.archived && !archivedView) {
+                ulObj = $('ul#list-container');
             }
-            var htmlStr = divItem.html();
-            htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
-
-            var newItem = $(htmlStr);
-
-            if (view == "story-task") {
-                handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
-
-                var notes = getNotes(storyId);
-                var singleNote = getSingleNote(notes);
-                if (singleNote != null) {
-                    var noteLi = updateNoteLi(singleNote);
-                    noteLi.find("div.note").addClass("single-note");
+            
+            if ($('li#' + storyId + '.story').length == 0) { //Was a new story
+                var divItem = null;
+                if (oneline) {
+                    divItem = $('div#story-oneline-placeholder').clone();
                 } else {
-                    newItem.find("div.notes-container").addClass("ui-hidden");
+                    divItem = $('div#story-placeholder').clone();
+                }
+                var htmlStr = divItem.html();
+                htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
+                
+                var newItem = $(htmlStr);
+                
+                if (view == "story-task") {
+                    handleNewParentItem(updatedStory.lastItem, newItem, updatedStory, ulObj);
+                    
+                    var notes = getNotes(storyId);
+                    var singleNote = getSingleNote(notes);
+                    if (singleNote != null) {
+                        var noteLi = updateNoteLi(singleNote);
+                        noteLi.find("div.note").addClass("single-note");
+                    } else {
+                        newItem.find("div.notes-container").addClass("ui-hidden");
+                    }
+                    
+                    if (updatedStory.hasMoreNotes === true) {
+                        setLoadNotesBtnState(newItem.find("a.more-notes-loader"), 'more-to-load');
+                    }
+                } else if (view == "epic-story") {
+                    newItem.attr('parentid', updatedStory.epicId);
+                    var parent = getParent(updatedStory.epicId);
+                    var attr = 'prioInEpic';
+                    
+                    if (parent != null) {
+                        
+                        if (updatedStory[attr] > 1) {
+                            $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
+                        } else {
+                            $('li#' + parent.id).after(newItem);
+                        }
+                        addChildToParent(parent, updatedStory, attr);
+                        toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
+                    }
                 }
                 
-                if (updatedStory.hasMoreNotes === true) {
-                    setLoadNotesBtnState(newItem.find("a.more-notes-loader"), 'more-to-load');
-                }
-            } else if (view == "epic-story") {
-                newItem.attr('parentid', updatedStory.epicId);
-                var parent = getParent(updatedStory.epicId);
-                var attr = 'prioInEpic';
-
-                if (parent != null) {
-
-                    if (updatedStory[attr] > 1) {
-                        $('li#' + (parent.children[updatedStory[attr] - 2].id)).after(newItem);
-                    } else {
-                        $('li#' + parent.id).after(newItem);
+                bindEventsToItem(newItem);
+            } else {
+                if (view == "story-task") {
+                    if (typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
+                        $("li#" + storyId + " div.icon").addClass("expand-icon ui-icon ui-icon-triangle-1-e");
                     }
-                    addChildToParent(parent, updatedStory, attr);
-                    toggleExpandBtn($('li#' + parent.id), newItem, parent.children);
-                }
-            }
-
-            bindEventsToItem(newItem);
-        } else {
-            replaceParentOrChild(storyId, updatedStory);
-            if (view == "story-task") {
-                if (typeof updatedStory.children !== "undefined" && updatedStory.children.length > 0) {
-                    $("li#" + storyId + " div.icon").addClass("expand-icon ui-icon ui-icon-triangle-1-e");
-                }
-
-                if (ulObj != null) {
-                    putInCorrPrioPos(ulObj, updatedStory.lastItem, $('li#' + storyId + '.story'));
-                    if ($("#order-by").val() != "prio") {
-                        sortList(ulObj);
+                    
+                    if (ulObj != null) {
+                        putInCorrPrioPos(ulObj, updatedStory.lastItem, $('li#' + storyId + '.story'));
+                        if ($("#order-by").val() != "prio") {
+                            sortList(ulObj);
+                        }
                     }
                 }
             }
+            updateStoryLiContent(updatedStory);
         }
-        updateStoryLiContent(updatedStory);
     };
 
     var updateStoryLiContent = function(story) {
@@ -2642,45 +2645,47 @@ $(document).ready(function () {
      */
     var updateTaskLi = function(updatedTask) {
         var taskId = updatedTask.id;
-
-        if ($('li#' + taskId + '.task').length == 0) {
-            var divItem = $('div#task-placeholder').clone();
-            var htmlStr = divItem.html();
-            var parentLi = $('li#' + updatedTask.parentId + '.story');
-            htmlStr = htmlStr.replace(/-1/g, taskId); // Replace all occurences of -1
-
-            newItem = $(htmlStr);            
-            newItem.attr('id', taskId);
-            newItem.attr('parentid', updatedTask.parentId);
-
-            var parent = getParent(updatedTask.parentId);
-            var children = parent.children;
-
-            if (updatedTask.prioInStory > 1) {
-                $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
-            } else {
-                $('li#' + updatedTask.parentId + '.story').after(newItem);
-            }
-            addChildToParent(parent, updatedTask, 'prioInStory');
-            toggleExpandBtn(parentLi, newItem, children);
-
-            bindEventsToItem(newItem);
+        replaceChild(taskId, updatedTask);
+        if (view == 'story-task-board') {
+            handleBoardPush(getParent(updatedTask.parentId));
         } else {
-            replaceChild(taskId, updatedTask);
-        }
-
-        $(".taskOwner."+taskId).find("p.taskInfo").html(updatedTask.owner);
-        $(".calculatedTime."+taskId).find("p.taskInfo").html(updatedTask.calculatedTime);
-        $(".taskStatus."+taskId).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
-
-        //Re-add truncate on the title paragraph
-        var titleParagraph = $(".taskTitle."+taskId).find("p.taskInfo");
-        titleParagraph = untruncate(titleParagraph, updatedTask.title);
-        titleParagraph.truncate(
-                $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
-        );
-        if (expandedItems.indexOf('truncate'+taskId) != -1) {
-            $('a.truncate'+taskId, titleParagraph.parent()).click();
+            if ($('li#' + taskId + '.task').length == 0) {
+                var divItem = $('div#task-placeholder').clone();
+                var htmlStr = divItem.html();
+                var parentLi = $('li#' + updatedTask.parentId + '.story');
+                htmlStr = htmlStr.replace(/-1/g, taskId); // Replace all occurences of -1
+                
+                newItem = $(htmlStr);            
+                newItem.attr('id', taskId);
+                newItem.attr('parentid', updatedTask.parentId);
+                
+                var parent = getParent(updatedTask.parentId);
+                var children = parent.children;
+                
+                if (updatedTask.prioInStory > 1) {
+                    $('li#' + (children[updatedTask.prioInStory - 2].id) + '.task').after(newItem);
+                } else {
+                    $('li#' + updatedTask.parentId + '.story').after(newItem);
+                }
+                addChildToParent(parent, updatedTask, 'prioInStory');
+                toggleExpandBtn(parentLi, newItem, children);
+                
+                bindEventsToItem(newItem);
+            }
+            
+            $(".taskOwner."+taskId).find("p.taskInfo").html(updatedTask.owner);
+            $(".calculatedTime."+taskId).find("p.taskInfo").html(updatedTask.calculatedTime);
+            $(".taskStatus."+taskId).find("p.taskInfo").empty().append(getAttrImage(updatedTask.taskAttr1)).append(getNameIfExists(updatedTask.taskAttr1));
+            
+            //Re-add truncate on the title paragraph
+            var titleParagraph = $(".taskTitle."+taskId).find("p.taskInfo");
+            titleParagraph = untruncate(titleParagraph, updatedTask.title);
+            titleParagraph.truncate(
+                    $.extend({}, truncateOptions, {className: 'truncate'+taskId, max_length: 90})
+            );
+            if (expandedItems.indexOf('truncate'+taskId) != -1) {
+                $('a.truncate'+taskId, titleParagraph.parent()).click();
+            }
         }
     };
 
