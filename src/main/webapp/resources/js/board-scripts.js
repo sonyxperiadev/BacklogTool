@@ -122,7 +122,7 @@ function handleBoardPush(storyId) {
             expandIcon.click();
         }
     }
-
+    $(".status-list").sortable("refresh");
 }
 
 $(document).ready(function () {
