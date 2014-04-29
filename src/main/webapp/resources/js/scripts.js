@@ -2377,7 +2377,7 @@ $(document).ready(function () {
         var storyId = updatedStory.id;
         replaceParentOrChild(storyId, updatedStory);
         if (view == 'story-task-board') {
-            handleBoardPush(storyId);
+            handleBoardPush(updatedStory);
         } else {          
             var ulObj = null;
             if (updatedStory.archived && archivedView) {
@@ -2647,7 +2647,7 @@ $(document).ready(function () {
         var taskId = updatedTask.id;
         replaceChild(taskId, updatedTask);
         if (view == 'story-task-board') {
-            handleBoardPush(updatedTask.parentId);
+            handleBoardPush(getParent(updatedTask.parentId));
         } else {
             if ($('li#' + taskId + '.task').length == 0) {
                 var divItem = $('div#task-placeholder').clone();

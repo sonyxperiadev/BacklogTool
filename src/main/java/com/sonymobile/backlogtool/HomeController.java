@@ -667,7 +667,7 @@ public class HomeController {
                 String queryString = "select distinct s from Story s "
                         + "left join fetch s.children "
                         + "where s.area = ? and s.archived = false "
-                        + "order by s.prio";
+                        + "order by s.title";
                 Query query = session.createQuery(queryString);
                 query.setParameter(0, area);
                 stories = Util.castList(Story.class, query.list());

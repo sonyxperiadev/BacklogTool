@@ -95,26 +95,36 @@ function boardExpand(e) {
 
 }
 
-function handleBoardPush(storyId) {
-    var storyLi = $("li#" + storyId);
-    var story = getParent(storyId);
-    var wasExpanded = storyLi.has(".ui-icon-triangle-1-s").length > 0;
+function handleBoardPush(story) {
+    var storyId = story.id;
     
-    storyLi.remove();
+    //If only the story itself was updated, its children are not pushed. 
+    var storyWithChildren = getParent(storyId);
+    story.children = storyWithChildren.children;
+   
+    var storyLi = $("li#" + storyId);
+    var wasExpanded = storyLi.has(".ui-icon-triangle-1-s").length > 0;
     
     var divItem = $('div#story-placeholder').clone();
     var htmlStr = divItem.html();
     htmlStr = htmlStr.replace(/-1/g, storyId); // Replace all occurences of -1
 
     var newItem = $(htmlStr);
-    var statusId = null;
+    var statusId = "null";
     if (story.storyAttr1 != null) {
         statusId = story.storyAttr1.id;
     }
+    if (storyLi.length > 0 && storyLi.parents("ul").attr("id") == statusId) {
+        //The element already exists in the correct status list;
+        //put in same position as before
+        storyLi.after(newItem);
+    } else {
+        $("ul#"+statusId).append(newItem);
+    }
+    storyLi.remove();
     
-    $("ul#"+statusId).append(newItem);
-    newItem.children(".board-title").text(story.title);
-    if (story.children.length > 0) {
+    newItem.children(".board-title").html(story.title);
+    if (story.children != null && story.children.length > 0) {
         var expandIcon = newItem.children(".board-expand-icon");
         expandIcon.removeClass("ui-icon-blank").addClass("ui-icon-triangle-1-e");
         expandIcon.click(boardExpand);
@@ -122,7 +132,10 @@ function handleBoardPush(storyId) {
             expandIcon.click();
         }
     }
-    $(".status-list").sortable("refresh");
+    
+    var statusList = newItem.parents(".status-list");
+    
+    statusList.sortable("refresh");
 }
 
 $(document).ready(function () {
