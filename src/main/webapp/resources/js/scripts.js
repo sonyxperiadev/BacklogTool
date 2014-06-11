@@ -3729,6 +3729,7 @@ $(document).ready(function () {
             }
             updateCookie();
             addZebraStripesToParents();
+            editingItems.remove({id:id});
         });
     };
 
