@@ -2032,6 +2032,11 @@ $(document).ready(function () {
             $('.cancelButton.'+storyId).click({id: storyId},cancel);
             $('.save-button.'+storyId).click( function() {
                 saveStory(parseInt(storyId), true);
+                var notesTextArea = $("#notes-textarea-"+storyId);
+                if (notesTextArea.val().length > 0) {
+                    editingItems.remove({id:storyId, type:"note"});
+                    postNote(parseInt(storyId), notesTextArea.val());
+                }
             });
 
             //Sets values for all edit fields
