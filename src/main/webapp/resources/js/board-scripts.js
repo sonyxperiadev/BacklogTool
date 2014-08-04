@@ -97,11 +97,11 @@ function boardExpand(e) {
 
 function handleBoardPush(story) {
     var storyId = story.id;
-    
+
     //If only the story itself was updated, its children are not pushed. 
     var storyWithChildren = getParent(storyId);
     story.children = storyWithChildren.children;
-   
+
     var storyLi = $("li#" + storyId);
     var wasExpanded = storyLi.has(".ui-icon-triangle-1-s").length > 0;
     
@@ -122,7 +122,7 @@ function handleBoardPush(story) {
         $("ul#"+statusId).append(newItem);
     }
     storyLi.remove();
-    
+
     newItem.children(".board-title").html(story.title);
     if (story.children != null && story.children.length > 0) {
         var expandIcon = newItem.children(".board-expand-icon");
@@ -132,9 +132,9 @@ function handleBoardPush(story) {
             expandIcon.click();
         }
     }
-    
+
     var statusList = newItem.parents(".status-list");
-    
+
     statusList.sortable("refresh");
 }
 

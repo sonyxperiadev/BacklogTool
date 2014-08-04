@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications Inc. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -813,9 +813,14 @@ $(document).ready(function () {
             newObject.children = children;
             putParent(id, newObject);
         } else {
+            var foundChild = false;
             findChild(id, function(child, parent, pos) {
                 parent.children[pos] = newObject;
+                foundChild = true;
             });
+            if (!foundChild) { //It was a new element, add as parent:
+                putParent(id, newObject);
+            }
         }
     };
     
@@ -1766,61 +1771,76 @@ $(document).ready(function () {
      * @param itemId The id of the item to remove
      */
     var removeItem = function(itemId) {
-        var itemLi = $("li#" + itemId);
-        if (itemLi.length == 0) { // no match - try note
-            itemLi = $("#note-" + itemId);
-        }
-
-        if (itemLi.hasClass('parentLi')) { // A parent was removed
-            var obj = removeParent(itemLi.attr('id'));
-            if (typeof obj !== "undefined") {
-                $('li[parentid="' + itemId + '"]').remove();
-                itemLi.remove();
-                decrPrioForParents(obj.prio);
-            }
-        } else if (itemLi.hasClass("note")) { // a removed note
-            var note = removeNote(itemId);
-            itemLi.remove();
-            var storyId = parseInt(note.storyId);
-            var showSingleNote = (expandedItems.indexOf(storyId) == -1);
-            if (showSingleNote) {
-                var singleNote = getSingleNote(getNotes(storyId));
-                if (singleNote != null) {
-                    updateNoteLi(singleNote); // A note was removed with the list collapsed
-                }
-            }
-        } else if (itemLi.length > 0) { // A child was removed
-            var parentLi = $("li#" + itemLi.attr("parentid"));
-            var parent = getParent(itemLi.attr("parentid"));
-            var children = parent.children;
+        if (view == 'story-task-board' && getParent(itemId) == null) { // was child in story-task-board
+            var parent = getParent(getChild(itemId).parentId);
             var position = -1;
-            for (var i = 0; i < children.length; i++) {
-                if (children[i].id == itemId) {
+            for (var i = 0; i < parent.children.length; i++) {
+                if (parent.children[i].id == itemId) {
                     position = i;
                     break;
                 }
             }
             if (position >= 0) {
-                children.splice(position, 1);
-                itemLi.remove();
-                toggleExpandBtn(parentLi, itemLi, children);
-
-                var attr = "prioInStory";
-                if (view == "epic-story") {
-                    attr = "prioInEpic";
-                } else if (view == "theme-epic") {
-                    attr = "prioInTheme";
-                }
-
-                for (var i = 0; i < children.length; i++) { // Update the prio for all children
-                    children[i][attr] = i + 1;
-                }
+                parent.children.splice(position, 1);
             }
+            handleBoardPush(parent);
         } else {
-            removeNote(itemId); // test to see if it's a hidden note
-        }
-        if (typeof itemLi !== "undefined") {
-            editingItems.remove({id:itemId});
+             var itemLi = $("li#" + itemId);
+             if (itemLi.length == 0) { // no match - try note or story-task-board view
+                 itemLi = $("#note-" + itemId);
+             }
+
+             if (itemLi.hasClass('parentLi')) { // A parent was removed
+                 var obj = removeParent(itemLi.attr('id'));
+                 if (typeof obj !== "undefined") {
+                     $('li[parentid="' + itemId + '"]').remove();
+                     itemLi.remove();
+                     decrPrioForParents(obj.prio);
+                 }
+             } else if (itemLi.hasClass("note")) { // a removed note
+                 var note = removeNote(itemId);
+                 itemLi.remove();
+                 var storyId = parseInt(note.storyId);
+                 var showSingleNote = (expandedItems.indexOf(storyId) == -1);
+                 if (showSingleNote) {
+                     var singleNote = getSingleNote(getNotes(storyId));
+                     if (singleNote != null) {
+                         updateNoteLi(singleNote); // A note was removed with the list collapsed
+                     }
+                 }
+             } else if (itemLi.length > 0) { // A child was removed
+                 var parentLi = $("li#" + itemLi.attr("parentid"));
+                 var parent = getParent(itemLi.attr("parentid"));
+                 var children = parent.children;
+                 var position = -1;
+                 for (var i = 0; i < children.length; i++) {
+                     if (children[i].id == itemId) {
+                         position = i;
+                         break;
+                     }
+                 }
+                 if (position >= 0) {
+                     children.splice(position, 1);
+                     itemLi.remove();
+                     toggleExpandBtn(parentLi, itemLi, children);
+
+                     var attr = "prioInStory";
+                     if (view == "epic-story") {
+                         attr = "prioInEpic";
+                     } else if (view == "theme-epic") {
+                         attr = "prioInTheme";
+                     }
+
+                     for (var i = 0; i < children.length; i++) { // Update the prio for all children
+                         children[i][attr] = i + 1;
+                     }
+                 }
+             } else {
+                 removeNote(itemId); // test to see if it's a hidden note
+             }
+             if (typeof itemLi !== "undefined") {
+                 editingItems.remove({id:itemId});
+             }
         }
     };
     
@@ -2650,9 +2670,12 @@ $(document).ready(function () {
      */
     var updateTaskLi = function(updatedTask) {
         var taskId = updatedTask.id;
+        var parent = getParent(updatedTask.parentId);
+
+        addChildToParent(parent, updatedTask, 'prioInStory');
         replaceChild(taskId, updatedTask);
         if (view == 'story-task-board') {
-            handleBoardPush(getParent(updatedTask.parentId));
+            handleBoardPush(parent);
         } else {
             if ($('li#' + taskId + '.task').length == 0) {
                 var divItem = $('div#task-placeholder').clone();
@@ -2672,9 +2695,8 @@ $(document).ready(function () {
                 } else {
                     $('li#' + updatedTask.parentId + '.story').after(newItem);
                 }
-                addChildToParent(parent, updatedTask, 'prioInStory');
                 toggleExpandBtn(parentLi, newItem, children);
-                
+
                 bindEventsToItem(newItem);
             }
             
