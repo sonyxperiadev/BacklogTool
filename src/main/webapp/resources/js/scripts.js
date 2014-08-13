@@ -484,13 +484,17 @@ $(document).ready(function () {
 
                 //Data is on format {msg1},{msg2},
                 //make it into a valid json array:
-                data = "[" + data.substring(0, data.length - 1) + "]";
+                if (data.slice(-1) == ',') {
+                    data = data.substring(0, data.length - 1);
+                }
+                data = "[" + data + "]";
 
                 var jsonObj = {};
                 try {
                     jsonObj = JSON.parse(data);
                 } catch (error) {
-                    alert("Error: Invalid JSON-message from the server, check console log " + error);
+                    console.log("Error: Invalid JSON-message from the server " + error);
+                    console.log(data);
                 }
 
                 for (var i=0; i<jsonObj.length; i++) {
